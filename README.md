@@ -41,17 +41,17 @@ This project uses Docker Compose to manage multi-container Docker applications. 
    cd your-repo-directory
    ```
 2. Run the following command to build the image before compose it:
-   	```cmd
-        docker build -t mystichome .
-    	```
+   ```cmd
+   docker build -t mystichome .
+   ```
 3. Run the following command to start the containers using `docker-compose`:
-	```cmd
- 	docker-compose up -d
- 	```
+   ```cmd
+   docker-compose up -d
+   ```
 
-	 This command will:
-	- Build the Docker images (if necessary).
-	- Start the GlassFish server, PHPMyAdmin, and the main application in separate Docker containers.
+   This command will:
+       - Build the Docker images (if necessary).
+       - Start the GlassFish server, PHPMyAdmin, and the main application in separate Docker containers.
 The containers will be started in the background. You can check the logs to monitor the output or confirm that everything is running properly.
  - To ensure the container is started, run:
    	```cmd
