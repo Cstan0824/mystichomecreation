@@ -1,0 +1,4 @@
+*.jpg binary
+*.png binary
+*.txt text eol=lf    # Forces LF line endings for .txt files
+*.bat text eol=crlf  # Forces CRLF line endings for .bat files
