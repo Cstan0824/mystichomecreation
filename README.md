@@ -40,7 +40,11 @@ This project uses Docker Compose to manage multi-container Docker applications. 
    ```cmd
    cd your-repo-directory
    ```
-2. Run the following command to start the containers using `docker-compose`:
+2. Run the following command to build the image before compose it:
+   	```cmd
+        docker build -t mystichome .
+    	```
+3. Run the following command to start the containers using `docker-compose`:
 	```cmd
  	docker-compose up -d
  	```
