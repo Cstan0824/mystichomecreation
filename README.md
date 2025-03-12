@@ -17,7 +17,7 @@ Follow these steps to get the project running locally.
 First, clone the repository to your local machine:
 
 ```cmd
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/Cstan0824/mystichomecreation.git
 ```
 ### 2. Ensure Docker is Installed
 
@@ -75,7 +75,6 @@ The containers will be started in the background. You can check the logs to moni
 	docker-compose down
  	```
 
- 
 ### 4. Usage
 
 - **GlassFish Manager (Port 4848)**: [http://localhost:4848](http://localhost:4848)
@@ -129,3 +128,5 @@ The containers will be started in the background. You can check the logs to moni
    docker-compose --version
    ```
 
+### Netbeans IDE
+- Make sure the IDE included the Docker plugins
