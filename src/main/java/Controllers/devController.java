@@ -57,22 +57,17 @@ public class devController extends HttpServlet{
             }
 
             case "/login" -> // Login Page Logic
-            {
-                try {
-                    Class.forName("com.mysql.cj.jdbc.Driver");
-                    System.out.println("MySQL JDBC Driver Loaded Successfully!");
-                } catch (ClassNotFoundException e) {
-                    System.err.println("MySQL JDBC Driver not found! Check dependencies.");
-                }
+            {                
                 request.getRequestDispatcher("/Views/dev/login.jsp").forward(request, response);
             }
             case "/test" ->
             {
-                try {
-                    Class.forName("com.mysql.cj.jdbc.Driver");
-                    System.out.println("MySQL JDBC Driver Loaded Successfully!");
-                } catch (ClassNotFoundException e) {
-                    System.err.println("MySQL JDBC Driver not found! Check dependencies.");
+                List<dev> users = devDA.getUsers();
+                for (dev user : users) {
+                    System.out.println(user.getUsername());
+                    System.out.println(user.getEmail());
+                    System.out.println(user.getCreated_date());
+                    System.out.println(user.getPassword());
                 }
             }
             default -> // Handle 404 - Page Not Found

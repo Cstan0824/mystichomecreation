@@ -15,7 +15,7 @@ public class devDA {
         List<dev> users = null;
         try {
             // Create a query to fetch all users
-            TypedQuery<dev> query = db.createQuery("SELECT * FROM dev", dev.class);
+            TypedQuery<dev> query = db.createQuery("SELECT d FROM dev d", dev.class);
             users = query.getResultList();
         } catch (Exception e) {
             e.printStackTrace();
