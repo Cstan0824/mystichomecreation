@@ -3,6 +3,7 @@ version: "3.1"
 services:
     mysql_db:
         container_name: mysql_db
+        restart: always
         image: mysql
         ports:
             - "3306:3306"
@@ -13,10 +14,13 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
             - ./.mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+            #- ./.mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+            #- ./.mysql/seed.sql:/docker-entrypoint-initdb.d/seed.sql #Seed Data Only - Optional
 
     mysql_admin:
         container_name: mysql_admin
         image: phpmyadmin/phpmyadmin
+        restart: always
         ports:
             - "8081:80"
         environment:
@@ -29,6 +33,7 @@ services:
 
     mystichome:
         container_name: mystichome
+        restart: always
         volumes:
             - ./.mysql/glassfish_init:/opt/glassfish7/custom:ro
         build: .
