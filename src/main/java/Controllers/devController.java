@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import mvc.Helpers.Redis;
 
 @WebServlet("/dev/*")
 public class devController extends HttpServlet{
@@ -69,6 +70,8 @@ public class devController extends HttpServlet{
                     System.out.println(user.getCreated_date());
                     System.out.println(user.getPassword());
                 }
+                Redis redis = new Redis();
+                System.out.println("Redis Message Successfully Set");
             }
             default -> // Handle 404 - Page Not Found
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Page Not Found");

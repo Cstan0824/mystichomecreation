@@ -2,11 +2,11 @@ version: "3.1"
 
 services:
     mysql_db:
-        container_name: mysql_db
+        container_name: ${MYSQL_CONTAINER_NAME}
         restart: always
         image: mysql
         ports:
-            - "3306:3306"
+            - "${MYSQL_PORT}:3306"
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_USER: ${MYSQL_USER}
@@ -17,22 +17,8 @@ services:
             #- ./.mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
             #- ./.mysql/seed.sql:/docker-entrypoint-initdb.d/seed.sql #Seed Data Only - Optional
 
-    mysql_admin:
-        container_name: mysql_admin
-        image: phpmyadmin/phpmyadmin
-        restart: always
-        ports:
-            - "8081:80"
-        environment:
-            PMA_ARBITRARY: 1
-            PMA_HOST: mysql_db
-            PMA_USER: ${PMA_USER}
-            PMA_PASSWORD: ${PMA_PASSWORD}
-        depends_on:
-            - mysql_db
-
     mystichome:
-        container_name: mystichome
+        container_name: ${APP_CONTAINER_NAME}
         restart: always
         volumes:
             - ./.mysql/glassfish_init:/opt/glassfish7/custom:ro
@@ -43,7 +29,7 @@ services:
             - "4848:4848"
         environment:
             MYSQL_CONTAINER_NAME: ${MYSQL_CONTAINER_NAME}
-            MYSQL_HOST: mysql_db
+            MYSQL_HOST: ${MYSQL_CONTAINER_NAME}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -56,7 +42,34 @@ services:
 
             JTA_DATA_SOURCE: ${JTA_DATA_SOURCE}
         depends_on:
-            - mysql_db
+            - ${MYSQL_CONTAINER_NAME}
 
+    mysql_admin:
+        container_name: mysql_admin
+        image: phpmyadmin/phpmyadmin
+        restart: always
+        ports:
+            - "8081:80"
+        environment:
+            PMA_ARBITRARY: 1
+            PMA_HOST: ${MYSQL_CONTAINER_NAME}
+            PMA_USER: ${PMA_USER}
+            PMA_PASSWORD: ${PMA_PASSWORD}
+        depends_on:
+            - ${MYSQL_CONTAINER_NAME}
+    redis:
+        container_name: ${REDIS_CONTAINER_NAME}
+        image: redis
+        restart: always
+        volumes:
+            - redis_data:/data
+        ports:
+            - "${REDIS_PORT}:6379"
+        command: ["redis-server", "--appendonly", "yes"]
+        depends_on:
+            - ${MYSQL_CONTAINER_NAME}
+            - ${APP_CONTAINER_NAME}
 volumes:
     mysql_data:
+    redis_data:
+        driver: local

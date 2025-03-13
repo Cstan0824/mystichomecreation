@@ -128,5 +128,5 @@ The containers will be started in the background. You can check the logs to moni
    docker-compose --version
    ```
 
-### Netbeans IDE
-- Make sure the IDE included the Docker plugins
+### Netbeans IDE Users
+
