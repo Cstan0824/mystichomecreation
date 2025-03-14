@@ -40,7 +40,7 @@
             let username = document.getElementById("username").value;
             let password = document.getElementById("password").value;
             
-            const response = await fetch("<%= request.getContextPath() %>/landing/login", {
+            const response = await fetch("<%= request.getContextPath() %>/dev/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -51,12 +51,13 @@
             const result = await response.json();
             
             if (result.success) {
-                window.location.href = "<%= request.getContextPath() %>/landing"; // Redirect on success
+                window.location.href = "<%= request.getContextPath() %>/dev"; // Redirect on success
             } else {
                 const errorMessage = document.getElementById("error-message");
                 errorMessage.innerText = result.message;
                 errorMessage.classList.remove("hidden");
             }
+            alert(result.success + ";" + result.message);
         });
     </script>
 

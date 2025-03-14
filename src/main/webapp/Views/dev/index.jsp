@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-
+<%@ page import="Models.dev" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,9 +69,9 @@
             <h2 class="text-center text-3xl font-bold mb-8">Our Dev Contacts</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <%
-                    java.util.List<com.yourpackage.User> users = (java.util.List<com.yourpackage.User>) request.getAttribute("users");
+                    java.util.List<dev> users = (java.util.List<dev>) request.getAttribute("users");
                     if (users != null) {
-                        for (com.yourpackage.User user : users) {
+                        for (dev user : users) {
                 %>
                     <div class="bg-white p-6 rounded-lg shadow-md">
                         <p class="text-gray-700"><%= user.getEmail() %></p>

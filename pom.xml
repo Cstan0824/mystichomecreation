@@ -38,11 +38,10 @@
     <version>3.0.0</version>
 </dependency>
 
-
-    <dependency>
-    <groupId>jakarta.json</groupId>
-    <artifactId>jakarta.json-api</artifactId>
-    <version>2.1.2</version>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.15.0</version> <!-- Make sure to use the latest version -->
 </dependency>
 <dependency>
     <groupId>jakarta.platform</groupId>
