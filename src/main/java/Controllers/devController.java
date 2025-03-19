@@ -29,9 +29,8 @@ import mvc.Helpers.Redis;
 @ 3. POST /dev/login - Handles the login request for the dev module.                                       @
 @ 4. GET /dev/test - Displays the test page for the dev module.                                            @
 ============================================================================================================
-
-
  */
+
 @WebServlet("/dev/*")
 public class devController extends HttpServlet {
     private HttpServletRequest request;

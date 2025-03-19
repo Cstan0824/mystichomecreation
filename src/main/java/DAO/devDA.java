@@ -1,9 +1,15 @@
 package DAO;
 
+import java.io.Serializable;
 import java.util.List;
 
 import Models.dev;
+import jakarta.annotation.Resource;
+import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import mvc.DataAccess;
 import mvc.Helpers.Redis;
 
@@ -19,7 +25,9 @@ import mvc.Helpers.Redis;
         - Nested Query: [SELECT p FROM Product p WHERE p.price > (SELECT AVG(p2.price) FROM Product p2)]
         - Named Query: [SELECT p FROM Product p WHERE p.price > :price]
  */
-public class devDA {
+@Stateless
+public class devDA implements Serializable {
+    @PersistenceContext
     private static final EntityManager db = DataAccess.getEntityManager();
     private static final Redis cache = new Redis();
 
@@ -51,9 +59,13 @@ public class devDA {
     }
 
     public static void addUser(dev user) {
-        db.getTransaction().begin();
-        db.persist(user);
-        db.getTransaction().commit();
+        //db.getTransaction().begin();
+        try {
+            db.persist(user);
+        } catch (RuntimeException e) {
+            System.out.println("ERROR at addUser(dev user): " + e.getMessage());
+        }
+        //db.getTransaction().commit();
     }
 
     public static void addMultipleUsers(List<dev> users) {
