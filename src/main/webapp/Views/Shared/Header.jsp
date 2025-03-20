@@ -12,7 +12,7 @@
 </head>
 <body class="font-poppins overflow-x-hidden">
     <!-- Header -->
-    <div class="flex max-w-vw w-full p-4 items-center sticky top-0 bg-white" id="nav-bar">
+    <div class="flex max-w-vw w-full p-4 items-center sticky top-0 z-[1000] bg-white" id="nav-bar">
 
         <!--logo-->
         <div class="basis-1/5 flex justify-center w-full">
