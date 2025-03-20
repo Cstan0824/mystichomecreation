@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -167,7 +168,7 @@ public class ControllerBase extends HttpBase {
             // Deserialize JSON directly into a JsonNode
             return objectMapper.readTree(json);
 
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException("Error processing JSON", e);
         }
     }
