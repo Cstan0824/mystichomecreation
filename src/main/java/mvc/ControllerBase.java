@@ -2,6 +2,7 @@ package mvc;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,8 +11,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import mvc.Annotations.AuthorizationHandler;
 import mvc.Annotations.SyncCacheHandler;
-import mvc.Helpers.HttpStatusCode;
 import mvc.Helpers.JsonConverter;
+import mvc.Http.HttpBase;
+import mvc.Http.HttpStatusCode;
 
 public class ControllerBase extends HttpBase {
     public ControllerBase() {
@@ -57,7 +59,8 @@ public class ControllerBase extends HttpBase {
     @Override
     protected Result json(Object data, HttpStatusCode status, String message) {
         Result result = new Result();
-        JsonNode json = getResponseTemplate();
+
+        JsonNode json = getResponseJson(); //getResponseTemplate();
         //Setup json data
         if (data != null) {
             ((ObjectNode) json).put("data", JsonConverter.serialize(data));
@@ -65,7 +68,7 @@ public class ControllerBase extends HttpBase {
         ((ObjectNode) json).put("status", status.get());
         ((ObjectNode) json).put("message", message);
         ((ObjectNode) json).put("timestamp", System.currentTimeMillis());
-
+        System.out.println(json);
         //Setup response
         result.setData(json);
         result.setContentType("application/json");
@@ -131,7 +134,8 @@ public class ControllerBase extends HttpBase {
     private static JsonNode getResponseTemplate() {
         ObjectMapper objectMapper = new ObjectMapper();
         String content = "";
-        String path = "/Content/response.json";
+        String path = "src/main/java/Content/response.json";
+        path = Paths.get(path).toAbsolutePath().toString(); //resolve path
         File template = new File(path);
 
         // Read JSON file and return as JsonNode
@@ -146,5 +150,25 @@ public class ControllerBase extends HttpBase {
         }
         Object object = JsonConverter.deserialize(content, Object.class).get(0);
         return objectMapper.valueToTree(object);
+    }
+
+     private static JsonNode getResponseJson() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = """
+                {
+                    "status": "STATUS_MESSAGE",
+                    "timestamp": "TIMESTAMP",
+                    "message": "STATUS_MESSAGE",
+                    "data": {}
+                }
+                """;
+
+            // Deserialize JSON directly into a JsonNode
+            return objectMapper.readTree(json);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing JSON", e);
+        }
     }
 }

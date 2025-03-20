@@ -3,7 +3,7 @@ package mvc;
 import java.util.HashMap;
 import java.util.Map;
 
-import mvc.Helpers.HttpStatusCode;
+import mvc.Http.HttpStatusCode;
 
 public class Result {
     private Object data;

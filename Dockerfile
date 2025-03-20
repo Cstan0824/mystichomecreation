@@ -13,6 +13,9 @@ RUN rm -rf package-lock.json node_modules && npm install -g npm@latest
 # Ensure Tailwind CSS is explicitly installed
 RUN npm install tailwindcss@3 postcss autoprefixer
 
+# Copy Tailwind config file explicitly
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
 # Copy the full source code
 COPY . .
 

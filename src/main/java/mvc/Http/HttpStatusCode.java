@@ -1,4 +1,4 @@
-package mvc.Helpers;
+package mvc.Http;
 
 public enum HttpStatusCode {
 

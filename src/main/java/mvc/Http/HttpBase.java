@@ -1,9 +1,10 @@
-package mvc;
+package mvc.Http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -20,11 +21,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.HttpRequest;
 import mvc.Annotations.Middleware;
 import mvc.Exceptions.InvalidActionResultException;
 import mvc.Exceptions.PageNotFoundException;
-import mvc.Helpers.HttpStatusCode;
 import mvc.Helpers.JsonConverter;
+import mvc.Result;
 
 /*
     * ControllerBase class is the base class for all controllers in the application.
@@ -106,6 +108,7 @@ public abstract class HttpBase extends HttpServlet {
     //#region Process Request and Middleware
     private Method getCurrentAction() {
         String action = request.getPathInfo();
+        String httpMethod = request.getMethod();
         if (action == null) action = "";
         
         if (action.equals("") || action.equals("/")) {
@@ -113,6 +116,12 @@ public abstract class HttpBase extends HttpServlet {
         } else {
             action = action.replaceFirst("/", "");
         }
+
+        if (httpMethod.equals("")) {
+            httpMethod = "GET";
+        }
+        httpMethod = httpMethod.toUpperCase();
+
         //Retrieve current Controller's actions
         Method[] methods = this.getClass().getDeclaredMethods();
         if (methods.length == 0) {
@@ -121,6 +130,12 @@ public abstract class HttpBase extends HttpServlet {
 
         //Loop for the Controller Class Actions until the action is found
         for (Method method : methods) {
+            //skip if not public method
+            if (!Modifier.isPublic(method.getModifiers())) {
+                continue;
+            }
+
+            //Compare by action name
             String methodName = method.getName();
             ActionAttribute actionName = method.getAnnotation(ActionAttribute.class);
             if (actionName != null)
@@ -129,10 +144,24 @@ public abstract class HttpBase extends HttpServlet {
             if (!methodName.toUpperCase().equals(action.toUpperCase())) {
                 continue;
             }
+
+            //Compare by Http Method
+            HttpRequest httpRequest = method.getAnnotation(HttpRequest.class);
+            if (httpRequest != null) {
+                //Check if the Http method is the same as the API method
+                if (!httpRequest.value().get().equals(httpMethod)) {
+                    continue;
+                }
+            } else {
+                //Default to GET API
+                if (!httpMethod.equals("GET")) {
+                    continue;
+                }
+            }
             return method;
         }
         //Action Not Found
-        throw new PageNotFoundException("Page Not Found - 2");
+        throw new PageNotFoundException("Page Not Found Exception");
     }
 
     private void invokeMethod(Method action)
@@ -140,35 +169,41 @@ public abstract class HttpBase extends HttpServlet {
 
         //Register Services
         Annotation[] annotations = action.getAnnotations();
-            //Parameters Mapping - do mapping based on the request type
-            Object[] args = parameterMapping(action);
-            for (Object arg : args) {
-                if (arg != null) {
-                    System.out.println("Arg Type: " + arg.getClass().getSimpleName());
-                }
-                System.out.println("Arg: " + arg);
-                
-                
+        //Parameters Mapping - do mapping based on the request type
+        Object[] args = parameterMapping(action);
+        for (Object arg : args) {
+            if (arg != null) {
+                System.out.println("Arg Type: " + arg.getClass().getSimpleName());
             }
-            //#region execute Middlewares and action
-            executeMiddleware(annotations, MiddlewareAction.BeforeAction);
+            System.out.println("Arg: " + arg);
 
-            Object result = action.invoke(this, args);
-            if (result instanceof Result actionResult) {
-                if (actionResult.getPath() != null && !actionResult.getPath().isEmpty()) {
-                    System.out.println("Redirecting to: " + actionResult.getPath());
-                    request.getRequestDispatcher(actionResult.getPath()).forward(request, response);
-                    return;
-                } else {
-                    System.out.println("Response: " + JsonConverter.serialize(actionResult.getData()));
-                    response.getWriter().write(JsonConverter.serialize(actionResult.getData()));
-                }
+        }
+
+        //#region execute Middlewares and action
+        executeMiddleware(annotations, MiddlewareAction.BeforeAction);
+
+        Object result = action.invoke(this, args);
+        if (result instanceof Result actionResult) {
+            //need to declare response header
+            response.setContentType(actionResult.getContentType());
+            response.setStatus(actionResult.getStatusCode().get());
+            response.setCharacterEncoding(actionResult.getCharset());
+
+            if (actionResult.getPath() != null && !actionResult.getPath().isEmpty()) {
+                System.out.println("Redirecting to: " + actionResult.getPath());
+                request.getRequestDispatcher(actionResult.getPath()).forward(request, response);
+                return;
             } else {
-                throw new InvalidActionResultException("Invalid Request");
+                //set to json response 
+                System.out.println("Response: " + JsonConverter.serialize(actionResult.getData()));
+                response.getWriter().write(JsonConverter.serialize(actionResult.getData()));
             }
+        } else {
+            throw new InvalidActionResultException("Invalid Request");
+        }
 
-            executeMiddleware(annotations, MiddlewareAction.AfterAction);
-            //#endregion
+        executeMiddleware(annotations, MiddlewareAction.AfterAction);
+        //#endregion
 
     }
 
