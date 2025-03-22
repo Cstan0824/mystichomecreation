@@ -2,10 +2,8 @@ package mvc;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Scanner;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -60,8 +58,8 @@ public class ControllerBase extends HttpBase {
     @Override
     protected Result json(Object data, HttpStatusCode status, String message) {
         Result result = new Result();
-
-        JsonNode json = getResponseJson(); //getResponseTemplate();
+        
+        JsonNode json = getResponseTemplate();
         //Setup json data
         if (data != null) {
             ((ObjectNode) json).put("data", JsonConverter.serialize(data));
@@ -69,10 +67,11 @@ public class ControllerBase extends HttpBase {
         ((ObjectNode) json).put("status", status.get());
         ((ObjectNode) json).put("message", message);
         ((ObjectNode) json).put("timestamp", System.currentTimeMillis());
-        System.out.println(json);
+        //System.out.println(json);
         //Setup response
         result.setData(json);
         result.setContentType("application/json");
+        result.setStatusCode(status);
         return result;
     }
 
@@ -135,41 +134,19 @@ public class ControllerBase extends HttpBase {
     private static JsonNode getResponseTemplate() {
         ObjectMapper objectMapper = new ObjectMapper();
         String content = "";
-        String path = "src/main/java/Content/response.json";
-        path = Paths.get(path).toAbsolutePath().toString(); //resolve path
+        String dir = "Content";
+        String fileName = "response.json";
+        String path = System.getenv("FILE_UPLOAD_PATH") + "/" + dir + "/" + fileName;
         File template = new File(path);
-
         // Read JSON file and return as JsonNode
-
         try (Scanner reader = new Scanner(template)) {
             while (reader.hasNextLine()) {
                 content += reader.nextLine();
             }
             reader.close();
+            return objectMapper.readTree(content);
         } catch (IOException e) {
-            System.out.println("An error occurred while reading the response template: " + e.getMessage());
-        }
-        Object object = JsonConverter.deserialize(content, Object.class).get(0);
-        return objectMapper.valueToTree(object);
-    }
-
-     private static JsonNode getResponseJson() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = """
-                {
-                    "status": "STATUS_MESSAGE",
-                    "timestamp": "TIMESTAMP",
-                    "message": "STATUS_MESSAGE",
-                    "data": {}
-                }
-                """;
-
-            // Deserialize JSON directly into a JsonNode
-            return objectMapper.readTree(json);
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing JSON", e);
+            throw new RuntimeException("An error occurred while reading the response template", e);
         }
     }
 }

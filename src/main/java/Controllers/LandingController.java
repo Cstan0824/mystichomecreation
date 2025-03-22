@@ -7,7 +7,8 @@ import mvc.Result;
 @WebServlet("/Landing/*")
 public class LandingController extends ControllerBase {
     public Result index() {
+        //response.setAttribute("user","USER123");
+        request.setAttribute("title", "MysticHome Creations");
         return page();
     }
-
 }

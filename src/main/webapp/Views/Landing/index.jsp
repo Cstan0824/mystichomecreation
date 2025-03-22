@@ -25,7 +25,7 @@
             <!-- Overlay (Matches Video Height) -->
             <div class="absolute inset-0 font-poppins max-h-full bg-black bg-opacity-20 flex justify-center items-center px-36 lg:px-20">
                 <div class="text-white text-center">
-                    <h1 class="text-6xl font-bold drop-shadow-lg">MysticHome Creations</h1>
+                    <h1 class="text-6xl font-bold drop-shadow-lg"><%= request.getAttribute("title") %></h1>
                     <p class="text-lg font-bold drop-shadow-lg">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
                     <button class="bg-white text-black hover:bg-darkYellow hover:text-white transition-colors duration-300 ease-in-out text-lg px-4 py-2 rounded-full mt-4">Get Started</button>
                 </div>

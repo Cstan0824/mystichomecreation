@@ -1,5 +1,7 @@
 package Controllers;
 
+import java.io.File;
+import java.sql.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,7 +107,10 @@ public class sampleController extends ControllerBase {
     }
 
     public Result test() {
-        System.out.println("Test");
+        //get env variable from docker-compose.yaml
+        Date date = Date.valueOf("2025-03-22");
+        dev user = new dev("username", "password", date, "email");
+        devDA.addUser(user);
         return page();
     }
 

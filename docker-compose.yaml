@@ -22,6 +22,8 @@ services:
         restart: always
         volumes:
             - ./.mysql/glassfish_init:/opt/glassfish7/custom:ro
+            - ./src/main/java/Content:${FILE_UPLOAD_PATH}/Content
+            - upload_files:${FILE_UPLOAD_PATH}
         build: .
         image: mystichome
         ports:
@@ -41,6 +43,8 @@ services:
             POOL_SERVER_TIMEZONE: ${POOL_SERVER_TIMEZONE}
 
             JTA_DATA_SOURCE: ${JTA_DATA_SOURCE}
+            
+            FILE_UPLOAD_PATH: ${FILE_UPLOAD_PATH}
         depends_on:
             - ${MYSQL_CONTAINER_NAME}
 
@@ -70,6 +74,8 @@ services:
             - ${MYSQL_CONTAINER_NAME}
             - ${APP_CONTAINER_NAME}
 volumes:
+    upload_files:
+        driver: local
     mysql_data:
     redis_data:
         driver: local

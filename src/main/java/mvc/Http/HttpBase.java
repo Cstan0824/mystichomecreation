@@ -188,6 +188,8 @@ public abstract class HttpBase extends HttpServlet {
             response.setContentType(actionResult.getContentType());
             response.setStatus(actionResult.getStatusCode().get());
             response.setCharacterEncoding(actionResult.getCharset());
+            // System.out.println(actionResult.getContentType() + ";" + actionResult.getStatusCode().get()
+            //         + ";" +  actionResult.getCharset());
 
             if (actionResult.getPath() != null && !actionResult.getPath().isEmpty()) {
                 System.out.println("Redirecting to: " + actionResult.getPath());
