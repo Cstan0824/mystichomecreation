@@ -3,6 +3,7 @@ package mvc.Http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -99,7 +100,11 @@ public abstract class HttpBase extends HttpServlet {
             System.out.println("[ERROR] at : " + e.getLocalizedMessage());
             System.out.println("Error End");
             if (action != null) {
-                executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError);
+                try {
+                    executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError);
+                } catch (Exception ex) {
+                    System.out.println("Error at Middleware OnError: " + ex.getMessage());
+                }
             }
         }
     }
@@ -188,43 +193,57 @@ public abstract class HttpBase extends HttpServlet {
             response.setContentType(actionResult.getContentType());
             response.setStatus(actionResult.getStatusCode().get());
             response.setCharacterEncoding(actionResult.getCharset());
-            // System.out.println(actionResult.getContentType() + ";" + actionResult.getStatusCode().get()
-            //         + ";" +  actionResult.getCharset());
+
+            executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
             if (actionResult.getPath() != null && !actionResult.getPath().isEmpty()) {
-                System.out.println("Redirecting to: " + actionResult.getPath());
                 request.getRequestDispatcher(actionResult.getPath()).forward(request, response);
                 return;
             } else {
                 //set to json response 
-                System.out.println("Response: " + JsonConverter.serialize(actionResult.getData()));
                 response.getWriter().write(JsonConverter.serialize(actionResult.getData()));
             }
         } else {
             throw new InvalidActionResultException("Invalid Request");
         }
-
-        executeMiddleware(annotations, MiddlewareAction.AfterAction);
         //#endregion
 
     }
 
-    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) {
+    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception {
         for (Annotation annotation : annotations) {
-            String name = annotation.annotationType().getSimpleName();
-            if (annotation instanceof Middleware) {
-                middlewares.forEach(middleware -> {
-                    if (middleware.getClass().getSimpleName().equals(name.concat("Handler"))) {
-                        switch (action) {
-                            case BeforeAction -> middleware.executeBeforeAction();
-                            case AfterAction -> middleware.executeAfterAction();
-                            case OnError -> middleware.onError();
-                        }
-                    }
-                });
+            String annotationName = annotation.annotationType().getSimpleName();
+            String expectedHandlerName = annotationName + "Handler";
+
+            //Check if the annotation is registered inside Handler Object List
+            for (Middleware middleware : middlewares) {
+                if (!middleware.getClass().getSimpleName().equals(expectedHandlerName)) {
+                    continue;
+                }
+                //get all variables from Annotation and set the value to Handler object
+                for (Method method : annotation.annotationType().getDeclaredMethods()) {
+                    String paramName = method.getName();
+                    Object paramValue = method.invoke(annotation);
+
+                    Field field = middleware.getClass().getDeclaredField(paramName);
+
+                    //Assign value to Handler Object
+                    field.setAccessible(true); //public for temporary
+                    field.set(middleware, paramValue);
+                    field.setAccessible(false); //set back to private
+                }
+
+                switch (action) {
+                    case BeforeAction -> middleware.executeBeforeAction();
+                    case AfterAction -> middleware.executeAfterAction();
+                    case OnError -> middleware.onError();
+                }
+                break;
             }
+
         }
     }
+
     
     protected void addMiddleware(Middleware middleware) {
         //Add Middleware

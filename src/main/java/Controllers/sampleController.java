@@ -1,6 +1,5 @@
 package Controllers;
 
-import java.io.File;
 import java.sql.Date;
 import java.util.List;
 
@@ -13,6 +12,9 @@ import Models.dev;
 import jakarta.servlet.annotation.WebServlet;
 import mvc.ControllerBase;
 import mvc.Result;
+import mvc.Annotations.HttpRequest;
+import mvc.Annotations.SyncCache;
+import mvc.Http.HttpMethod;
 
 @WebServlet("/sample/*")
 public class sampleController extends ControllerBase {
@@ -114,6 +116,8 @@ public class sampleController extends ControllerBase {
         return page();
     }
 
+    @SyncCache(channel = "dev", message = "from sample/addDev")
+    @HttpRequest(HttpMethod.POST)
     public Result addDev(dev user) {
         System.out.println("Add Dev");
         ObjectMapper objectMapper = new ObjectMapper();

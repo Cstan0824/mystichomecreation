@@ -12,9 +12,6 @@ public class Result {
     private HttpStatusCode statusCode = HttpStatusCode.OK;
     private String charset = "UTF-8";
     private final Map<String, String> headers = new HashMap<>();
-    //store content type
-    //store status code
-    //store headers
 
     public String getCharset() {
         return charset;

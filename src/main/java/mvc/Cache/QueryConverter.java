@@ -1,4 +1,4 @@
-package mvc.Helpers;
+package mvc.Cache;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +16,7 @@ public class QueryConverter {
         String sql = extractQuery(query);
         Pattern pattern = Pattern.compile(":(\\w+)");
         Matcher matcher = pattern.matcher(sql);
-        StringBuffer sqlQuery = new StringBuffer();
+        StringBuffer sqlQuery = new StringBuffer(sql);
         while (matcher.find()) {
             String param = matcher.group(1); // Extract parameter name (without :)
             Object value = query.getParameterValue(param);

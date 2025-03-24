@@ -2,35 +2,26 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
-    <persistence-unit name="myPersistenceUnit" transaction-type="JTA">
-        <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-        <jta-data-source>jdbc/maindb</jta-data-source>
-        <exclude-unlisted-classes>false</exclude-unlisted-classes>
-        <properties>
-            <!-- Enable detailed SQL logging -->
-            <property name="eclipselink.logging.level" value="FINE"/>
-            <property name="eclipselink.logging.parameters" value="true"/>
-            <property name="eclipselink.logging.sql" value="true"/>
-            <property name="eclipselink.logging.logger" value="DefaultLogger"/>
-            
-            <!-- Enable native SQL format -->
-            <property name="eclipselink.jdbc.native-sql" value="true"/>
-            
-            <!-- Other settings -->
-            <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
-            <property name="eclipselink.deploy-on-startup" value="true"/>
-            <property name="eclipselink.target-database" value="MySQL"/>
-            <property name="eclipselink.target-server" value="Glassfish"/>
-            <property name="eclipselink.json.bindings" value="false"/>
-            <property name="eclipselink.json.attribute-accessor" value="false"/>
-            <property name="eclipselink.transaction.join-existing" value="true"/>
-            <property name="jakarta.persistence.schema-generation.database.action" value="update"/>
-            <property name="jakarta.persistence.transaction-type" value="JTA"/>
+    <persistence-unit name="myPersistenceUnit" transaction-type="RESOURCE_LOCAL">
+        <!--  Change provider -->
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-            <!-- Database Schema Handling -->
-            <property name="jakarta.persistence.schema-generation.database.action" value="update"/>
-            <property name="jakarta.persistence.schema-generation.create-source" value="metadata"/>
-            <property name="jakarta.persistence.schema-generation.scripts.action" value="none"/>
+        <!-- Keep your datasource if using JNDI -->
+        <non-jta-data-source>jdbc/maindb</non-jta-data-source>
+
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <properties>
+            <!--  Hibernate SQL Dialect -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
+
+            <!--  Hibernate schema auto-update -->
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+
+            <!--  Logging -->
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.use_sql_comments" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>

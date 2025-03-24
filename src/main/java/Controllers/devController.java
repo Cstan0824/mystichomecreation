@@ -11,6 +11,7 @@ import DAO.devDA;
 import Models.dev;
 import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.HttpRequest;
+import mvc.Annotations.SyncCache;
 import mvc.ControllerBase;
 import mvc.Http.HttpMethod;
 import mvc.Http.HttpStatusCode;
@@ -58,5 +59,19 @@ public class devController extends ControllerBase {
             return json(json, HttpStatusCode.OK, "Login successful");
         }
         return json(json, HttpStatusCode.UNAUTHORIZED, "Login failed");
+    }
+
+    @SyncCache(channel = "dev", message = "from dev/addDev")
+    @HttpRequest(HttpMethod.POST)
+    public Result addDev(dev user) {
+        System.out.println("Add Dev");
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonResponse = objectMapper.createObjectNode();
+        System.out.println(user.getUsername());
+        devDA.addUser(user);
+        System.out.println("User added successfully");
+        ((ObjectNode) jsonResponse).put("success", true);
+        ((ObjectNode) jsonResponse).put("username", user.getUsername());
+        return json(jsonResponse);
     }
 }

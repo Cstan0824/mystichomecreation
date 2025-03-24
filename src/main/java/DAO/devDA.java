@@ -4,14 +4,12 @@ import java.io.Serializable;
 import java.util.List;
 
 import Models.dev;
-import jakarta.annotation.Resource;
+
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
-import jakarta.transaction.UserTransaction;
+import jakarta.persistence.TypedQuery;
 import mvc.DataAccess;
-import mvc.Helpers.Redis;
+import mvc.Cache.Redis;
 
 /*
 @============================================================================================================@
@@ -27,7 +25,6 @@ import mvc.Helpers.Redis;
  */
 @Stateless
 public class devDA implements Serializable {
-    @PersistenceContext
     private static final EntityManager db = DataAccess.getEntityManager();
     private static final Redis cache = new Redis();
 
@@ -36,11 +33,8 @@ public class devDA implements Serializable {
         //Example use case with redis cache
         List<dev> users = null;
         try {
-            users = cache.getOrCreateList("users", dev.class, () -> {
-                List<dev> devs = db.createQuery("SELECT d FROM dev d", dev.class).getResultList();
-                return devs; //Callback function
-            });
-            
+            TypedQuery<dev> typedQuery = db.createQuery("SELECT d FROM dev d", dev.class);
+            users = cache.getOrCreateList("users", dev.class, typedQuery);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,13 +53,14 @@ public class devDA implements Serializable {
     }
 
     public static void addUser(dev user) {
-        //db.getTransaction().begin();
         try {
+            db.getTransaction().begin();
             db.persist(user);
+            db.getTransaction().commit();
+
         } catch (RuntimeException e) {
             System.out.println("ERROR at addUser(dev user): " + e.getMessage());
         }
-        //db.getTransaction().commit();
     }
 
     public static void addMultipleUsers(List<dev> users) {

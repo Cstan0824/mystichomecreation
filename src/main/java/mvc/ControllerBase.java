@@ -17,7 +17,6 @@ import mvc.Http.HttpStatusCode;
 public class ControllerBase extends HttpBase {
     public ControllerBase() {
         super();
-
         //Register all middleware here
         super.addMiddleware(new AuthorizationHandler());
         super.addMiddleware(new SyncCacheHandler());
@@ -32,14 +31,12 @@ public class ControllerBase extends HttpBase {
     }
 
     @Override
-
     protected Result page(String action) {
         String controller = this.getClass().getSimpleName();
         return page(action, controller);
     }
 
     @Override
-
     protected Result page(String action, String controller) {
         String path = "/Views/" + controller.replace("Controller","") + "/" + action + ".jsp";
         Result result = new Result();
