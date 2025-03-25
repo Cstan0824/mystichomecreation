@@ -71,7 +71,6 @@ public class QueryMetadata {
         public static QueryResultType set(String value) {
             for (QueryResultType resultType : QueryResultType.values()) {
                 if (resultType.value.equalsIgnoreCase(value)) {
-                    
                     return resultType;
                 }
             }

@@ -6,7 +6,7 @@ import mvc.Result;
 
 @WebServlet("/Landing/*")
 public class LandingController extends ControllerBase {
-    public Result index() {
+    public Result index()  throws Exception{
         //response.setAttribute("user","USER123");
         request.setAttribute("title", "MysticHome Creations");
         return page();

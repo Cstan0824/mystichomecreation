@@ -1,6 +1,7 @@
 package mvc.Cache;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -19,6 +20,7 @@ public class Redis {
     private static final SignalHub signalHub = new SignalHub(jedis);
     private static boolean isConnected = false;
     private static boolean isInitialized = true;
+    private static Logger logger = Logger.getLogger("Caching");
 
     public Redis() {
         if (isConnected) {
@@ -37,6 +39,7 @@ public class Redis {
             }
         } catch (Exception e) {
             isConnected = false;
+            logger.info("Failed to connect to Redis");
         }
     }
 
@@ -63,8 +66,8 @@ public class Redis {
         return jedis;
     }
 
-    //#region v2
-    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) throws JsonProcessingException {
+    //#region RETRIEVE FROM CACHE
+    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) {
         String result;
         try {
             if (!jedis.isConnected()) {
@@ -90,16 +93,17 @@ public class Redis {
 
             cacheResult(key, level, value);
             return value;
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException | JsonProcessingException e) {
+            logger.info("ERROR throws at [getOrCreate(String key, Class<T> type, TypedQuery<T> query, CacheLevel level)]: " + e.getMessage());
             return null;
         }
     }
     
-    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query) throws JsonProcessingException  {
+    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query) throws JsonProcessingException {
         return getOrCreate(key, type, query, CacheLevel.HIGH);
     }
 
-    public <T> List<T> getOrCreateList(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) throws JsonProcessingException {
+    public <T> List<T> getOrCreateList(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) {
         String result;
         try {
             if (!jedis.isConnected()) {
@@ -122,7 +126,8 @@ public class Redis {
             }
             cacheResult(key, level, value);
             return value;
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException | JsonProcessingException e) {
+            logger.info("ERROR throws at [getOrCreateList(String key, Class<T> type, TypedQuery<T> query, CacheLevel level)]: " + e.getMessage());
             return null;
         }
     }
@@ -133,8 +138,9 @@ public class Redis {
     //#endregion
 
 
+    //#region CACHE RESULT
     //Ensure Thread safety by using JedisPool at SignalHub
-    public static <T> void cacheResult(Jedis jedis, String key, CacheLevel level, T value) {
+    public static <T> void cacheResult(Jedis jedis, String key, CacheLevel level, T value) throws JsonProcessingException {
         if (level.get() == CacheLevel.CRITICAL.get()) {
             jedis.set(key, JsonConverter.serialize(value));
         } else {
@@ -142,11 +148,11 @@ public class Redis {
         }
     }
 
-    public static <T> void cacheResult(String key, CacheLevel level, T value) {
+    public static <T> void cacheResult(String key, CacheLevel level, T value) throws JsonProcessingException {
         cacheResult(jedis, key, level, value);
     }
 
-    public static <T> void cacheResult(Jedis jedis, String key, CacheLevel level, List<T> value) {
+    public static <T> void cacheResult(Jedis jedis, String key, CacheLevel level, List<T> value) throws JsonProcessingException {
         if (level.get() == CacheLevel.CRITICAL.get()) {
             jedis.set(key, JsonConverter.serialize(value));
         } else {
@@ -154,9 +160,10 @@ public class Redis {
         }
     }
     
-    public static <T> void cacheResult(String key, CacheLevel level, List<T> value) {
+    public static <T> void cacheResult(String key, CacheLevel level, List<T> value) throws JsonProcessingException {
         cacheResult(jedis, key, level, value);
     }
+    //#endregion
 
     private boolean cacheHit(String result) {
         return !(result == null || result.equals("") || result.equals("nil"));

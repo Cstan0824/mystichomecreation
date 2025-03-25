@@ -8,11 +8,20 @@ import mvc.Http.HttpStatusCode;
 public class Result {
     private Object data;
     private String redirectPath = "";
+    private boolean isRedirect = false;
     private String contentType = "text/html";
     private HttpStatusCode statusCode = HttpStatusCode.OK;
     private String charset = "UTF-8";
     private final Map<String, String> headers = new HashMap<>();
 
+
+    public boolean isRedirect() {
+        return isRedirect;
+    }
+
+    public void setRedirect(boolean isRedirect) {
+        this.isRedirect = isRedirect;
+    }
     public String getCharset() {
         return charset;
     }

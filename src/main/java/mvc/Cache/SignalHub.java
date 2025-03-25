@@ -3,6 +3,7 @@ package mvc.Cache;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ public class SignalHub {
     private JedisPool pool = new JedisPool(Redis.getHost(), Redis.getPort());
     private Jedis jedis;
     private static final EntityManager db = DataAccess.getEntityManager();
+    private static Logger logger = Logger.getLogger("Caching");
 
     public SignalHub(Jedis jedis) {
         if (!jedis.isConnected()) {
@@ -65,49 +67,42 @@ public class SignalHub {
                 @Override
                 public void onMessage(String channel, String message) {
                     System.out.println("Received message: " + message + " on channel: " + channel);
-                    
                     syncCache(key);
-                    System.out.println("Success Sync Cache");
+                    //System.out.println("Success Sync Cache");
                 }
             }, channel);
         } catch (Exception e) {
-            System.out.println("Error in subscribe: " + e.getMessage());
+            logger.info("ERROR thows at [subscribe(String channel, String key)]" + e.getMessage());
         }
-
     }
 
     @SuppressWarnings("unchecked")
     private void syncCache(String key) {
         try (Jedis threadJedis = Redis.getJedis()) {
             String json = threadJedis.get(key + ":" + Redis.getSyncCachePrefix());
-        if (json == null || json.equals("")) {
-            System.out.println("Result havent been cached");
-            return;
-        }
-        if (json.equals("OK") || json.equals("PONG")) {
-            System.out.println(json);
-            json = threadJedis.get(key + ":" + Redis.getSyncCachePrefix()); //try to get again if the result is OK or PONG [Jedis is not thread safe]
-        }
-        System.out.println("Syncing cache for key | " + key + ":" + Redis.getSyncCachePrefix());
-        System.out.println("Json: " + json);
-        QueryMetadata metadata = JsonConverter.deserialize(json, QueryMetadata.class).get(0);
-        System.out.println("Metadata: " + metadata.getSql());
-        // Execute query
-        Query query = db.createQuery(metadata.getSql());
-        switch (metadata.getType()) {
-            case SINGLE -> {
-                Object result = query.getSingleResult();
-                Redis.cacheResult(threadJedis, key, metadata.getLevel(), result);
+            if (json == null || json.equals("")) {
+                return;
             }
-            case LIST -> {
-                List<Object> results = query.getResultList();
-                Redis.cacheResult(threadJedis, key, metadata.getLevel(), results);
+            //try to get again if the result is OK or PONG [Jedis is not thread safe] sometime return unexpected result[OK,PONG]
+            if (json.equals("OK") || json.equals("PONG")) {
+                json = threadJedis.get(key + ":" + Redis.getSyncCachePrefix()); 
             }
+            QueryMetadata metadata = JsonConverter.deserialize(json, QueryMetadata.class).get(0);
+            // Execute query
+            Query query = db.createQuery(metadata.getSql());
+            switch (metadata.getType()) {
+                case SINGLE -> {
+                    Object result = query.getSingleResult();
+                    Redis.cacheResult(threadJedis, key, metadata.getLevel(), result);
+                }
+                case LIST -> {
+                    List<Object> results = query.getResultList();
+                    Redis.cacheResult(threadJedis, key, metadata.getLevel(), results);
+                }
+            }
+        } catch (Exception e) {
+            logger.info("ERROR thows at [syncCache(String key)]" + e.getMessage());
         }
-        }catch(Exception e){
-
-        }
-        
     }
 
     public void publish(String channel, String message) {
@@ -127,12 +122,11 @@ public class SignalHub {
             keys.forEach(key -> {
                 try {
                     String sync_query = jedis.get(key);
-                    System.out.println("Sync Query: " + sync_query);
                     String actualKey = key.split(":")[0];
                     QueryMetadata metadata = JsonConverter.deserialize(sync_query, QueryMetadata.class).get(0);
                     buildSubcriber(actualKey, metadata);
                 } catch (JsonProcessingException e) {
-
+                    logger.info("ERROR thows at [restore(String prefix)]" + e.getMessage());
                 }
                 //Convert to QueryMetadata object
                 //signalHub.buildSubscriber(key);

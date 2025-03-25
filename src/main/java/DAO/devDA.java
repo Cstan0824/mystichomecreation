@@ -25,34 +25,33 @@ import mvc.Cache.Redis;
  */
 @Stateless
 public class devDA implements Serializable {
-    private static final EntityManager db = DataAccess.getEntityManager();
-    private static final Redis cache = new Redis();
+    private EntityManager db = DataAccess.getEntityManager();
+    private Redis cache = new Redis();
 
+    //Get all users with Cache
     @SuppressWarnings({ "CallToPrintStackTrace", "ConvertToTryWithResources" })
-    public static List<dev> getUsers() {
-        //Example use case with redis cache
+    public List<dev> getUsers() {
         List<dev> users = null;
+        TypedQuery<dev> typedQuery = this.db.createQuery("SELECT d FROM dev d", dev.class);
         try {
-            TypedQuery<dev> typedQuery = db.createQuery("SELECT d FROM dev d", dev.class);
             users = cache.getOrCreateList("users", dev.class, typedQuery);
         } catch (Exception e) {
-            e.printStackTrace();
+            users = typedQuery.getResultList(); //run without cache if cache fails
         }
-        // Do not close db here, as it's a shared static instance
         return users;
     }
 
-    public static dev getUserById(int id) {
+    public dev getUserById(int id) {
         return db.find(dev.class, id);
     }
 
-    public static List<dev> getUserByUsername(String username) {
+    public List<dev> getUserByUsername(String username) {
         return db.createQuery("SELECT u FROM dev u WHERE LOWER(u.username) LIKE LOWER(:name)", dev.class)
                 .setParameter("name", "%" + username + "%") // Supports partial match
                 .getResultList();
     }
 
-    public static void addUser(dev user) {
+    public void addUser(dev user) {
         try {
             db.getTransaction().begin();
             db.persist(user);
@@ -63,7 +62,7 @@ public class devDA implements Serializable {
         }
     }
 
-    public static void addMultipleUsers(List<dev> users) {
+    public void addMultipleUsers(List<dev> users) {
         db.getTransaction().begin();
 
         for (int i = 0; i < users.size(); i++) {
@@ -78,7 +77,7 @@ public class devDA implements Serializable {
         db.getTransaction().commit();
     }
 
-    public static void updateUser(int id, String username) {
+    public void updateUser(int id, String username) {
         dev user = db.find(dev.class, id);
         user.setUsername(username);
         db.getTransaction().begin();
@@ -86,14 +85,14 @@ public class devDA implements Serializable {
         db.getTransaction().commit();
     }
 
-    public static void removeUser(int id) {
+    public void removeUser(int id) {
         dev user = db.find(dev.class, id);
         db.getTransaction().begin();
         db.remove(user);
         db.getTransaction().commit();
     }
 
-    public static void close() {
+    public void close() {
         db.close();
         DataAccess.closeFactory();
     }

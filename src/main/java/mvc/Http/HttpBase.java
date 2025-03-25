@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,38 +39,59 @@ import mvc.Result;
         multipart/form-data, application/json, and query parameters.
  */
 
-@MultipartConfig(
-    fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-    maxFileSize = 1024 * 1024 * 10, // 10MB
-    maxRequestSize = 1024 * 1024 * 50 // 50MB
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
+        maxFileSize = 1024 * 1024 * 10, // 10MB
+        maxRequestSize = 1024 * 1024 * 50 // 50MB
 )
 public abstract class HttpBase extends HttpServlet {
     protected static HttpServletRequest request;
     protected static HttpServletResponse response;
     private static List<Middleware> middlewares;
+    private static Logger logger = Logger.getLogger("myLogger");
 
-    //#region SERVER RESPONSE METHODS
-    protected abstract Result page();
-    protected abstract Result page(String action);
-    protected abstract Result page(String action, String controller);
-    protected abstract Result json(Object data);
-    protected abstract Result json(Object data, HttpStatusCode status, String message);
-    protected abstract Result content(Object data, String contentType);
-    protected abstract Result content(Object data, String contentType, HttpStatusCode status);
-    protected abstract Result success();
-    protected abstract Result success(String message);
-    protected abstract Result success(HttpStatusCode status, String message);
-    protected abstract Result error();
-    protected abstract Result error(String message);
-    protected abstract Result error(HttpStatusCode status, String message);
-    protected abstract Result response();
-    //#endregion
+    // #region SERVER RESPONSE METHODS
+    protected abstract Result page() throws Exception;
+
+    protected abstract Result page(String action) throws Exception;
+
+    protected abstract Result page(String action, String controller) throws Exception;
+
+    protected abstract Result json(Object data) throws Exception;
+
+    protected abstract Result json(Object data, HttpStatusCode status, String message) throws Exception;
+
+    protected abstract Result content(Object data, String contentType) throws Exception;
+
+    protected abstract Result content(Object data, String contentType, HttpStatusCode status) throws Exception;
+
+    protected abstract Result success() throws Exception;
+
+    protected abstract Result success(String message) throws Exception;
+
+    protected abstract Result success(HttpStatusCode status, String message) throws Exception;
+
+    protected abstract Result error() throws Exception;
+
+    protected abstract Result error(String message) throws Exception;
+
+    protected abstract Result error(HttpStatusCode status, String message) throws Exception;
+
+    protected abstract Result response() throws Exception;
+    // #endregion
 
     public HttpBase() {
-        
+
     }
-    
-    //#region OVERRIDE METHODS[HttpServlet]
+
+    protected void addMiddleware(Middleware middleware) {
+        // Add Middleware
+        if (middlewares == null) {
+            middlewares = new ArrayList<>();
+        }
+        middlewares.add(middleware);
+    }
+
+    // #region OVERRIDE METHODS[HttpServlet]
     @Override
     public void init() throws ServletException {
         super.init();
@@ -86,36 +108,29 @@ public abstract class HttpBase extends HttpServlet {
 
             invokeMethod(action);
         } catch (Exception e) {
-            //Logging service
-            System.out.println("Error Start");
-            StackTraceElement[] stackTrace = e.getStackTrace();
-            if (stackTrace.length > 0) {
-                StackTraceElement source = stackTrace[0]; // The first element contains the error source
-                System.out.println("Exception occurred in:");
-                System.out.println("Class: " + source.getClassName());
-                System.out.println("Method: " + source.getMethodName());
-                System.out.println("File: " + source.getFileName());
-                System.out.println("Line: " + source.getLineNumber());
+            // Logging service
+            logger.info(
+                    "Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: " + e.getMessage());
+            if (action == null) {
+                return;
             }
-            System.out.println("[ERROR] at : " + e.getLocalizedMessage());
-            System.out.println("Error End");
-            if (action != null) {
-                try {
-                    executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError);
-                } catch (Exception ex) {
-                    System.out.println("Error at Middleware OnError: " + ex.getMessage());
-                }
+            try {
+                executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError);
+            } catch (Exception ex) {
+                logger.info("Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: "
+                        + e.getMessage());
             }
         }
     }
-    //#endregion
+    // #endregion
 
-    //#region Process Request and Middleware
-    private Method getCurrentAction() {
+    // #region Process Request and Middleware
+    private Method getCurrentAction() throws PageNotFoundException {
         String action = request.getPathInfo();
-        String httpMethod = request.getMethod();
-        if (action == null) action = "";
-        
+        String httpMethod = request.getMethod().toUpperCase();
+        if (action == null)
+            action = "";
+
         if (action.equals("") || action.equals("/")) {
             action = "index";
         } else {
@@ -125,112 +140,104 @@ public abstract class HttpBase extends HttpServlet {
         if (httpMethod.equals("")) {
             httpMethod = "GET";
         }
-        httpMethod = httpMethod.toUpperCase();
 
-        //Retrieve current Controller's actions
+        // Retrieve current Controller's actions
         Method[] methods = this.getClass().getDeclaredMethods();
         if (methods.length == 0) {
-            throw new PageNotFoundException("Page Not Found");
+            throw new PageNotFoundException("Invalid URL, Page Not Found");
         }
 
-        //Loop for the Controller Class Actions until the action is found
+        // Loop for the Controller Class Actions until the action is found
         for (Method method : methods) {
-            //skip if not public method
+            // skip if not public method
             if (!Modifier.isPublic(method.getModifiers())) {
                 continue;
             }
 
-            //Compare by action name
+            // Compare by action name
             String methodName = method.getName();
             ActionAttribute actionName = method.getAnnotation(ActionAttribute.class);
             if (actionName != null)
                 methodName = actionName.name();
 
-            if (!methodName.toUpperCase().equals(action.toUpperCase())) {
+            if (!methodName.equals(action)) 
                 continue;
-            }
+            
 
-            //Compare by Http Method
+            // Compare by Http Method
             HttpRequest httpRequest = method.getAnnotation(HttpRequest.class);
             if (httpRequest != null) {
-                //Check if the Http method is the same as the API method
+                // Check if the Http method is the same as the API method
                 if (!httpRequest.value().get().equals(httpMethod)) {
                     continue;
                 }
             } else {
-                //Default to GET API
-                if (!httpMethod.equals("GET")) {
+                // Default to GET API
+                if (!httpMethod.equals("GET"))
                     continue;
-                }
             }
             return method;
         }
-        //Action Not Found
-        throw new PageNotFoundException("Page Not Found Exception");
+        // Action Not Found
+        throw new PageNotFoundException("Invalid URL, Page Not Found");
     }
 
     private void invokeMethod(Method action)
             throws Exception {
-
-        //Register Services
+        // Register Services
         Annotation[] annotations = action.getAnnotations();
-        //Parameters Mapping - do mapping based on the request type
+
+        // Parameters Mapping - do mapping based on the request type
         Object[] args = parameterMapping(action);
-        for (Object arg : args) {
-            if (arg != null) {
-                System.out.println("Arg Type: " + arg.getClass().getSimpleName());
-            }
-            System.out.println("Arg: " + arg);
 
-        }
-
-        //#region execute Middlewares and action
+        // #region execute Middlewares and action
         executeMiddleware(annotations, MiddlewareAction.BeforeAction);
 
         Object result = action.invoke(this, args);
         if (result instanceof Result actionResult) {
-            //need to declare response header
+            // need to declare response header
             response.setContentType(actionResult.getContentType());
             response.setStatus(actionResult.getStatusCode().get());
             response.setCharacterEncoding(actionResult.getCharset());
 
             executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
-            if (actionResult.getPath() != null && !actionResult.getPath().isEmpty()) {
+            if (actionResult.isRedirect()) {
                 request.getRequestDispatcher(actionResult.getPath()).forward(request, response);
                 return;
             } else {
-                //set to json response 
+                // set to json response
                 response.getWriter().write(JsonConverter.serialize(actionResult.getData()));
             }
         } else {
             throw new InvalidActionResultException("Invalid Request");
         }
-        //#endregion
+        // #endregion
 
     }
 
-    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception {
+    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception
+    {
         for (Annotation annotation : annotations) {
             String annotationName = annotation.annotationType().getSimpleName();
             String expectedHandlerName = annotationName + "Handler";
 
-            //Check if the annotation is registered inside Handler Object List
+            // Check if the annotation is registered inside Handler Object List
             for (Middleware middleware : middlewares) {
-                if (!middleware.getClass().getSimpleName().equals(expectedHandlerName)) {
+                if (!middleware.getClass().getSimpleName().equals(expectedHandlerName))
                     continue;
-                }
-                //get all variables from Annotation and set the value to Handler object
+
+                // get all variables from Annotation and set the value to Handler object
                 for (Method method : annotation.annotationType().getDeclaredMethods()) {
                     String paramName = method.getName();
                     Object paramValue = method.invoke(annotation);
 
                     Field field = middleware.getClass().getDeclaredField(paramName);
 
-                    //Assign value to Handler Object
-                    field.setAccessible(true); //public for temporary
+                    // Assign value to Handler Object
+                    field.setAccessible(true); // public for temporary
                     field.set(middleware, paramValue);
-                    field.setAccessible(false); //set back to private
+                    field.setAccessible(false); // set back to private
                 }
 
                 switch (action) {
@@ -240,37 +247,26 @@ public abstract class HttpBase extends HttpServlet {
                 }
                 break;
             }
-
         }
     }
 
-    
-    protected void addMiddleware(Middleware middleware) {
-        //Add Middleware
-        if (middlewares == null) {
-            middlewares = new ArrayList<>();
-        }
-        middlewares.add(middleware);
-    }
+    // #endregion
 
-    //#endregion
-    
-    //#region PARAMETER MAPPING
-    private Object[] parameterMapping(Method action) throws IOException, Exception {
+    // #region PARAMETER MAPPING
+    private Object[] parameterMapping(Method action) throws Exception {
         String contentType = request.getContentType();
-        String method = request.getMethod();
-        System.out.println("Method: " + method);
-        System.out.println("ContentType: " + contentType);
-        //validate with request method and content_type
-        if (method.equals("GET")) {
+        String httpMethod = request.getMethod();
+
+        // validate with request method and content_type
+        if (httpMethod.equals("GET"))
             return mapFromQueryParams(action);
-        }
-        //POST, DELETE, PUT, PATCH
+
+        // POST, DELETE, PUT, PATCH
         if ("application/json".equalsIgnoreCase(contentType)) {
             return mapFromJson(action);
-        } else {
-            return mapFromFormData(action); //multipart/form-data
         }
+        // multipart/form-data
+        return mapFromFormData(action); 
 
     }
 
@@ -296,7 +292,7 @@ public abstract class HttpBase extends HttpServlet {
                             fileList.add(part.getInputStream().readAllBytes());
                         }
                     }
-                    convertedValue = fileList.toArray(byte[][]::new); //a.k.a fileList.toArray(new byte[0][]);
+                    convertedValue = fileList.toArray(byte[][]::new); // a.k.a fileList.toArray(new byte[0][]);
                 } else {
                     // Handle text input array
                     String[] paramValues = request.getParameterValues(paramName);
@@ -321,8 +317,6 @@ public abstract class HttpBase extends HttpServlet {
                     }
                 }
             }
-
-            System.out.println("Mapped Parameter: " + paramName + " = " + convertedValue);
             formData[count++] = convertedValue;
         }
 
@@ -349,7 +343,8 @@ public abstract class HttpBase extends HttpServlet {
             } else {
                 // Handle single value
                 String paramValue = request.getParameter(paramName);
-                queryParams[count] = (paramValue != null) ? convertType(paramValue, paramType) : getDefaultValue(paramType);
+                queryParams[count] = (paramValue != null) ? convertType(paramValue, paramType)
+                        : getDefaultValue(paramType);
             }
 
             count++;
@@ -366,35 +361,34 @@ public abstract class HttpBase extends HttpServlet {
         String jsonBody = getBody();
         JsonNode jsonNode = objectMapper.readTree(jsonBody);
 
+        //Loop through the parameters of the controller's action
         for (Parameter param : action.getParameters()) {
             Class<?> paramType = param.getType();
             Object value;
-            if (List.class.isAssignableFrom(
-                    paramType)) { // Handle List<Object>
-                                                                  //@@DONT ASK ME WHY, IT JUST WORKS@@ ;)
+            if (List.class.isAssignableFrom(paramType)) {
                 Type actualTypeArgument = ((ParameterizedType) param.getParameterizedType())
                         .getActualTypeArguments()[0];
                 value = objectMapper.convertValue(jsonNode.get(param.getName()), objectMapper.getTypeFactory()
-                        .constructCollectionType(List.class, objectMapper.constructType(actualTypeArgument)));
-            } else if (paramType
-                    .isArray()) { // Handle Object[]
-                                                      //MAGIC CODE THAT CONVERT JSON ARRAY INTO ARRAY OF OBJECT
+                        .constructCollectionType(List.class, objectMapper.constructType(actualTypeArgument))); // Handle List<Object>
+                // @@DONT ASK ME WHY, IT JUST WORKS@@ ;)
+            } else if (paramType.isArray()) {
                 Class<?> componentType = paramType.getComponentType();
                 value = objectMapper.convertValue(jsonNode.get(param.getName()),
-                        objectMapper.getTypeFactory().constructArrayType(componentType));
-            } else if (isComplexObject(paramType)) { // Handle single object
-                value = objectMapper.convertValue(jsonNode.get(param.getName()), paramType);
-            } else { // Handle primitive types
-                value = objectMapper.convertValue(jsonNode.get(param.getName()), paramType);
+                        objectMapper.getTypeFactory().constructArrayType(componentType)); // Handle Object[]
+                // @@MAGIC CODE THAT CONVERT JSON ARRAY INTO ARRAY OF OBJECT@@
+            } else if (isComplexObject(paramType)) {
+                value = objectMapper.convertValue(jsonNode.get(param.getName()), paramType); // Handle single object
+            } else {
+                value = objectMapper.convertValue(jsonNode.get(param.getName()), paramType); // Handle primitive types
             }
             if (value == null) {
-                value = getDefaultValue(paramType);
+                value = getDefaultValue(paramType); //convert to default value of the param Type
             }
             args[count++] = value;
         }
         return args;
     }
-   
+
     private String getBody() {
         StringBuilder stringBuilder = new StringBuilder();
         String line;
@@ -403,14 +397,13 @@ public abstract class HttpBase extends HttpServlet {
                 stringBuilder.append(line);
             }
         } catch (Exception e) {
-            //Handle the error
-            System.out.println("Error at getBody(): " + e.getMessage());
+            logger.info("Error throws at [getBody()]: " + e.getMessage());
         }
         return stringBuilder.toString();
     }
-    //#endregion
+    // #endregion
 
-    //#region HELPER METHODS
+    // #region HELPER METHODS
     private boolean isComplexObject(Class<?> type) {
         return !(type.isPrimitive() || type.equals(String.class) || Number.class.isAssignableFrom(type)
                 || Boolean.class.equals(type));
@@ -465,6 +458,5 @@ public abstract class HttpBase extends HttpServlet {
     private enum MiddlewareAction {
         BeforeAction, AfterAction, OnError
     }
-    //#endregion
+    // #endregion
 }
-

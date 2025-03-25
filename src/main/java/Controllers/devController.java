@@ -19,7 +19,9 @@ import mvc.Result;
 
 @WebServlet("/dev/*")
 public class devController extends ControllerBase {
-    public Result index() {
+    private devDA devDA = new devDA();
+    
+    public Result index()  throws Exception{
         String userName = "John Doe";
         List<String> features = Arrays.asList(
                 "Blazing Fast Performance",
@@ -44,12 +46,12 @@ public class devController extends ControllerBase {
     }
 
     @HttpRequest(HttpMethod.GET)
-    public Result login() {
+    public Result login() throws Exception{
         return page();
     }
 
     @HttpRequest(HttpMethod.POST)
-    public Result login(String username, String password) {
+    public Result login(String username, String password) throws Exception {
         System.out.println("Username: " + username);
         System.out.println("Password: " + password);
         ObjectMapper mapper = new ObjectMapper();
@@ -63,7 +65,7 @@ public class devController extends ControllerBase {
 
     @SyncCache(channel = "dev", message = "from dev/addDev")
     @HttpRequest(HttpMethod.POST)
-    public Result addDev(dev user) {
+    public Result addDev(dev user)  throws Exception{
         System.out.println("Add Dev");
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonResponse = objectMapper.createObjectNode();

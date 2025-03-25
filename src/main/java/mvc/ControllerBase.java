@@ -24,36 +24,37 @@ public class ControllerBase extends HttpBase {
     }
 
     @Override
-    protected Result page() {
+    protected Result page()throws Exception {
         String controller = this.getClass().getSimpleName();
         String action = getCaller();
         return page(action, controller);
     }
 
     @Override
-    protected Result page(String action) {
+    protected Result page(String action) throws Exception{
         String controller = this.getClass().getSimpleName();
         return page(action, controller);
     }
 
     @Override
-    protected Result page(String action, String controller) {
+    protected Result page(String action, String controller) throws Exception{
         String path = "/Views/" + controller.replace("Controller","") + "/" + action + ".jsp";
         Result result = new Result();
         //Setup response
         result.setPath(path);
         result.setContentType("text/html");
         result.setStatusCode(HttpStatusCode.OK);
+        result.setRedirect(true);
         return result;
     }
 
     @Override
-    protected Result json(Object data) {
+    protected Result json(Object data) throws Exception{
         return json(data, HttpStatusCode.OK, "success");
     }
 
     @Override
-    protected Result json(Object data, HttpStatusCode status, String message) {
+    protected Result json(Object data, HttpStatusCode status, String message) throws Exception {
         Result result = new Result();
         
         JsonNode json = getResponseTemplate();
@@ -84,41 +85,41 @@ public class ControllerBase extends HttpBase {
         return result;
     }
     @Override
-    protected Result content(Object data, String contentType) {
+    protected Result content(Object data, String contentType) throws Exception{
         return content(data, contentType, HttpStatusCode.OK);
     }
 
     @Override
-    protected Result success() {
+    protected Result success() throws Exception{
         return success("success");
     }
 
     @Override
-    protected Result success(String message) {
+    protected Result success(String message) throws Exception{
         return success(HttpStatusCode.OK, message);
     }
     @Override
-    protected Result success(HttpStatusCode status, String message) {
+    protected Result success(HttpStatusCode status, String message) throws Exception{
         return json(null, status, message);
     }
 
     @Override
-    protected Result error() {
+    protected Result error()throws Exception {
         return error("message");
     }
     
     @Override
-    protected Result error(String message) {
+    protected Result error(String message)throws Exception {
         return error(HttpStatusCode.BAD_REQUEST, message);
     }
     
     @Override
-    protected Result error(HttpStatusCode status, String message) {
+    protected Result error(HttpStatusCode status, String message)throws Exception {
         return json(null, status, message);
     }
 
     @Override
-    protected Result response() {
+    protected Result response() throws Exception{
         return new Result();
     }
 
@@ -128,7 +129,7 @@ public class ControllerBase extends HttpBase {
         return stackTrace[3].getMethodName();
     }
 
-    private static JsonNode getResponseTemplate() {
+    private static JsonNode getResponseTemplate()  throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String content = "";
         String dir = "Content";
@@ -142,8 +143,6 @@ public class ControllerBase extends HttpBase {
             }
             reader.close();
             return objectMapper.readTree(content);
-        } catch (IOException e) {
-            throw new RuntimeException("An error occurred while reading the response template", e);
         }
     }
 }

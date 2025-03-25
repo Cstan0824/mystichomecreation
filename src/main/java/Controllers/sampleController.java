@@ -18,7 +18,9 @@ import mvc.Http.HttpMethod;
 
 @WebServlet("/sample/*")
 public class sampleController extends ControllerBase {
-    public Result index() {
+
+    private devDA devDA = new devDA();
+    public Result index()  throws Exception{
         System.out.println("Index");
         return page();
     }
@@ -82,7 +84,7 @@ public class sampleController extends ControllerBase {
     */
 
     public Result views(String name, String password, String email, int age, dev test, List<dev> devs, dev[] devsArr,
-            String[] args) {
+            String[] args)  throws Exception{
         ObjectMapper objectMapper = new ObjectMapper();
         System.out.println(name);
         System.out.println(password);
@@ -108,7 +110,7 @@ public class sampleController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    public Result test() {
+    public Result test()  throws Exception{
         //get env variable from docker-compose.yaml
         Date date = Date.valueOf("2025-03-22");
         dev user = new dev("username", "password", date, "email");
@@ -118,7 +120,7 @@ public class sampleController extends ControllerBase {
 
     @SyncCache(channel = "dev", message = "from sample/addDev")
     @HttpRequest(HttpMethod.POST)
-    public Result addDev(dev user) {
+    public Result addDev(dev user)  throws Exception{
         System.out.println("Add Dev");
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonResponse = objectMapper.createObjectNode();
