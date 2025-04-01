@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `Product` (
   `product_featured` INT,
   `product_variations` JSON,
   `product_created_date` DATE NOT NULL,
+  `product_image_url` VARCHAR(255),
   INDEX (`product_type_id`),
   PRIMARY KEY (`product_id`),
   FOREIGN KEY (`product_type_id`) REFERENCES `Product_Type`(`product_type_id`)
@@ -158,6 +159,17 @@ CREATE TABLE IF NOT EXISTS `Order_Transaction` (
   PRIMARY KEY(`order_id`, `product_id`),
   FOREIGN KEY (`order_id`) REFERENCES `Order`(`order_id`) ON DELETE CASCADE,
   FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `Audit_Trail` (
+  `id` INT AUTO_INCREMENT,
+  `user_id` INT NULL, -- could be NULL for system actions
+  `source` VARCHAR(50) NOT NULL,
+  `description` TEXT NULL,
+  `type` VARCHAR(20) NOT NULL,
+  `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`),
 );
 
 

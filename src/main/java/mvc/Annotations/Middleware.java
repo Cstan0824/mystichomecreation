@@ -1,9 +1,11 @@
 package mvc.Annotations;
 
+import mvc.Http.HttpContext;
+
 public interface Middleware {
-    public void onError();
+    public void onError(HttpContext context);
 
-    public void executeBeforeAction();
+    public void executeBeforeAction(HttpContext context);
 
-    public void executeAfterAction();
+    public void executeAfterAction(HttpContext context);
 }

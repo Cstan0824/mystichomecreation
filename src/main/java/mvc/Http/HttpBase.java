@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +28,7 @@ import mvc.Annotations.HttpRequest;
 import mvc.Annotations.Middleware;
 import mvc.Exceptions.InvalidActionResultException;
 import mvc.Exceptions.PageNotFoundException;
+import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
 import mvc.Result;
 
@@ -44,10 +46,11 @@ import mvc.Result;
         maxRequestSize = 1024 * 1024 * 50 // 50MB
 )
 public abstract class HttpBase extends HttpServlet {
-    protected static HttpServletRequest request;
-    protected static HttpServletResponse response;
+    protected HttpContext context = new HttpContext();
+    protected Logger logger = AuditTrail.getLogger();
     private static List<Middleware> middlewares;
-    private static Logger logger = Logger.getLogger("myLogger");
+    private static final String DEFAULT_CONTROLLER = "LandingController";
+    private static final String DEFAULT_ACTION = "index";
 
     // #region SERVER RESPONSE METHODS
     protected abstract Result page() throws Exception;
@@ -91,6 +94,14 @@ public abstract class HttpBase extends HttpServlet {
         middlewares.add(middleware);
     }
 
+    protected static String getDefaultController() {
+        return DEFAULT_CONTROLLER;
+    }
+
+    protected static String getDefaultAction() {
+        return DEFAULT_ACTION;
+    }
+
     // #region OVERRIDE METHODS[HttpServlet]
     @Override
     public void init() throws ServletException {
@@ -101,15 +112,15 @@ public abstract class HttpBase extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse res) {
         Method action = null;
         try {
-            request = req;
-            response = res;
+            context.setRequest(req);
+            context.setResponse(res);
 
             action = getCurrentAction();
 
             invokeMethod(action);
         } catch (Exception e) {
             // Logging service
-            logger.info(
+            logger.log(Level.WARNING,
                     "Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: " + e.getMessage());
             if (action == null) {
                 return;
@@ -117,7 +128,7 @@ public abstract class HttpBase extends HttpServlet {
             try {
                 executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError);
             } catch (Exception ex) {
-                logger.info("Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: "
+                logger.log(Level.WARNING, "Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: "
                         + e.getMessage());
             }
         }
@@ -126,13 +137,13 @@ public abstract class HttpBase extends HttpServlet {
 
     // #region Process Request and Middleware
     private Method getCurrentAction() throws PageNotFoundException {
-        String action = request.getPathInfo();
-        String httpMethod = request.getMethod().toUpperCase();
+        String action = context.getRequest().getPathInfo();
+        String httpMethod = context.getRequest().getMethod().toUpperCase();
         if (action == null)
             action = "";
 
         if (action.equals("") || action.equals("/")) {
-            action = "index";
+            action = DEFAULT_ACTION;
         } else {
             action = action.replaceFirst("/", "");
         }
@@ -158,11 +169,10 @@ public abstract class HttpBase extends HttpServlet {
             String methodName = method.getName();
             ActionAttribute actionName = method.getAnnotation(ActionAttribute.class);
             if (actionName != null)
-                methodName = actionName.name();
+                methodName = actionName.name().replaceAll("[^a-zA-Z0-9/_]", "").replace(" ", "");
 
-            if (!methodName.equals(action)) 
+            if (!methodName.equals(action))
                 continue;
-            
 
             // Compare by Http Method
             HttpRequest httpRequest = method.getAnnotation(HttpRequest.class);
@@ -192,22 +202,32 @@ public abstract class HttpBase extends HttpServlet {
 
         // #region execute Middlewares and action
         executeMiddleware(annotations, MiddlewareAction.BeforeAction);
+        if (context.isRequestCancelled()) {
+            if (!context.getResult().isRedirect()) {
+                return;
+            }
+            context.setRequestCancelled(false);
+            context.getResult().setRedirect(false);
+            context.getRequest().getRequestDispatcher(context.getResult().getPath()).forward(context.getRequest(),
+                    context.getResponse());
+            return;
+        }
 
         Object result = action.invoke(this, args);
         if (result instanceof Result actionResult) {
             // need to declare response header
-            response.setContentType(actionResult.getContentType());
-            response.setStatus(actionResult.getStatusCode().get());
-            response.setCharacterEncoding(actionResult.getCharset());
-
+            context.getResponse().setContentType(actionResult.getContentType());
+            context.getResponse().setStatus(actionResult.getStatusCode().get());
+            context.getResponse().setCharacterEncoding(actionResult.getCharset());
             executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
             if (actionResult.isRedirect()) {
-                request.getRequestDispatcher(actionResult.getPath()).forward(request, response);
+                context.getRequest().getRequestDispatcher(actionResult.getPath()).forward(context.getRequest(),
+                        context.getResponse());
                 return;
             } else {
                 // set to json response
-                response.getWriter().write(JsonConverter.serialize(actionResult.getData()));
+                context.getResponse().getWriter().write(JsonConverter.serialize(actionResult.getData()));
             }
         } else {
             throw new InvalidActionResultException("Invalid Request");
@@ -216,12 +236,10 @@ public abstract class HttpBase extends HttpServlet {
 
     }
 
-    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception
-    {
+    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception {
         for (Annotation annotation : annotations) {
             String annotationName = annotation.annotationType().getSimpleName();
             String expectedHandlerName = annotationName + "Handler";
-
             // Check if the annotation is registered inside Handler Object List
             for (Middleware middleware : middlewares) {
                 if (!middleware.getClass().getSimpleName().equals(expectedHandlerName))
@@ -241,9 +259,9 @@ public abstract class HttpBase extends HttpServlet {
                 }
 
                 switch (action) {
-                    case BeforeAction -> middleware.executeBeforeAction();
-                    case AfterAction -> middleware.executeAfterAction();
-                    case OnError -> middleware.onError();
+                    case BeforeAction -> middleware.executeBeforeAction(context);
+                    case AfterAction -> middleware.executeAfterAction(context);
+                    case OnError -> middleware.onError(context);
                 }
                 break;
             }
@@ -254,8 +272,8 @@ public abstract class HttpBase extends HttpServlet {
 
     // #region PARAMETER MAPPING
     private Object[] parameterMapping(Method action) throws Exception {
-        String contentType = request.getContentType();
-        String httpMethod = request.getMethod();
+        String contentType = context.getRequest().getContentType();
+        String httpMethod = context.getRequest().getMethod();
 
         // validate with request method and content_type
         if (httpMethod.equals("GET"))
@@ -266,7 +284,7 @@ public abstract class HttpBase extends HttpServlet {
             return mapFromJson(action);
         }
         // multipart/form-data
-        return mapFromFormData(action); 
+        return mapFromFormData(action);
 
     }
 
@@ -287,7 +305,7 @@ public abstract class HttpBase extends HttpServlet {
                 if (componentType.equals(byte[].class)) {
                     // Handle file array (List of byte[])
                     List<byte[]> fileList = new ArrayList<>();
-                    for (Part part : request.getParts()) {
+                    for (Part part : context.getRequest().getParts()) {
                         if (part.getName().equals(paramName) && part.getSubmittedFileName() != null) {
                             fileList.add(part.getInputStream().readAllBytes());
                         }
@@ -295,7 +313,7 @@ public abstract class HttpBase extends HttpServlet {
                     convertedValue = fileList.toArray(byte[][]::new); // a.k.a fileList.toArray(new byte[0][]);
                 } else {
                     // Handle text input array
-                    String[] paramValues = request.getParameterValues(paramName);
+                    String[] paramValues = context.getRequest().getParameterValues(paramName);
                     if (paramValues != null) {
                         Object[] convertedArray = (Object[]) java.lang.reflect.Array.newInstance(componentType,
                                 paramValues.length);
@@ -308,7 +326,7 @@ public abstract class HttpBase extends HttpServlet {
 
             } else {
                 // Handle text or file input
-                Part part = request.getPart(paramName);
+                Part part = context.getRequest().getPart(paramName);
                 if (part != null) {
                     if (part.getSubmittedFileName() != null) {
                         convertedValue = part.getInputStream().readAllBytes();
@@ -334,7 +352,7 @@ public abstract class HttpBase extends HttpServlet {
 
             if (paramType.isArray()) {
                 // Handle arrays: get all values as String[]
-                String[] paramValues = request.getParameterValues(paramName);
+                String[] paramValues = context.getRequest().getParameterValues(paramName);
                 if (paramValues != null) {
                     queryParams[count] = convertArrayType(paramValues, paramType.getComponentType());
                 } else {
@@ -342,7 +360,7 @@ public abstract class HttpBase extends HttpServlet {
                 }
             } else {
                 // Handle single value
-                String paramValue = request.getParameter(paramName);
+                String paramValue = context.getRequest().getParameter(paramName);
                 queryParams[count] = (paramValue != null) ? convertType(paramValue, paramType)
                         : getDefaultValue(paramType);
             }
@@ -361,7 +379,7 @@ public abstract class HttpBase extends HttpServlet {
         String jsonBody = getBody();
         JsonNode jsonNode = objectMapper.readTree(jsonBody);
 
-        //Loop through the parameters of the controller's action
+        // Loop through the parameters of the controller's action
         for (Parameter param : action.getParameters()) {
             Class<?> paramType = param.getType();
             Object value;
@@ -369,7 +387,8 @@ public abstract class HttpBase extends HttpServlet {
                 Type actualTypeArgument = ((ParameterizedType) param.getParameterizedType())
                         .getActualTypeArguments()[0];
                 value = objectMapper.convertValue(jsonNode.get(param.getName()), objectMapper.getTypeFactory()
-                        .constructCollectionType(List.class, objectMapper.constructType(actualTypeArgument))); // Handle List<Object>
+                        .constructCollectionType(List.class, objectMapper.constructType(actualTypeArgument))); // Handle
+                                                                                                               // List<Object>
                 // @@DONT ASK ME WHY, IT JUST WORKS@@ ;)
             } else if (paramType.isArray()) {
                 Class<?> componentType = paramType.getComponentType();
@@ -382,7 +401,7 @@ public abstract class HttpBase extends HttpServlet {
                 value = objectMapper.convertValue(jsonNode.get(param.getName()), paramType); // Handle primitive types
             }
             if (value == null) {
-                value = getDefaultValue(paramType); //convert to default value of the param Type
+                value = getDefaultValue(paramType); // convert to default value of the param Type
             }
             args[count++] = value;
         }
@@ -392,12 +411,12 @@ public abstract class HttpBase extends HttpServlet {
     private String getBody() {
         StringBuilder stringBuilder = new StringBuilder();
         String line;
-        try (BufferedReader reader = request.getReader()) {
+        try (BufferedReader reader = context.getRequest().getReader()) {
             while ((line = reader.readLine()) != null) {
                 stringBuilder.append(line);
             }
         } catch (Exception e) {
-            logger.info("Error throws at [getBody()]: " + e.getMessage());
+            logger.log(Level.WARNING, "Error throws at [getBody()]: " + e.getMessage());
         }
         return stringBuilder.toString();
     }

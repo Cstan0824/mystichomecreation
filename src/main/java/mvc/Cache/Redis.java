@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.persistence.TypedQuery;
 import mvc.Cache.QueryMetadata.QueryResultType;
+import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -20,7 +21,7 @@ public class Redis {
     private static final SignalHub signalHub = new SignalHub(jedis);
     private static boolean isConnected = false;
     private static boolean isInitialized = true;
-    private static Logger logger = Logger.getLogger("Caching");
+    private static Logger logger =  AuditTrail.getLogger();
 
     public Redis() {
         if (isConnected) {

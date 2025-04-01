@@ -14,6 +14,16 @@ public class Result {
     private String charset = "UTF-8";
     private final Map<String, String> headers = new HashMap<>();
 
+    public Result(Object data) {
+        this.data = data;
+    }
+
+    public Result(Object data, String redirectPath) {
+        this.redirectPath = redirectPath;
+    }
+
+    public Result() {
+    }
 
     public boolean isRedirect() {
         return isRedirect;
@@ -22,6 +32,8 @@ public class Result {
     public void setRedirect(boolean isRedirect) {
         this.isRedirect = isRedirect;
     }
+
+    
     public String getCharset() {
         return charset;
     }
@@ -42,16 +54,6 @@ public class Result {
         headers.put(key, value);
     }
 
-    public Result(Object data) {
-        this.data = data;
-    }
-
-    public Result(Object data, String redirectPath) {
-        this.redirectPath = redirectPath;
-    }
-
-    public Result() {}
-
     public Object getData() {
         return data;
     }
@@ -59,8 +61,6 @@ public class Result {
     public void setData(Object data) {
         this.data = data;
     }
-
-
 
     public String getContentType() {
         return contentType;
@@ -81,6 +81,7 @@ public class Result {
     public String getPath() {
         return redirectPath;
     }
+
     public void setPath(String path) {
         this.redirectPath = path;
     }

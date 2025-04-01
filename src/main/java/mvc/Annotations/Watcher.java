@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SyncCache {
-    String channel() default "NULL";
+public @interface Watcher {
+    String description() default "-";
 
-    String message() default "-";
+    String source() default "-";
 }

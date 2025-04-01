@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import mvc.DataAccess;
+import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -21,7 +22,8 @@ public class SignalHub {
     private JedisPool pool = new JedisPool(Redis.getHost(), Redis.getPort());
     private Jedis jedis;
     private static final EntityManager db = DataAccess.getEntityManager();
-    private static Logger logger = Logger.getLogger("Caching");
+    private static Logger logger =  AuditTrail.getLogger();
+
 
     public SignalHub(Jedis jedis) {
         if (!jedis.isConnected()) {
