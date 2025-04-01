@@ -13,7 +13,7 @@
 
         <properties>
             <!--  Hibernate SQL Dialect -->
-            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
 
             <!--  Hibernate schema auto-update -->
             <property name="hibernate.hbm2ddl.auto" value="update"/>

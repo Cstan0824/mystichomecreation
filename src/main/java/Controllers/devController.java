@@ -85,6 +85,7 @@ public class devController extends ControllerBase {
 
     @Watcher(source = "setSession", description = "from dev/deleteDev")
     public Result setSession() throws Exception {
+        System.out.println("Sessions");
         SessionHelper session = new SessionHelper(context.getRequest().getSession());
         session.setAuthenticated(true);
         session.setPermissions("addDev");

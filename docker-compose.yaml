@@ -30,7 +30,7 @@ services:
             - ./src/main/webapp/Content:${CLEINT_FILE_PATH}/Content:rw
 
             # LOAD SERVER FILE DYNAMICALLY
-            #- ./target/classes:${DEPLOY_FILE_PATH}:rw
+            - ./target/classes:${DEPLOY_FILE_PATH}:rw
         build: .
         image: mystichome
         ports:

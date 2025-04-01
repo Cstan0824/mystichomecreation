@@ -1,0 +1,65 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Java Hot Reload",
+            "type": "shell",
+            "command": "./mvnw clean package; docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war; docker run --rm -v .:/app -w /app node:22 sh -c 'rm -rf node_modules package-lock.json; npm cache clean --force; npm install -g npm@latest; npm install tailwindcss@3 postcss autoprefixer; npx tailwindcss -i ./src/main/webapp/Content/css/tailwind.css -o ./src/main/webapp/Content/css/output.css --minify'; if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }; echo '@@@@@@@@@@BUILD SUCCESS@@@@@@@@@@@'",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe"
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Java Build/Start Containers",
+            "type": "shell",
+            "command": "docker build -t mystichome .; docker-compose up",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe"
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Java Stop Containers",
+            "type": "shell",
+            "command": "docker-compose down",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe"
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        }
+    ]
+}
