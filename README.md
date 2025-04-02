@@ -24,6 +24,7 @@ First, clone the repository to your local machine:
 ```cmd
 git clone https://github.com/Cstan0824/mystichomecreation.git
 ```
+
 ### 2. 🐳 Ensure Docker is Installed
 
 Make sure you have Docker and Docker-Compose(Normally installed along with the Docker installer) installed on your machine. 
@@ -58,7 +59,6 @@ To stop all containers:
 docker-compose down
 ```
 
----
 
 ### 4. 🌐 Access Services
 
@@ -68,7 +68,7 @@ docker-compose down
 | 🐳 GlassFish Admin| http://localhost:4848             | `admin / admin`            |
 | 🧾 Main App       | http://localhost:8080             | Public access              |
 
----
+
 
 ### 5. 📋 Troubleshooting
 
@@ -86,8 +86,6 @@ docker info
 ```
 
 If it returns an error, restart Docker Desktop or your system.
-
----
 
 #### 🛑 Port already in use
 
@@ -107,8 +105,6 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess
 
 - Kill the process or change the port in `docker-compose.yml`.
 
----
-
 #### 🐘 Database connection fails
 
 - MySQL container may take time to initialize on first boot.
@@ -118,8 +114,6 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess
 ```bash
 docker logs mystichomecreation-mysql_db-1
 ```
-
----
 
 #### 🧾 App not responding in browser
 
@@ -135,8 +129,6 @@ docker logs mystichomecreation-mystichome-1
 docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war
 ```
 
----
-
 #### 🔁 Docker changes not applying
 
 - Try a full rebuild:
@@ -146,8 +138,6 @@ docker-compose down --volumes
 docker-compose build --no-cache
 docker-compose up -d
 ```
-
----
 
 ### 🧪 Diagnostic Commands
 
@@ -159,11 +149,10 @@ docker inspect <container>    # Inspect container config
 docker exec -it <container> sh  # Open interactive shell in a container
 ```
 
+---
 
 ### ⚙️ Netbeans Users Quick Guide
 Easily run Docker Compose commands from within NetBeans using the **Docker Manager** plugin.
-
----
 
 ### ⚙️ Installation
 
@@ -172,7 +161,6 @@ Easily run Docker Compose commands from within NetBeans using the **Docker Manag
 3. Select the `docker-manager.nbm` file located in the `.netbean-25` directory of this repository.
 4. Click **Install** and complete the installation steps.
 
----
 
 ### 🚀 Getting Started
 
@@ -188,13 +176,13 @@ This will automatically:
 📝 Output logs will be shown in the **Docker Plugin Output** tab.  
 You can open it via `Window → Output` or by pressing `Ctrl + 4`.
 
----
+
 
 ### 🛑 Stopping Containers
 
 Click the **Stop Docker Compose** button to shut down all running containers gracefully.
 
-
+---
 
 ### ⚙️ VS Code Users Quick Guide
 
@@ -202,7 +190,7 @@ This project includes custom **VS Code Tasks** defined in `.vscode/tasks.json` f
 
 You can run them via `Terminal → Run Task` or `Ctrl + Shift + P → Tasks: Run Task`.
 
----
+
 
 ### 🔁 Java Hot Reload
 
@@ -237,6 +225,8 @@ Stops all running containers defined in `docker-compose.yml`.
 ```bash
 docker-compose down
 ```
+
+---
 
 ### 📎Additional Notes
 📌 All tasks are executed in PowerShell and configured to display output in a shared terminal panel with automatic clearing enabled.
