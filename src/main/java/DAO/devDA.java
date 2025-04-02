@@ -32,7 +32,7 @@ public class devDA implements Serializable {
     @SuppressWarnings({ "CallToPrintStackTrace", "ConvertToTryWithResources" })
     public List<dev> getUsers() {
         List<dev> users = null;
-        TypedQuery<dev> typedQuery = this.db.createQuery("SELECT d FROM dev d", dev.class);
+        TypedQuery<dev> typedQuery = this.db.createQuery("SELECT d FROM dev d WHERE id=?", dev.class).setParameter(1, "1");
         try {
             users = cache.getOrCreateList("users", dev.class, typedQuery);
         } catch (Exception e) {

@@ -10,8 +10,7 @@ public class LandingController extends ControllerBase {
 
     @Watcher(source = "index", description = "from Landing/index")
     public Result index() throws Exception {
-        // response.setAttribute("user","USER123");
-        context.getRequest().setAttribute("title", "MysticHome Creations");
+        System.out.println("LandingController index() called");
         return page();
     }
 }

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `user_name` VARCHAR(255) NOT NULL,
   `user_password` VARCHAR(255) NOT NULL,
   `user_email` VARCHAR(50) NOT NULL,
+  `user_image_url` VARCHAR(255),
   `user_birthdate` DATE,
   `shipping_information` JSON,
   INDEX (`role_id`),
@@ -169,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `Audit_Trail` (
   `type` VARCHAR(20) NOT NULL,
   `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(`id`),
-  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)
 );
 
 
