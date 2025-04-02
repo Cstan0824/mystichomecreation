@@ -74,9 +74,7 @@ docker-compose down
 
 Having issues? Here are common problems and how to resolve them:
 
----
-
-#### 🐳 Docker isn’t running
+#### 🐳 Docker isn’t running:
 
 - Ensure **Docker Desktop** is open and running in the background.
 - Run the following to verify:
@@ -87,7 +85,7 @@ docker info
 
 If it returns an error, restart Docker Desktop or your system.
 
-#### 🛑 Port already in use
+#### 🛑 Port already in use:
 
 If you see an error like `port 8080 is already allocated`:
 
@@ -105,7 +103,7 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess
 
 - Kill the process or change the port in `docker-compose.yml`.
 
-#### 🐘 Database connection fails
+#### 🐘 Database connection fails:
 
 - MySQL container may take time to initialize on first boot.
 - Wait a few seconds before accessing PHPMyAdmin or the main app.
@@ -115,7 +113,7 @@ Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess
 docker logs mystichomecreation-mysql_db-1
 ```
 
-#### 🧾 App not responding in browser
+#### 🧾 App not responding in browser:
 
 - Ensure GlassFish is up and WAR is deployed:
 
@@ -129,7 +127,7 @@ docker logs mystichomecreation-mystichome-1
 docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war
 ```
 
-#### 🔁 Docker changes not applying
+#### 🔁 Docker changes not applying:
 
 - Try a full rebuild:
 
