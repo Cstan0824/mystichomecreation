@@ -9,7 +9,7 @@ This project is a full-stack application that uses Docker to manage the environm
 - 🌐 **Main App** — [http://localhost:8080](Web Browser)
 - 🔧 **GlassFish Manager** — [http://localhost:4848](Web Browser)
 - 🛢️ **PHPMyAdmin** — [http://localhost:8081](Web Browser)
-- 🧠 **Redis CLI** — [`docker exec -it redis redis-cli`](Terminal)
+- 🧠 **Redis CLI** — `docker exec -it redis redis-cli` (via Terminal)
 
 ---
 
