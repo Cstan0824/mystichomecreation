@@ -24,7 +24,7 @@
         {
             "label": "Java Build/Start Containers",
             "type": "shell",
-            "command": "docker build -t mystichome .; docker-compose up",
+            "command": "docker-compose down; docker build -t mystichome .; docker-compose up",
             "options": {
                 "shell": {
                     "executable": "powershell.exe"

@@ -18,7 +18,7 @@ public class UserController extends ControllerBase {
     @HttpRequest(HttpMethod.POST)
     public Result addUser() throws Exception {
         boolean isValidated = true;
-
+        System.out.println("Testing redirecting to index page");
         if (isValidated) {
             return page("index", "Landing");
         } else {
