@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module_updates PUBLIC "-//NetBeans//DTD Autoupdate Catalog 2.8//EN"
+    "http://www.netbeans.org/dtds/autoupdate-catalog-2_8.dtd">
+<module_updates timestamp="20250402">
+    <module codenamebase="docker.manager">
+        <module_version install="https://raw.githubusercontent.com/Cstan0824/mystichomecreation/main/.netbean-25/docker-manager.nbm"
+                        specification_version="1.0.1">
+            <manifest OpenIDE-Module="docker.manager"
+                      OpenIDE-Module-Name="Docker Manager"
+                      OpenIDE-Module-Short-Description="Run Docker Compose directly from NetBeans"
+                      OpenIDE-Module-Specification-Version="1.0.1"/>
+        </module_version>
+    </module>
+</module_updates>
