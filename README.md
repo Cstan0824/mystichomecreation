@@ -9,7 +9,7 @@ This project is a full-stack application that uses Docker to manage the environm
 - 🌐 **Main App** — [http://localhost:8080](Web Browser)
 - 🔧 **GlassFish Manager** — [http://localhost:4848](Web Browser)
 - 🛢️ **PHPMyAdmin** — [http://localhost:8081](Web Browser)
-- 🧠 **Redis CLI** — [`docker exec -it redis redis-cli`](Terminal)
+- 🧠 **Redis CLI** — `docker exec -it redis redis-cli` (via Terminal)
 
 ---
 
@@ -76,66 +76,68 @@ Having issues? Here are common problems and how to resolve them:
 
 #### 🐳 Docker isn’t running:
 
-- Ensure **Docker Desktop** is open and running in the background.
-- Run the following to verify:
+  - Ensure **Docker Desktop** is open and running in the background.
+  - Run the following to verify:
+    
+  ```bash
+  docker info
+  ```
   
-```bash
-docker info
-```
-
-If it returns an error, restart Docker Desktop or your system.
+  If it returns an error, restart Docker Desktop or your system.
 
 #### 🛑 Port already in use:
 
-If you see an error like `port 8080 is already allocated`:
-
-- Another application is using the port. Identify it with:
-
-```bash
-netstat -ano | findstr :8080
-```
-
-- Or on PowerShell:
-
-```bash
-Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess
-```
-
-- Kill the process or change the port in `docker-compose.yml`.
+  If you see an error like `port 8080 is already allocated`:
+  
+  - Another application is using the port. Identify it with:
+  
+  ```bash
+  netstat -ano | findstr :8080
+  ```
+  
+  - Or on PowerShell:
+  
+  ```bash
+  Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess
+  ```
+  
+  - Kill the process or change the port in `docker-compose.yml`.
 
 #### 🐘 Database connection fails:
 
-- MySQL container may take time to initialize on first boot.
-- Wait a few seconds before accessing PHPMyAdmin or the main app.
-- Check logs for readiness:
-
-```bash
-docker logs mystichomecreation-mysql_db-1
-```
+  - MySQL container may take time to initialize on first boot.
+  - Wait a few seconds before accessing PHPMyAdmin or the main app.
+  - Check logs for readiness:
+  
+  ```bash
+  docker logs mystichomecreation-mysql_db-1
+  ```
 
 #### 🧾 App not responding in browser:
 
-- Ensure GlassFish is up and WAR is deployed:
-
-```bash
-docker logs mystichomecreation-mystichome-1
-```
-
-- If needed, redeploy manually:
-
-```bash
-docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war
-```
+  - Ensure GlassFish is up and WAR is deployed:
+  
+  ```bash
+  docker logs mystichomecreation-mystichome-1
+  ```
+  
+  - If needed, redeploy manually:
+  
+  ```bash
+  docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war
+  ```
 
 #### 🔁 Docker changes not applying:
 
-- Try a full rebuild:
+  - Try a full rebuild:
+  
+  ```bash
+  docker-compose down --volumes
+  docker-compose build --no-cache
+  docker-compose up -d
+  ```
 
-```bash
-docker-compose down --volumes
-docker-compose build --no-cache
-docker-compose up -d
-```
+---
 
 ### 🧪 Diagnostic Commands
 
