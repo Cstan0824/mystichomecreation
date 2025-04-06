@@ -28,16 +28,21 @@ public class devDA implements Serializable {
     private EntityManager db = DataAccess.getEntityManager();
     private Redis cache = new Redis();
 
-    //Get all users with Cache
+    // Get all users with Cache
     @SuppressWarnings({ "CallToPrintStackTrace", "ConvertToTryWithResources" })
     public List<dev> getUsers() {
         List<dev> users = null;
-        TypedQuery<dev> typedQuery = this.db.createQuery("SELECT d FROM dev d WHERE id=?", dev.class).setParameter(1, "1");
+        System.out.println("getUsers()");
+        TypedQuery<dev> typedQuery = this.db.createQuery("SELECT d FROM dev d WHERE id=:id", dev.class).setParameter("id",
+                "1");
         try {
+            System.out.println("Cache hit");
             users = cache.getOrCreateList("users", dev.class, typedQuery);
         } catch (Exception e) {
-            users = typedQuery.getResultList(); //run without cache if cache fails
+            System.out.println("Cache miss: " + e.getMessage());
+            users = typedQuery.getResultList(); // run without cache if cache fails
         }
+        System.out.println("Users: " + users);
         return users;
     }
 

@@ -48,13 +48,11 @@ CREATE TABLE IF NOT EXISTS `Voucher` (
 CREATE TABLE IF NOT EXISTS `Payment` (
   `payment_id` INT AUTO_INCREMENT,
   `method_id` INT NOT NULL,
-  `voucher_id` INT,
+  `voucher_info` JSON,
   `total_paid` DECIMAL NOT NULL,
   INDEX (`method_id`),
-  INDEX (`voucher_id`),
   PRIMARY KEY (`payment_id`),
-  FOREIGN KEY (`method_id`) REFERENCES `Payment_Method`(`method_id`),
-  FOREIGN KEY (`voucher_id`) REFERENCES `Voucher`(`voucher_id`)
+  FOREIGN KEY (`method_id`) REFERENCES `Payment_Method`(`method_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `Order` (
@@ -64,6 +62,7 @@ CREATE TABLE IF NOT EXISTS `Order` (
   `status_id` INT NOT NULL,
   `shipping_information` VARCHAR(255),
   `order_date` DATE NOT NULL,
+  `order_ref_no` VARCHAR(255) NOT NULL,
   INDEX (`user_id`),
   INDEX (`status_id`),
   INDEX (`payment_id`),
@@ -100,6 +99,7 @@ CREATE TABLE IF NOT EXISTS `Product` (
 CREATE TABLE IF NOT EXISTS `Permission` (
   `permission_id` INT AUTO_INCREMENT,
   `role_id` INT NOT NULL,
+  `role_url` VARCHAR(255) NOT NULL,
   `role_description` VARCHAR(50) NOT NULL,
    INDEX (`role_id`),
   PRIMARY KEY (`permission_id`),
@@ -145,7 +145,6 @@ CREATE TABLE IF NOT EXISTS `User_Payment_Info` (
   `user_id` INT,
   `card_name` VARCHAR(50),
   `card_no` VARCHAR(50) NOT NULL,
-  `cvv` VARCHAR(50),
   `expiry` DATE NOT NULL,
   PRIMARY KEY (`user_id`),
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)

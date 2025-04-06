@@ -3,6 +3,8 @@ package mvc;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import mvc.Http.HttpStatusCode;
 
 public class Result {
@@ -13,6 +15,7 @@ public class Result {
     private HttpStatusCode statusCode = HttpStatusCode.OK;
     private String charset = "UTF-8";
     private final Map<String, String> headers = new HashMap<>();
+    private JsonNode params;
 
     public Result(Object data) {
         this.data = data;
@@ -25,6 +28,14 @@ public class Result {
     public Result() {
     }
 
+    public void setParams(JsonNode params) {
+        this.params = params;
+    }
+
+    public JsonNode getParams() {
+        return params;
+    }
+
     public boolean isRedirect() {
         return isRedirect;
     }
@@ -33,7 +44,6 @@ public class Result {
         this.isRedirect = isRedirect;
     }
 
-    
     public String getCharset() {
         return charset;
     }

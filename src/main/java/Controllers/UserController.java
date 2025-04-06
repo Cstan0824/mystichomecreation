@@ -2,28 +2,56 @@ package Controllers;
 
 import mvc.ControllerBase;
 import mvc.Result;
-import mvc.Annotations.HttpRequest;
-import mvc.Http.HttpMethod;
-import mvc.Http.HttpStatusCode;
+import mvc.Annotations.ActionAttribute;
 
+import jakarta.servlet.annotation.WebServlet;
+
+@WebServlet("/User/*")
 public class UserController extends ControllerBase {
-    public Result index() throws Exception {
+
+    // #region User Account
+    // @Authorization(permissions = "User/account")
+    public Result account() throws Exception {
         return page();
     }
 
-    public Result list() throws Exception {
+    // @Authorization(permissions = "User/account/profile")
+    @ActionAttribute(urlPattern = "account/profile")
+    public Result profile() throws Exception {
         return page();
     }
 
-    @HttpRequest(HttpMethod.POST)
-    public Result addUser() throws Exception {
-        boolean isValidated = true;
-        System.out.println("Testing redirecting to index page");
-        if (isValidated) {
-            return page("index", "Landing");
-        } else {
-            return json("Data is not valid", HttpStatusCode.INTERNAL_SERVER_ERROR, "error");
-        }
-        // return page("index");
+    // @Authorization(permissions = "User/account/transactions")
+    @ActionAttribute(urlPattern = "account/transactions")
+    public Result transactions() throws Exception {
+        return page();
     }
+
+    // @Authorization(permissions = "User/account/transactions/details")
+    @ActionAttribute(urlPattern = "account/transactions/details")
+    public Result orderDetails(String id) throws Exception {
+        // return page("details", "Order", id);
+        return page("index", "dev");
+    }
+
+    @ActionAttribute(urlPattern = "account/password")
+    public Result password() throws Exception {
+        return page();
+    }
+
+    @ActionAttribute(urlPattern = "account/addresses")
+    public Result addresses() throws Exception {
+        return page();
+    }
+
+    @ActionAttribute(urlPattern = "account/payments")
+    public Result payments() throws Exception {
+        return page();
+    }
+
+    @ActionAttribute(urlPattern = "account/vouchers")
+    public Result vouchers() throws Exception {
+        return page();
+    }
+    // #endregion
 }

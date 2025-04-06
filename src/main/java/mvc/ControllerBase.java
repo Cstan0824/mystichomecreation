@@ -16,6 +16,8 @@ import mvc.Http.HttpBase;
 import mvc.Http.HttpStatusCode;
 
 public class ControllerBase extends HttpBase {
+    private boolean isRedirect = true; // to hold redirect status temporarily
+
     public ControllerBase() {
         super();
         // #region Register Middlewares
@@ -38,24 +40,41 @@ public class ControllerBase extends HttpBase {
     protected Result page() throws Exception {
         String controller = this.getClass().getSimpleName();
         String action = getCaller();
-        return page(action, controller);
+        isRedirect = false; // no redirect
+        return page(action, controller, null);
     }
 
     @Override
     protected Result page(String action) throws Exception {
         String controller = this.getClass().getSimpleName();
-        return page(action, controller);
+        return page(action, controller, null);
+    }
+
+    protected Result page(String action, JsonNode params) throws Exception {
+        String controller = this.getClass().getSimpleName();
+        return page(action, controller, params);
     }
 
     @Override
     protected Result page(String action, String controller) throws Exception {
-        String path = "/Views/" + controller.replace("Controller", "") + "/" + action + ".jsp";
+        return page(action, controller, null);
+    }
+
+    protected Result page(String action, String controller, JsonNode params) throws Exception {
+
+        String path = "/" + controller.replace("Controller", "") + "/" + action + ".jsp";
         Result result = new Result();
         // Setup response
         result.setPath(path);
         result.setContentType("text/html");
         result.setStatusCode(HttpStatusCode.OK);
-        result.setRedirect(true);
+        if (params != null) {
+            result.setParams(params);
+        }
+        // Check if the action is the same as the controller
+        // If the action is the same as the controller, set redirect to false
+        result.setRedirect(isRedirect);
+        isRedirect = true; // set back to original state
         return result;
     }
 
@@ -81,6 +100,7 @@ public class ControllerBase extends HttpBase {
         result.setData(json);
         result.setContentType("application/json");
         result.setStatusCode(status);
+        result.setRedirect(false);
         return result;
     }
 
@@ -118,7 +138,7 @@ public class ControllerBase extends HttpBase {
 
     @Override
     protected Result error() throws Exception {
-        return error("message");
+        return error("error");
     }
 
     @Override
@@ -129,11 +149,6 @@ public class ControllerBase extends HttpBase {
     @Override
     protected Result error(HttpStatusCode status, String message) throws Exception {
         return json(null, status, message);
-    }
-
-    @Override
-    protected Result response() throws Exception {
-        return new Result();
     }
 
     private static String getCaller() {

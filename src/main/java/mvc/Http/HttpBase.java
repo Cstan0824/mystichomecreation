@@ -9,8 +9,12 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,6 +51,8 @@ import mvc.Result;
 )
 public abstract class HttpBase extends HttpServlet {
     protected HttpContext context = new HttpContext();
+    protected HttpServletRequest request;
+    protected HttpServletResponse response;
     protected Logger logger = AuditTrail.getLogger();
     private static List<Middleware> middlewares;
     private static final String DEFAULT_CONTROLLER = "LandingController";
@@ -78,8 +84,6 @@ public abstract class HttpBase extends HttpServlet {
     protected abstract Result error(String message) throws Exception;
 
     protected abstract Result error(HttpStatusCode status, String message) throws Exception;
-
-    protected abstract Result response() throws Exception;
     // #endregion
 
     public HttpBase() {
@@ -114,6 +118,8 @@ public abstract class HttpBase extends HttpServlet {
         try {
             context.setRequest(req);
             context.setResponse(res);
+            request = req;
+            response = res;
 
             action = getCurrentAction();
 
@@ -169,7 +175,7 @@ public abstract class HttpBase extends HttpServlet {
             String methodName = method.getName();
             ActionAttribute actionName = method.getAnnotation(ActionAttribute.class);
             if (actionName != null)
-                methodName = actionName.name().replaceAll("[^a-zA-Z0-9/_]", "").replace(" ", "");
+                methodName = actionName.urlPattern().replaceAll("[^a-zA-Z0-9/_]", "").replace(" ", "");
 
             if (!methodName.equals(action))
                 continue;
@@ -221,19 +227,54 @@ public abstract class HttpBase extends HttpServlet {
             context.getResponse().setCharacterEncoding(actionResult.getCharset());
             executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
-            if (actionResult.isRedirect()) {
-                context.getRequest().getRequestDispatcher(actionResult.getPath()).forward(context.getRequest(),
-                        context.getResponse());
-                return;
-            } else {
-                // set to json response
-                context.getResponse().getWriter().write(JsonConverter.serialize(actionResult.getData()));
+            switch (actionResult.getContentType()) {
+                case "application/json" ->
+                    context.getResponse().getWriter().write(JsonConverter.serialize(actionResult.getData()));
+                case "text/html" -> {
+                    if (actionResult.isRedirect()) {
+                        String path = "/web" + actionResult.getPath().replace(".jsp", "");
+                        JsonNode params = actionResult.getParams();
+
+                        // Write the params as url query string
+                        if (params != null && params.isObject()) {
+                            String query = urlQueryStringBuilder(params);
+                            path += query.toString();
+                        }
+
+                        context.getResponse().sendRedirect(path);
+                    } else {
+                        // return current page
+                        context.getRequest().getRequestDispatcher("/Views" + actionResult.getPath()).forward(
+                                context.getRequest(),
+                                context.getResponse());
+                    }
+                }
+                default -> context.getResponse().getWriter().write((actionResult.getData().toString()));
             }
+
         } else {
             throw new InvalidActionResultException("Invalid Request");
         }
         // #endregion
 
+    }
+
+    private String urlQueryStringBuilder(JsonNode params) {
+        StringBuilder queryString = new StringBuilder();
+        Iterator<Map.Entry<String, JsonNode>> fields = params.fields();
+
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> field = fields.next();
+            String key = URLEncoder.encode(field.getKey(), StandardCharsets.UTF_8);
+            String value = URLEncoder.encode(field.getValue().asText(), StandardCharsets.UTF_8);
+            if (queryString.length() == 0) {
+                queryString.append("?");
+            } else {
+                queryString.append("&");
+            }
+            queryString.append(key).append("=").append(value);
+        }
+        return queryString.toString();
     }
 
     private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception {

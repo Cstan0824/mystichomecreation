@@ -60,6 +60,26 @@
                 "panel": "shared",
                 "clear": true
             }
+        },
+        {
+            "label": "Java Client Fallback",
+            "type": "shell",
+            "command": "docker cp -r mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Views ./src/main/webapp/Views; docker cp -r mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Content ./src/main/webapp/Content;",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe"
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
         }
     ]
 }

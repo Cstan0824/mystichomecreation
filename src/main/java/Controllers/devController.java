@@ -24,7 +24,7 @@ import mvc.Result;
 public class devController extends ControllerBase {
     private devDA devDA = new devDA();
 
-    @Authorization(permissions = "viewDev")
+    // @Authorization(permissions = "viewDev")
     public Result index() throws Exception {
         String userName = "John Doe";
         List<String> features = Arrays.asList(
@@ -40,7 +40,6 @@ public class devController extends ControllerBase {
                 "Amazing service and support! - Charlie");
         // List of Users
         List<dev> users = devDA.getUsers();
-
         // Set attributes to pass data to JSP
         context.getRequest().setAttribute("userName", userName);
         context.getRequest().setAttribute("features", features);

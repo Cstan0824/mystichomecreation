@@ -4,11 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>test</title>
+    <title>Mystichome Creations</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/swiper.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     
 </head>
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
