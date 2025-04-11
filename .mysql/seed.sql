@@ -2,6 +2,7 @@
 START TRANSACTION;
     -- Insert sample data for TEST-ONLY
     INSERT INTO `dev`(`id`, `username`, `password`, `created_date`, `email`) VALUES
+    
     (1, 'Tan Choon Shen', 'admin123', CURDATE(), 'cstan@gmail.com'),
     (2, 'Jeremy Chin Jun Chen', 'admin123', CURDATE(), 'jeremy@gmail.com'),
     (3, 'Gan Chin Chung', 'admin123', CURDATE(), 'ccgan@gmail.com');
