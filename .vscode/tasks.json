@@ -64,7 +64,7 @@
         {
             "label": "Java Client Fallback",
             "type": "shell",
-            "command": "docker cp -r mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Views ./src/main/webapp/Views; docker cp -r mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Content ./src/main/webapp/Content;",
+            "command": "docker cp mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Views ./src/main/webapp/Views; docker cp mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Content ./src/main/webapp/Content",
             "options": {
                 "shell": {
                     "executable": "powershell.exe"
