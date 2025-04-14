@@ -45,6 +45,8 @@ public class productController extends ControllerBase {
     //     return json(productsJson); // Return the JSON response
     // }
 
+
+
     @ActionAttribute(urlPattern = "productPage")
     public Result productPage() throws Exception {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -70,7 +72,7 @@ public class productController extends ControllerBase {
     
                 System.out.println("✅ Parsed variation keys: " + variationMap.keySet());
             } else {
-                System.out.println("⚠️ Variation JSON is empty or null.");
+                System.out.println("⚠ Variation JSON is empty or null.");
             }
     
         } catch (Exception e) {

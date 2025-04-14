@@ -1,8 +1,17 @@
 package Models;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Date;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Product")
@@ -15,7 +24,7 @@ public class product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_type_id", referencedColumnName = "product_type_id")
-    private int typeId;
+    private productType prodType;
 
     @Column(name = "product_title", length = 50, nullable = false)
     private String title;
@@ -51,9 +60,9 @@ public class product {
     public product() {}
 
     // Parameterized constructor
-    public product(int typeId, String title, String slug, String description, BigDecimal price, int stock,
+    public product(productType prodType, String title, String slug, String description, BigDecimal price, int stock,
                    String retailInfo, int featured, String variations, Date createdDate, String imageUrl) {
-        this.typeId = typeId;
+        this.prodType = prodType;
         this.title = title;
         this.slug = slug;
         this.description = description;
@@ -75,12 +84,12 @@ public class product {
         this.id = id;
     }
 
-    public int getTypeId() {
-        return typeId;
+    public productType getTypeId() {
+        return prodType;
     }
 
-    public void setTypeId(int typeId) {
-        this.typeId = typeId;
+    public void setTypeId(productType prodType) {
+        this.prodType = prodType;
     }
 
     public String getTitle() {
