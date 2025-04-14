@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="Models.productVariationOptions" %>
-<%@ page import="Models.product" %>
+<%@ page import="Models.product" %>'
+<%@ page import="Models.productType" %>'
 <%@ page import="java.util.List" %>
 
 <!DOCTYPE html>
@@ -96,26 +97,18 @@
                         </div>
                         <div id="categorySection" class="hidden mt-2">
                             <div class="space-y-1">
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="category[]" value="sofa"
-                                        class="form-checkbox text-yellow-500">
-                                    <span class="ml-2 text-sm text-gray-600">Sofa</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="category[]" value="tvCabinet"
-                                        class="form-checkbox text-yellow-500">
-                                    <span class="ml-2 text-sm text-gray-600">TV Cabinet</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="category[]" value="coffeeTable"
-                                        class="form-checkbox text-yellow-500">
-                                    <span class="ml-2 text-sm text-gray-600">Coffee Table</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="category[]" value="bed"
-                                        class="form-checkbox text-yellow-500">
-                                    <span class="ml-2 text-sm text-gray-600">Bed</span>
-                                </label>
+                                <%                         
+                                    List<productType> type = (List<productType>) request.getAttribute("productTypes");
+                                    if (type != null && !type.isEmpty()) {
+                                        for (productType t : type) {
+                                %>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="category[]" value="<%= t.gettype() %>"
+                                            onclick="filterByCategory(this.value)"
+                                            class="form-checkbox text-yellow-500">
+                                        <span class="ml-2 text-sm text-gray-600"><%= t.gettype() %></span>
+                                    </label>
+                                <% }} %>
                             </div>
                         </div>
                     </div>
@@ -181,37 +174,32 @@
                         </div>
                     </div>
 
-                    <%
+                    <div id="cardView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                        <%
                         List<product> products = (List<product>) request.getAttribute("products");
                         if (products != null && !products.isEmpty()) {
                             for (product p : products) {
-                    %>
-
-                    <!-- Featured Products Row 1 -->
-                    <div id="cardView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-                        <!-- Product 1 (Card) -->
-                        <div class="bg-white rounded-lg overflow-hidden shadow relative">
-                            <img src="<%= p.getImageUrl() %>" alt="<%= p.getTitle() %>" class="w-full h-40 object-cover">
-                            <div class="p-3">
-                                <h3 class="font-medium"><%= p.getTitle() %></h3>
-                                <p class="text-xs text-gray-500"><%= p.getRetailInfo() %></p>
-                                <div class="flex justify-between items-center mt-2">
-                                    <span class="font-bold">RM <%= p.getPrice() %></span>
-                                    <div class="flex items-center text-xs text-gray-500">
-                                        <i class="fas fa-box mr-1"></i>
-                                        <span><%= p.getStock() %> left</span>
+                        %>
+                            <a href="productPage?id=<%= p.getId() %>" class="block hover:shadow-lg transition-shadow duration-200">
+                                <div class="bg-white rounded-lg overflow-hidden shadow relative">
+                                    <img src="<%= p.getImageUrl() %>" alt="<%= p.getTitle() %>" class="w-full h-40 object-cover">
+                                    <div class="p-3">
+                                        <h3 class="font-medium"><%= p.getTitle() %></h3>
+                                        <p class="text-xs text-gray-500"><%= p.getRetailInfo() %></p>
+                                        <div class="flex justify-between items-center mt-2">
+                                            <span class="font-bold">RM <%= String.format("%.2f", p.getPrice()) %></span>
+                                            <div class="flex items-center text-xs text-gray-500">
+                                                <i class="fas fa-box mr-1"></i>
+                                                <span><%= p
+                                                .getStock() %> left</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <%
-                                }
-                            } else {
-                        %>
+                            </a>
+                        <% } } else { %>
                             <p>No products found.</p>
-                        <%
-                            }
-                        %>
+                        <% } %>
                     </div>
 
                     <!-- Product Container: List View (hidden by default) -->
@@ -340,6 +328,14 @@
             }
         </script>
 
+    
+
+ 
+
+
+
+        
+    
 </body>
 
 </html>

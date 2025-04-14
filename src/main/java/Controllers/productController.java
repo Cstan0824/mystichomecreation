@@ -5,8 +5,10 @@ import mvc.Result;
 import mvc.Annotations.ActionAttribute;
 import mvc.Helpers.JsonConverter;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -14,6 +16,7 @@ import DAO.productDAO;
 import Models.product;
 import Models.productVariationOptions;
 import Models.productFeedback; // Ensure this class exists in the Models package
+import Models.productType;
 import jakarta.servlet.annotation.WebServlet;
 
 
@@ -44,7 +47,7 @@ public class productController extends ControllerBase {
 
     @ActionAttribute(urlPattern = "productPage")
     public Result productPage() throws Exception {
-        int id = 1; // Or get from request.getParameter("id")
+        int id = Integer.parseInt(request.getParameter("id"));
         product p = productDAO.searchProducts(id);
         System.out.println("✅ Product found: " + p);
     
@@ -62,8 +65,8 @@ public class productController extends ControllerBase {
                     rawJson, new com.fasterxml.jackson.core.type.TypeReference<Map<String, List<String>>>() {}
                 );
     
-                options = new productVariationOptions(); // Instantiate
-                options.setOptions(variationMap);        // Set parsed map
+                options = new productVariationOptions(); 
+                options.setOptions(variationMap);        
     
                 System.out.println("✅ Parsed variation keys: " + variationMap.keySet());
             } else {
@@ -82,19 +85,45 @@ public class productController extends ControllerBase {
         }
     
         request.setAttribute("product", p);
-        request.setAttribute("variationOptions", options); // even if null — handled in JSP
+        request.setAttribute("variationOptions", options); 
         request.setAttribute("feedbackList", feedbackList);
 
-        return page(); // -> /Views/product/productPage.jsp
+        return page();
     }
 
-
+    // only return the products and the types 
     @ActionAttribute(urlPattern = "productCatalog")
     public Result productCatalog() throws Exception {
+
+        List<productType> types = productDAO.getAllProductTypes();
+        request.setAttribute("productTypes", types);
+        
         List<product> products = productDAO.getAllProducts();
+        
         request.setAttribute("products", products);
-        return page(); // Maps to /Views/product/catalog.jsp
+        return page();
     }
+
+    // this is filter for category 
+    // @ActionAttribute(urlPattern = "getProductsByType")
+    // public Result getProductsByType() throws Exception {
+    //     String type = request.getParameter("type");
+    
+    //     List<product> products;
+    //     if (type != null && !type.isEmpty()) {
+    //         products = productDAO.getProductsByType(type);
+    //     } else {
+    //         products = productDAO.getAllProducts();
+    //     }
+    
+    //     ObjectMapper mapper = new ObjectMapper();
+    //     String productsJson = mapper.writeValueAsString(products);
+    //     return json(productsJson);
+    // }
+
+
+
+
 
 
 

@@ -1,12 +1,15 @@
 package DAO;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import Models.dev;
 import Models.product;
 import Models.productFeedback;
 import Models.productVariationOptions;
+import Models.productType; // Added import for productType
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -67,9 +70,29 @@ public class productDAO implements Serializable{
         return null;
     }
 
-
+    public List<product> getProductsByType(String typeName) {
+        try {
+            TypedQuery<product> query = db.createQuery(
+                "SELECT p FROM product p WHERE p.productType.type = :type",product.class);
+            query.setParameter("type", typeName);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
   
-   
+    // Get all product types
+    public List<productType> getAllProductTypes() {
+        try {
+            TypedQuery<productType> query = db.createQuery("SELECT pt FROM productType pt", productType.class);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace(); // Handle exception
+        }
+        return null;
+    }   
+
 
     
 

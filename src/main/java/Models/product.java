@@ -13,7 +13,8 @@ public class product {
     @Column(name = "product_id")
     private int id;
 
-    @Column(name = "product_type_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_type_id", referencedColumnName = "product_type_id")
     private int typeId;
 
     @Column(name = "product_title", length = 50, nullable = false)
