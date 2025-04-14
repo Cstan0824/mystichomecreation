@@ -90,7 +90,7 @@ public abstract class HttpBase extends HttpServlet {
 
     }
 
-    protected void addMiddleware(Middleware middleware) {
+    public static void addMiddleware(Middleware middleware) {
         // Add Middleware
         if (middlewares == null) {
             middlewares = new ArrayList<>();
@@ -227,6 +227,7 @@ public abstract class HttpBase extends HttpServlet {
             context.getResponse().setCharacterEncoding(actionResult.getCharset());
             executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
+            // Set headers to prevent caching from browser
             switch (actionResult.getContentType()) {
                 case "application/json" ->
                     context.getResponse().getWriter().write(JsonConverter.serialize(actionResult.getData()));

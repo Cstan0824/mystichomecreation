@@ -12,6 +12,7 @@ import mvc.Annotations.AuthorizationHandler;
 import mvc.Annotations.SyncCacheHandler;
 import mvc.Annotations.WatcherHandler;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpBase;
 import mvc.Http.HttpStatusCode;
 
@@ -64,6 +65,7 @@ public class ControllerBase extends HttpBase {
 
         String path = "/" + controller.replace("Controller", "") + "/" + action + ".jsp";
         Result result = new Result();
+
         // Setup response
         result.setPath(path);
         result.setContentType("text/html");
@@ -149,6 +151,10 @@ public class ControllerBase extends HttpBase {
     @Override
     protected Result error(HttpStatusCode status, String message) throws Exception {
         return json(null, status, message);
+    }
+
+    protected SessionHelper getSessionHelper() {
+        return new SessionHelper(request.getSession());
     }
 
     private static String getCaller() {

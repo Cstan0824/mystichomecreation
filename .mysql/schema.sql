@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS `Voucher` (
   `voucher_usage_per_month` INT,
   `voucher_name` VARCHAR(50) NOT NULL,
   `voucher_description` VARCHAR(255),
+  `voucher_status` BOOLEAN NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`voucher_id`)
 );
 
@@ -99,8 +100,8 @@ CREATE TABLE IF NOT EXISTS `Product` (
 CREATE TABLE IF NOT EXISTS `Permission` (
   `permission_id` INT AUTO_INCREMENT,
   `role_id` INT NOT NULL,
-  `role_url` VARCHAR(255) NOT NULL,
-  `role_description` VARCHAR(50) NOT NULL,
+  `permission_url` VARCHAR(255) NOT NULL,
+  `permission_description` VARCHAR(50) NOT NULL,
    INDEX (`role_id`),
   PRIMARY KEY (`permission_id`),
   FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`)
@@ -142,11 +143,13 @@ CREATE TABLE IF NOT EXISTS `Cart_Item` (
 );
 
 CREATE TABLE IF NOT EXISTS `User_Payment_Info` (
-  `user_id` INT,
+  `card_id` INT AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
   `card_name` VARCHAR(50),
   `card_no` VARCHAR(50) NOT NULL,
   `expiry` DATE NOT NULL,
-  PRIMARY KEY (`user_id`),
+  `card_isDefault` BOOLEAN NOT NULL DEFAULT TRUE,
+  PRIMARY KEY (`card_id`),
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)
 );
 

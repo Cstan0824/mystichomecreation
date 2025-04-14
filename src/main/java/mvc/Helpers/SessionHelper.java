@@ -1,188 +1,234 @@
 package mvc.Helpers;
 
+import java.security.Timestamp;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import Models.User;
 import jakarta.servlet.http.HttpSession;
 
 public class SessionHelper {
-    private int id;
-    private String username;
-    private String email;
-    private String role;
+    // Core session properties
     private String permissions;
-    private String shipping_information;
-    private String birthdate;
     private boolean isAuthenticated = false;
+    private User user;
 
-    private static final String SESSION_KEY = "USER_DETAILS";
+    // Session keys
+    private static final String USER_SESSION_KEY = "USER_DETAILS";
+    private static final String USER_OBJECT_KEY = "USER_OBJECT";
 
     private HttpSession session;
     private Logger logger = AuditTrail.getLogger();
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public SessionHelper() {
-
     }
 
     public SessionHelper(HttpSession session) {
         this.session = session;
         try {
-            Object json = session.getAttribute(SESSION_KEY);
-            if (json != null) {
-                JsonNode root = objectMapper.readTree(json.toString());
-                this.id = root.path("id").asInt();
-                this.username = root.path("username").asText(null);
-                this.email = root.path("email").asText(null);
-                this.role = root.path("role").asText(null);
-                this.permissions = root.path("permissions").asText(null);
-                this.birthdate = root.path("birthdate").asText(null);
-                this.shipping_information = root.path("shipping_information").asText(null);
-                this.isAuthenticated = root.path("isAuthenticated").asBoolean(false);
+            // Load User object first
+            this.user = (User) session.getAttribute(USER_OBJECT_KEY);
+
+            // If no user object exists, try to load from JSON
+            if (this.user == null) {
+                Object json = session.getAttribute(USER_SESSION_KEY);
+                if (json != null) {
+                    JsonNode root = objectMapper.readTree(json.toString());
+                    this.permissions = root.path("permissions").asText(null);
+                    this.isAuthenticated = root.path("isAuthenticated").asBoolean(false);
+
+                    // Create User object from JSON data
+                    User newUser = new User();
+                    newUser.setId(root.path("id").asInt());
+                    newUser.setUsername(root.path("username").asText(null));
+                    newUser.setEmail(root.path("email").asText(null));
+                    newUser.setRole_id(Integer.parseInt(root.path("role").asText("0")));
+                    newUser.setBirthdate(root.path("birthdate").asText(null));
+                    newUser.setShippingInformation(root.path("shipping_information").asText(null));
+
+                    this.user = newUser;
+                    session.setAttribute(USER_OBJECT_KEY, newUser);
+                }
             }
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Error loading session data: " + ex.getMessage());
         }
     }
 
-    public int getId() {
-        try {
-            String val = get("id");
-            return val != null ? Integer.parseInt(val) : -1;
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Error throws at [getId()]: " + e.getMessage());
-            return -1;
+    // User object methods
+    /**
+     * Store the User object in the session
+     * 
+     * @param user The user object to store
+     */
+    public void setUser(User user) {
+        this.user = user;
+        if (user != null) {
+            this.isAuthenticated = true;
+            session.setAttribute(USER_OBJECT_KEY, user);
+            updateJsonRepresentation();
         }
     }
 
+    /**
+     * Retrieve the stored User object from session
+     * 
+     * @return The User object or null if not found
+     */
+    public User getUser() {
+        return this.user;
+    }
+
+    // Update the JSON representation based on the User object
+    private void updateJsonRepresentation() {
+        if (this.user != null) {
+            try {
+                ObjectNode json = objectMapper.createObjectNode();
+                json.put("id", this.user.getId());
+                json.put("username", this.user.getUsername());
+                json.put("email", this.user.getEmail());
+                json.put("role", String.valueOf(this.user.getRole_id()));
+                json.put("permissions", this.permissions);
+                json.put("birthdate", this.user.getBirthdate());
+                json.put("shipping_information", this.user.getShippingInformation());
+                json.put("isAuthenticated", this.isAuthenticated);
+
+                session.setAttribute(USER_SESSION_KEY, objectMapper.writeValueAsString(json));
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Error updating JSON representation: " + ex.getMessage());
+            }
+        }
+    }
+
+    // Getters and setters that directly use the User object
+    public int getId() {
+        return user != null ? user.getId() : -1;
+    }
+
     public String getUsername() {
-        return get("username");
+        return user != null ? user.getUsername() : null;
     }
 
     public void setUsername(String username) {
-        this.username = username;
-        set();
+        if (user != null) {
+            user.setUsername(username);
+            updateJsonRepresentation();
+        }
     }
 
     public String getEmail() {
-        return get("email");
+        return user != null ? user.getEmail() : null;
     }
 
     public void setEmail(String email) {
-        this.email = email;
-        set();
+        if (user != null) {
+            user.setEmail(email);
+            updateJsonRepresentation();
+        }
     }
 
     public String getRole() {
-        return get("role");
+        return user != null ? String.valueOf(user.getRole_id()) : null;
     }
 
     public void setRole(String role) {
-        this.role = role;
-        set();
+        if (user != null && role != null) {
+            try {
+                user.setRole_id(Integer.parseInt(role));
+                updateJsonRepresentation();
+            } catch (NumberFormatException e) {
+                logger.log(Level.WARNING, "Invalid role format: " + e.getMessage());
+            }
+        }
     }
 
     public String getPermissions() {
-        return get("permissions");
+        return this.permissions;
     }
 
     public void setPermissions(String permissions) {
         this.permissions = permissions;
-        set();
+        updateJsonRepresentation();
     }
 
     public String getShipping_information() {
-        return get("shipping_information");
+        return user != null ? user.getShippingInformation() : null;
     }
 
     public void setShippingInformation(String shipping_information) {
-        this.shipping_information = shipping_information;
-        set();
+        if (user != null) {
+            user.setShippingInformation(shipping_information);
+            updateJsonRepresentation();
+        }
     }
 
     public String getBirthdate() {
-        return get("birthdate");
+        return user != null ? user.getBirthdate() : null;
     }
 
     public void setBirthdate(String birthdate) {
-        this.birthdate = birthdate;
-        set();
+        if (user != null) {
+            user.setBirthdate(birthdate);
+            updateJsonRepresentation();
+        }
     }
 
     public boolean isAuthenticated() {
-        try {
-            String val = get("isAuthenticated");
-            return val != null ? Boolean.parseBoolean(val) : false;
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Error throws at [isAuthenticated()]: " + e.getMessage());
-            return false;
-        }
+        return this.isAuthenticated;
     }
 
     public void setAuthenticated(boolean isAuthenticated) {
         this.isAuthenticated = isAuthenticated;
-        set();
+        updateJsonRepresentation();
     }
 
+    // Helper methods
     public String getKey() {
-        return SESSION_KEY;
+        return USER_SESSION_KEY;
     }
 
-    public SessionHelper(int id, String username, String email, String role, String permissions,
-            String shipping_information, String birthdate, HttpSession session) {
-        this(session);
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.role = role;
-        this.permissions = permissions;
-        this.shipping_information = shipping_information;
-        this.birthdate = birthdate;
+    public String get(String key) {
+        return session.getAttribute(key) != null ? session.getAttribute(key).toString() : null;
     }
 
-    public String getJson() {
-        try {
-            ObjectNode json = objectMapper.createObjectNode();
-            json.put("id", this.id);
-            json.put("username", this.username);
-            json.put("email", this.email);
-            json.put("role", this.role);
-            json.put("permissions", this.permissions);
-            json.put("birthdate", this.birthdate);
-            json.put("shipping_information", this.shipping_information);
-            json.put("isAuthenticated", this.isAuthenticated);
-            return objectMapper.writeValueAsString(json);
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Error throws at [toJson()]: " + ex.getMessage());
-            return null;
-        }
+    public void set(String key, String value) {
+        set(key, value, null);
     }
 
-    private String get(String key) {
-        try {
-            Object json = session.getAttribute(SESSION_KEY);
-            if (json == null) {
-                return null;
+    public void set(String key, String value, Timestamp timestamp) {
+        if (timestamp != null) {
+            try {
+                ObjectNode json = objectMapper.createObjectNode();
+                json.put("value", value);
+                json.put("timestamp", timestamp.toString());
+                value = JsonConverter.serialize(json);
+            } catch (JsonProcessingException e) {
+                logger.log(Level.WARNING, "Error in set method: " + e.getMessage());
             }
-            JsonNode root = objectMapper.readTree(json.toString());
-            JsonNode valueNode = root.get(key);
-            return valueNode != null ? valueNode.asText() : null;
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Error throws at [get(String key)]: " + ex.getMessage());
-            return null;
         }
-
+        session.setAttribute(key, value);
     }
 
-    public void set() {
-        String json = getJson();
-        if (json == null) {
-            return;
-        }
-        session.setAttribute(SESSION_KEY, json);
+    public void remove(String key) {
+        session.removeAttribute(key);
+    }
+
+    public void remove() {
+        session.removeAttribute(USER_SESSION_KEY);
+        session.removeAttribute(USER_OBJECT_KEY);
+        this.user = null;
+        this.isAuthenticated = false;
+    }
+
+    public void clear() {
+        session.invalidate();
+        this.user = null;
+        this.isAuthenticated = false;
     }
 }
