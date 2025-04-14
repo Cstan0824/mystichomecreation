@@ -83,8 +83,8 @@ public class AuditTrail {
     public void log() {
         // Store to database or log file
         switch (this.type) {
-            // case INFO -> logToDatabase();
-            case INFO, ERROR, WARNING -> logToFile();
+            case INFO -> logToDatabase();
+            case ERROR, WARNING -> logToFile();
             // case WARNING -> WARNING();
         }
 

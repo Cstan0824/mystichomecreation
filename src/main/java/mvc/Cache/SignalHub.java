@@ -1,8 +1,9 @@
 package mvc.Cache;
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,125 +19,343 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
 
 public class SignalHub {
-    private Set<String> subscribers = new HashSet<>();
-    private JedisPool pool = new JedisPool(Redis.getHost(), Redis.getPort());
-    private Jedis jedis;
-    private static final EntityManager db = DataAccess.getEntityManager();
-    private static Logger logger =  AuditTrail.getLogger();
+    private Set<String> subscribers = ConcurrentHashMap.newKeySet(); // Thread-safe set
+    private final Map<String, Thread> activeSubscriptions = new ConcurrentHashMap<>();
 
+    private final JedisPool pool;
+    private static Logger logger = AuditTrail.getLogger();
 
-    public SignalHub(Jedis jedis) {
-        if (!jedis.isConnected()) {
-            jedis.connect();
-        }
-        this.jedis = jedis;
+    public SignalHub(JedisPool pool) {
+        this.pool = pool;
     }
-    
-    
 
+    /**
+     * Registers a subscriber for a channel to handle cache updates
+     */
     public void buildSubscriber(String channel, String key, QueryMetadata metadata)
             throws JsonProcessingException {
-            //subscribe(channel, key);
-            new Thread(() -> subscribe(channel, key)).start();
-            //Build json to store query and its type
+        if (channel == null || channel.isEmpty()) {
+            return;
+        }
+
+        // Store the metadata using a dedicated connection
+        try (Jedis jedis = pool.getResource()) {
             ObjectMapper objectMapper = new ObjectMapper();
+            String metadataJson = objectMapper.writeValueAsString(metadata);
+            String metadataKey = key + ":" + Redis.getSyncCachePrefix();
 
-            jedis.set(key + ":" + Redis.getSyncCachePrefix(), objectMapper.writeValueAsString(metadata));
+            // Store metadata for sync operations
+            String result = jedis.set(metadataKey, metadataJson);
+
+            // Verify metadata was stored correctly
+            String storedMetadata = jedis.get(metadataKey);
+            if (storedMetadata == null || storedMetadata.isEmpty()) {
+                logger.warning("Failed to store metadata for key: " + metadataKey);
+            }
+        }
+
+        // Only create subscription thread if it doesn't exist
+        if (!activeSubscriptions.containsKey(channel)) {
+            Thread thread = new Thread(() -> {
+                logger.info("Subscription thread started for channel: " + channel);
+                subscribe(channel, key);
+            });
+            thread.setName("Redis-PubSub-" + channel); // Named threads are easier to debug
+            thread.setDaemon(true);
+            thread.start();
+            activeSubscriptions.put(channel, thread);
+        } else {
+            logger.info("Subscription already exists for channel: " + channel);
+        }
     }
 
-    public void buildSubcriber(String key, QueryMetadata metadata) 
-            throws JsonProcessingException 
-    {
-        buildSubscriber(metadata.getControllerName(), key, metadata);
+    /**
+     * Fixes the typo in the original method name for backward compatibility
+     */
+    public void buildSubcriber(String key, QueryMetadata metadata)
+            throws JsonProcessingException {
+        if (metadata.getControllerName() == null || metadata.getControllerName().isEmpty()) {
+            buildSubscriber("*", key, metadata);
+        } else {
+            buildSubscriber(metadata.getControllerName(), key, metadata);
+        }
     }
 
+    /**
+     * Handle subscription to a Redis channel
+     */
     private void subscribe(String channel, String key) {
-        try (Jedis jedisPubSub = pool.getResource()) {
-            jedisPubSub.subscribe(new JedisPubSub() {
+        Jedis subscribeJedis = null;
 
-                @Override
-            public void onSubscribe(String channel, int subscribedChannels) {
-                System.out.println("Subscribed to channel: " + channel);
-                subscribers.add(channel);
+        try {
+            // Get a dedicated connection for subscription
+            subscribeJedis = pool.getResource();
+
+            if (subscribeJedis == null) {
+                return;
             }
 
-            @Override
+            // Test connection before subscribing
+            try {
+                String pingResult = subscribeJedis.ping();
+            } catch (Exception e) {
+                logger.severe("Connection test failed: " + e.getMessage());
+                throw e; // Re-throw to trigger reconnection logic
+            }
+
+            // Create fresh subscriber for each attempt
+            JedisPubSub subscriber = new JedisPubSub() {
+                @Override
+                public void onSubscribe(String channel, int subscribedChannels) {
+                    logger.info("Successfully subscribed to channel: " + channel);
+                    subscribers.add(channel);
+                }
+
+                @Override
                 public void onUnsubscribe(String channel, int subscribedChannels) {
-                    System.out.println("Unsubscribed from channel: " + channel);
+                    logger.info("Unsubscribed from channel: " + channel);
                     subscribers.remove(channel);
                 }
-            
+
                 @Override
                 public void onMessage(String channel, String message) {
-                    System.out.println("Received message: " + message + " on channel: " + channel);
-                    syncCache(key);
-                    //System.out.println("Success Sync Cache");
+                    logger.info("Received message: " + message + " on channel: " + channel);
+                    // Use a separate thread to avoid blocking pubsub
+                    new Thread(() -> syncCache(key)).start();
                 }
-            }, channel);
+
+                @Override
+                public void onPMessage(String pattern, String channel, String message) {
+                    logger.info("Received pattern message on " + pattern + ": " + message);
+                }
+
+                @Override
+                public void onPSubscribe(String pattern, int subscribedChannels) {
+                    logger.info("Subscribed to pattern: " + pattern);
+                }
+
+                @Override
+                public void onPUnsubscribe(String pattern, int subscribedChannels) {
+                    logger.info("Unsubscribed from pattern: " + pattern);
+                }
+            };
+
+            // This is a blocking call that won't return until unsubscribed
+            subscribeJedis.subscribe(subscriber, channel);
+
         } catch (Exception e) {
-            logger.info("ERROR thows at [subscribe(String channel, String key)]" + e.getMessage());
+            logger.severe("ERROR in subscribe: " + e.getMessage());
+            e.printStackTrace();
+
+            // Clean up the subscription record if it fails
+            activeSubscriptions.remove(channel);
+
+            // Try to reconnect after a delay
+            try {
+                if (subscribeJedis != null) {
+                    try {
+                        subscribeJedis.close();
+                    } catch (Exception ce) {
+                        // Ignore close errors
+                    }
+                }
+                Thread.sleep(5000);
+
+                // If there's still an active subscription request, try again
+                if (!activeSubscriptions.containsKey(channel)) {
+                    Thread thread = new Thread(() -> subscribe(channel, key));
+                    thread.setDaemon(true);
+                    thread.start();
+                    activeSubscriptions.put(channel, thread);
+                }
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
     private void syncCache(String key) {
-        try (Jedis threadJedis = Redis.getJedis()) {
+        try (Jedis threadJedis = pool.getResource()) {
             String json = threadJedis.get(key + ":" + Redis.getSyncCachePrefix());
-            if (json == null || json.equals("")) {
+            if (json == null || json.isEmpty()) {
                 return;
             }
-            //try to get again if the result is OK or PONG [Jedis is not thread safe] sometime return unexpected result[OK,PONG]
+
+            // Handle special responses
             if (json.equals("OK") || json.equals("PONG")) {
-                json = threadJedis.get(key + ":" + Redis.getSyncCachePrefix()); 
+                json = threadJedis.get(key + ":" + Redis.getSyncCachePrefix());
+                if (json == null || json.isEmpty() || json.equals("OK") || json.equals("PONG")) {
+                    return;
+                }
             }
-            QueryMetadata metadata = JsonConverter.deserialize(json, QueryMetadata.class).get(0);
-            // Execute query
-            Query query = db.createQuery(metadata.getSql());
-            switch (metadata.getType()) {
-                case SINGLE -> {
-                    Object result = query.getSingleResult();
-                    Redis.cacheResult(threadJedis, key, metadata.getLevel(), result);
+
+            EntityManager db = DataAccess.getEntityManager();
+            try {
+                QueryMetadata metadata = JsonConverter.deserialize(json, QueryMetadata.class).get(0);
+
+                // Create the query
+                Query query = db.createQuery(metadata.getSql());
+
+                // Apply named parameters if they exist
+                if (metadata.getNamedParameters() != null && !metadata.getNamedParameters().isEmpty()) {
+                    for (Map.Entry<String, Object> param : metadata.getNamedParameters().entrySet()) {
+                        if (param.getValue() != null) {
+                            query.setParameter(param.getKey(), param.getValue());
+                        }
+                    }
                 }
-                case LIST -> {
-                    List<Object> results = query.getResultList();
-                    Redis.cacheResult(threadJedis, key, metadata.getLevel(), results);
+
+                // Apply positional parameters if they exist
+                if (metadata.getPositionalParameters() != null && !metadata.getPositionalParameters().isEmpty()) {
+                    for (Map.Entry<Integer, Object> param : metadata.getPositionalParameters().entrySet()) {
+                        if (param.getValue() != null) {
+                            query.setParameter(param.getKey(), param.getValue());
+                        }
+                    }
                 }
+
+                // Execute query with parameters
+                switch (metadata.getType()) {
+                    case SINGLE -> {
+                        Object result = query.getSingleResult();
+                        Redis.cacheResult(threadJedis, key, metadata.getLevel(), result);
+                    }
+                    case LIST -> {
+                        List<Object> results = query.getResultList();
+                        Redis.cacheResult(threadJedis, key, metadata.getLevel(), results);
+                    }
+                }
+            } finally {
+                db.close();
             }
         } catch (Exception e) {
-            logger.info("ERROR thows at [syncCache(String key)]" + e.getMessage());
+            logger.warning("ERROR in syncCache: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public void publish(String channel, String message) {
-        try (Jedis jedisPubSub = pool.getResource()) {
-            jedis.publish(channel, message);
-
-        }
-        //jedis.publish(channel, message);
-    }
-
-    //TODO: NEED TO TEST
-    public void restore(String prefix) {
         try (Jedis jedis = pool.getResource()) {
-            String pattern = "*:" + prefix;
-            Set<String> keys = jedis.keys(pattern);
-            //Create a new thread to build the subscriber
-            keys.forEach(key -> {
-                try {
-                    String sync_query = jedis.get(key);
-                    String actualKey = key.split(":")[0];
-                    QueryMetadata metadata = JsonConverter.deserialize(sync_query, QueryMetadata.class).get(0);
-                    buildSubcriber(actualKey, metadata);
-                } catch (JsonProcessingException e) {
-                    logger.info("ERROR thows at [restore(String prefix)]" + e.getMessage());
-                }
-                //Convert to QueryMetadata object
-                //signalHub.buildSubscriber(key);
-            });
+            jedis.publish(channel, message);
+            logger.info("Published message to " + channel + ": " + message);
+        } catch (Exception e) {
+            logger.warning("ERROR in publish: " + e.getMessage());
         }
     }
-    
 
+    /**
+     * Restore subscriptions from Redis
+     * 
+     * @param prefix The prefix to search for (typically SYNC_QUERY)
+     */
+    public void restore(String prefix) {
+        try (Jedis jedis = new Jedis(Redis.getHost(), Redis.getPort())) {
+            // First test connection
+            try {
+                String pingResult = jedis.ping();
+                logger.info("Redis connection test before restore: " + pingResult);
+            } catch (Exception e) {
+                logger.severe("Cannot restore - Redis connection test failed: " + e.getMessage());
+                return;
+            }
+
+            // Find all matching keys
+            String pattern = "*:" + prefix;
+            Set<String> keys;
+            try {
+                keys = jedis.keys(pattern);
+                logger.info("Found " + keys.size() + " keys for restoration with pattern: " + pattern);
+            } catch (Exception e) {
+                logger.severe("Failed to get keys for restore: " + e.getMessage());
+                e.printStackTrace();
+                return;
+            }
+
+            // Try to restore each key
+            int success = 0;
+            int failed = 0;
+
+            for (String key : keys) {
+                try {
+                    // Get the stored metadata
+                    String metadataJson = jedis.get(key);
+
+                    if (metadataJson == null || metadataJson.isEmpty()) {
+                        failed++;
+                        continue;
+                    }
+
+                    // Extract actual key (everything before last colon)
+                    String actualKey = key.substring(0, key.lastIndexOf(':'));
+
+                    if (actualKey.isEmpty()) {
+                        failed++;
+                        continue;
+                    }
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    QueryMetadata metadata;
+
+                    try {
+                        // This is more robust than the list deserialization approach
+                        metadata = mapper.readValue(metadataJson, QueryMetadata.class);
+                    } catch (Exception e) {
+                        logger.severe("Failed to deserialize metadata for key " + key + ": " + e.getMessage());
+                        e.printStackTrace();
+                        failed++;
+                        continue;
+                    }
+
+                    // Create subscription
+                    String channel = metadata.getControllerName() != null && !metadata.getControllerName().isEmpty()
+                            ? metadata.getControllerName()
+                            : "global";
+
+                    // Build the subscriber
+                    buildSubscriber(channel, actualKey, metadata);
+                    logger.info("Successfully restored subscription for key " + actualKey + " on channel " + channel);
+                    success++;
+
+                } catch (Exception e) {
+                    logger.severe("Error restoring key " + key + ": " + e.getMessage());
+                    e.printStackTrace();
+                    failed++;
+                }
+            }
+
+            logger.info("Restore complete: " + success + " subscriptions restored, " + failed + " failed");
+        } catch (Exception e) {
+            logger.severe("Critical error in restore process: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void shutdown() {
+        // Track which threads we're shutting down
+        int count = 0;
+
+        logger.info("Shutting down SignalHub and all PubSub subscriptions");
+        // Interrupt and stop each subscription thread
+        for (Map.Entry<String, Thread> entry : activeSubscriptions.entrySet()) {
+            try {
+                String channel = entry.getKey();
+                Thread thread = entry.getValue();
+
+                if (thread != null && thread.isAlive()) {
+                    logger.info("Shutting down subscription for channel: " + channel);
+                    thread.interrupt();
+                    count++;
+                }
+            } catch (Exception e) {
+                logger.warning("Error shutting down subscription: " + e.getMessage());
+            }
+        }
+
+        // Clear the collections
+        activeSubscriptions.clear();
+        subscribers.clear();
+
+        logger.info("SignalHub shutdown complete. Terminated " + count + " subscription threads.");
+    }
 }
-
-

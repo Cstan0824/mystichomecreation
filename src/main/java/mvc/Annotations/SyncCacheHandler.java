@@ -9,6 +9,7 @@ public class SyncCacheHandler implements Middleware {
 
     @Override
     public void onError(HttpContext context) {
+        System.out.println("SyncCacheHandler: onError() called");
     }
 
     @Override
