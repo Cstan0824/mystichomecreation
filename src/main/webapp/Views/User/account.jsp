@@ -135,79 +135,79 @@
 	</div>
 
 	<!-- Address Modal -->
-	<div id="addressModal" class="fixed inset-0 z-50 hidden items-center justify-center w-full  bg-[rgba(0,0,0,0.4)]
-             backdrop-blur-sm">
-		<div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 
-            max-h-[90vh] overflow-y-auto" id="modalContent">
+<div id="addressModal" data-mode="add" class="fixed inset-0 z-50 hidden items-center justify-center w-full  bg-[rgba(0,0,0,0.4)] backdrop-blur-sm">
+	<div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" id="modalContent" >
 
-			<div class="flex justify-between items-center mb-2">
-				<h2 class="text-lg font-semibold text-gray-800">Add New Address</h2>
-				<button id="closeModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+		<div class="flex justify-between items-center mb-2">
+			<h2 class="text-lg font-semibold text-gray-800">Add New Address</h2>
+			<button id="closeModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+		</div>
+
+		<div id="addressForm" class="space-y-4">
+			<input type="hidden" id="addressId" value="-1" />
+			<div>
+				<label for="addressLabel" class="block text-sm font-medium text-gray-700">Address Label</label>
+				<input id="addressLabel" type="text" placeholder="e.g. Home, Office"
+					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 			</div>
 
-			<form id="addressForm" class="space-y-4">
+			<div>
+				<label for="receiverName" class="block text-sm font-medium text-gray-700">Receiver Name</label>
+				<input id="receiverName" type="text" placeholder="Full name"
+					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+			</div>
+
+			<div>
+				<label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
+				<input id="phoneNumber" type="tel" placeholder="e.g. +60 1234 5678"
+					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+			</div>
+
+			<!-- State + Postal Code side-by-side (50% each) -->
+			<div class="grid grid-cols-2 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700">Address Label</label>
-					<input type="text" placeholder="e.g. Home, Office"
+					<label for="state" class="block text-sm font-medium text-gray-700">State</label>
+					<select id="state"
+						class="w-full border rounded px-3 py-2 mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+						<option value="">Select State</option>
+						<option>Selangor</option>
+						<option>Kuala Lumpur</option>
+						<option>Penang</option>
+						<option>Johor</option>
+						<option>Sabah</option>
+						<option>Sarawak</option>
+					</select>
+				</div>
+				<div>
+					<label for="postCode" class="block text-sm font-medium text-gray-700">Postal Code</label>
+					<input id="postCode" type="text" placeholder="e.g. 41200"
 						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 				</div>
+			</div>
 
-				<div>
-					<label class="block text-sm font-medium text-gray-700">Receiver Name</label>
-					<input type="text" placeholder="Full name"
-						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-				</div>
+			<div>
+				<label for="addressLine1" class="block text-sm font-medium text-gray-700">Address Line 1</label>
+				<input id="addressLine1" type="text" placeholder="Street, building, etc."
+					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+			</div>
 
-				<div>
-					<label class="block text-sm font-medium text-gray-700">Phone Number</label>
-					<input type="tel" placeholder="e.g. +60 1234 5678"
-						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-				</div>
+			<div>
+				<label for="addressLine2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
+				<input id="addressLine2" type="text" placeholder="Apartment, unit, floor, etc. (optional)"
+					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+			</div>
 
-				<!-- State + Postal Code side-by-side (50% each) -->
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block text-sm font-medium text-gray-700">State</label>
-						<select
-							class="w-full border rounded px-3 py-2 mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-							<option value="">Select State</option>
-							<option>Selangor</option>
-							<option>Kuala Lumpur</option>
-							<option>Penang</option>
-							<option>Johor</option>
-							<option>Sabah</option>
-							<option>Sarawak</option>
-						</select>
-					</div>
-					<div>
-						<label class="block text-sm font-medium text-gray-700">Postal Code</label>
-						<input type="text" placeholder="e.g. 41200"
-							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-					</div>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium text-gray-700">Address Line 1</label>
-					<input type="text" placeholder="Street, building, etc."
-						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium text-gray-700">Address Line 2</label>
-					<input type="text" placeholder="Apartment, unit, floor, etc. (optional)"
-						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-				</div>
-
-				<div class="flex justify-end space-x-2 pt-2">
-					<button type="button" id="cancelModal"
-						class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
-					<button type="submit"
-						class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
-				</div>
-			</form>
-
+			<div class="flex justify-end space-x-2 pt-2">
+				<button type="button" id="cancelModal"
+					class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
+				<button type="submit" id="saveModal"
+					class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
+			</div>
 		</div>
+
 	</div>
+</div>
+
 	<!-- Voucher Modal -->
 	<div id="voucherModal"
 		class="fixed inset-0 z-50 hidden items-center justify-center bg-[rgba(0,0,0,0.4)] backdrop-blur-sm">
@@ -218,7 +218,7 @@
 				<button id="closeVoucherModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
 			</div>
 
-			<form id="voucherForm" class="space-y-4">
+			<div id="voucherForm" class="space-y-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700">Voucher Name</label>
 					<input type="text" placeholder="e.g. Mega Saver"
@@ -266,7 +266,7 @@
 					<button type="submit"
 						class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
 				</div>
-			</form>
+			</div>
 		</div>
 	</div>
 	<script>
@@ -324,11 +324,6 @@
 			$(function() {
 				const $addressModal = $('#addressModal');
 				$('#closeModal, #cancelModal').on('click', function() {
-					$addressModal.addClass('hidden').removeClass('flex');
-				});
-				$('#addressForm').on('submit', function(e) {
-					e.preventDefault();
-					alert('Address saved!');
 					$addressModal.addClass('hidden').removeClass('flex');
 				});
 				// Optional: close on backdrop click

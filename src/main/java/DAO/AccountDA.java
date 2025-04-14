@@ -84,7 +84,16 @@ public class AccountDA {
             if (shippingInformations.get(i).getId() != shippingInformation.getId()) {
                 continue;
             }
-            shippingInformations.set(i, shippingInformation);
+            // set based on property one by one to avoid null values overwriting to existing
+            // values
+            ShippingInformation shippingInfo = shippingInformations.get(i);
+            shippingInfo.setLabel(shippingInformation.getLabel());
+            shippingInfo.setReceiverName(shippingInformation.getReceiverName());
+            shippingInfo.setPhoneNumber(shippingInformation.getPhoneNumber());
+            shippingInfo.setState(shippingInformation.getState());
+            shippingInfo.setPostCode(shippingInformation.getPostCode());
+            shippingInfo.setAddressLine1(shippingInformation.getAddressLine1());
+            shippingInfo.setAddressLine2(shippingInformation.getAddressLine2());
             break;
         }
 
