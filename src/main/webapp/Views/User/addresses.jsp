@@ -2,17 +2,18 @@
 <html lang="en">
 <%@ page import="java.util.List" %>
 <%@ page import="Models.ShippingInformation" %>
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mystichome Creations</title>
-    <!-- Tailwind & other resources -->
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/swiper.css" />
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Mystichome Creations</title>
+	<!-- Tailwind & other resources -->
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/swiper.css" />
+	<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 
 <body class="m-0 p-2">
@@ -22,7 +23,7 @@
 	</div>
 	<div class="bg-white w-full p-4">
 		<hr class="border-gray-200 p-2" />
-		
+
 		<%
 		// Get the ShippingAddresses list from request attributes
 		List<ShippingInformation> shippingAddresses = 
@@ -34,7 +35,7 @@
 			for(ShippingInformation address : shippingAddresses) {
 		%>
 		<!-- Address Card -->
-		<div class="relative bg-gray-50 p-4 pb-14 rounded shadow mb-4">
+		<div class="relative bg-gray-50 p-4 rounded shadow mb-4">
 			<div class="flex items-start justify-between">
 				<div class="text-sm">
 					<p class="font-semibold text-gray-700"><%= address.getLabel() %></p>
@@ -47,7 +48,7 @@
 					Default
 				</span>
 				<% } else { %>
-				<button onclick="setDefaultAddress(<%= address.getId() %>)" 
+				<button onclick="setDefaultAddress(<%= address.getId() %>)"
 					class="border border-blue-500 text-blue-500 text-xs px-3 py-1 rounded-md hover:bg-blue-50">
 					Set as default
 				</button>
@@ -56,17 +57,21 @@
 
 			<div class="text-sm text-gray-600 space-y-1 pl-1 mt-2">
 				<p><%= address.getAddressLine1() %></p>
+
 				<% if(address.getAddressLine2() != null && !address.getAddressLine2().isEmpty()) { %>
 				<p><%= address.getAddressLine2() %></p>
 				<% } %>
-				<p><%= address.getPostCode() %> <%= address.getState() %></p>
-			</div>
 
-			<!-- Fixed Edit/Delete buttons at bottom right -->
-			<div class="absolute bottom-3 right-4 space-x-3 text-xs">
-				<button onclick="editAddress(<%= address.getId() %>, '<%= address.getLabel() %>', '<%= address.getReceiverName() %>', '<%= address.getPhoneNumber() %>', '<%= address.getState() %>', '<%= address.getPostCode() %>', '<%= address.getAddressLine1() %>', '<%= address.getAddressLine2() != null ? address.getAddressLine2().replace("'", "\\'") : "" %>')" 
-    				class='text-blue-500 hover:underline text-xs'>Edit</button>
-				<button onclick="deleteAddress(<%= address.getId() %>)" class="text-red-500 hover:underline">Delete</button>
+				<div class="flex justify-between items-center">
+					<p><%= address.getPostCode() %> <%= address.getState() %></p>
+					<div class="space-x-3 text-xs">
+						<button
+							onclick="editAddress(<%= address.getId() %>, '<%= address.getLabel() %>', '<%= address.getReceiverName() %>', '<%= address.getPhoneNumber() %>', '<%= address.getState() %>', '<%= address.getPostCode() %>', '<%= address.getAddressLine1() %>', '<%= address.getAddressLine2() != null ? address.getAddressLine2().replace("'", "\\'") : "" %>')"
+							class="text-blue-500 hover:underline">Edit</button>
+						<button onclick="deleteAddress(<%= address.getId() %>)"
+							class="text-red-500 hover:underline">Delete</button>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -92,38 +97,39 @@
 	</div>
 
 	<script>
-	// Function to set default address
-	function setDefaultAddress(addressId) {
-		// AJAX request to set default address
-		$.ajax({
-			url: "<%= request.getContextPath() %>/User/account/addresses/default",
-			type: "POST",
-			contentType: "application/json",
-			dataType: "json",
-			data: JSON.stringify({
-				ShippingAddressId: addressId
-			}),
-			success: function(response) {
-				if (response.status == 200) {
-					setTimeout(() => {
-						$(window.parent.document).find("#contentFrame").attr("src", "<%= request.getContextPath() %>/User/account/addresses");
-					}, 100); // 300ms delay
-				} else {
-					alert("Failed to set default address");
-				}
-			},
-			error: function(xhr, status, error) {
-				console.error("AJAX error:", status, error);
-				alert("An error occurred while setting the default address.");
-			}
-		});
-	}
-	// Function to edit address
-	function editAddress(id, label, receiverName, phone, state, postCode, address1, address2) {
-		clearAddressForm();			// Show modal
-			const $modal = $(window.parent.document).find('#addressModal');
+		// Function to set default address
+		function setDefaultAddress(addressId) {
+			// AJAX request to set default address
+			$.ajax({
+				url: "<%= request.getContextPath() %>/User/account/addresses/default",
+				type: "POST",
+				contentType: "application/json",
+				dataType: "json",
+				data: JSON.stringify({
+					ShippingAddressId: addressId
+				}),
+				success: function(response) {
+					if (response.status == 200) {
+						setTimeout(() => {
+							location.reload();
+						}, 150); // 300ms delay
 
+					} else {
+						alert(response.message);
+					}
+				},
+				error: function(xhr, status, error) {
+					alert("An error occurred while setting the default address.");
+				}
+			});
+		}
+		// Function to edit address
+		function editAddress(id, label, receiverName, phone, state, postCode, address1, address2) {
+			clearAddressForm(); // Show modal
+			const $modal = $(window.parent.document).find('#addressModal');
+			$modal.data('mode', 'edit'); // Store address ID in modal data
 			// Fill in form fields
+			$modal.find('#addressId').val(id); // Store address ID in modal data
 			$modal.find('#addressLabel').val(label);
 			$modal.find('#receiverName').val(receiverName);
 			$modal.find('#phoneNumber').val(phone);
@@ -131,9 +137,9 @@
 			$modal.find('#postCode').val(postCode);
 			$modal.find('#addressLine1').val(address1);
 			$modal.find('#addressLine2').val(address2);
-
 			$modal.removeClass('hidden').addClass('flex');
 		}
+
 		function clearAddressForm() {
 			const $modal = $(window.parent.document).find('#addressModal');
 			$modal.find('#addressLabel').val('');
@@ -144,33 +150,86 @@
 			$modal.find('#addressLine1').val('');
 			$modal.find('#addressLine2').val('');
 		}
-		
 		// Function to delete address
 		function deleteAddress(addressId) {
-			if(confirm("Are you sure you want to delete this address?")) {
-				$.post("<%= request.getContextPath() %>/User/account/addresses/delete", 
-					{ ShippingAddressId: addressId }, 
-					function(response) {
-						if(response.success) {
-							// Reload the page to remove deleted address
-							location.reload();
+			if (confirm("Are you sure you want to delete this address?")) {
+				$.ajax({
+					url: "<%= request.getContextPath() %>/User/account/addresses/delete",
+					method: "POST",
+					contentType: "application/json",
+					dataType: "json",
+					data: JSON.stringify({
+						shippingAddressId: addressId
+					}),
+					success: function(response) {
+						if (response.status == 200) {
+							setTimeout(() => {
+								location.reload();
+							}, 150); // 300ms delay
 						} else {
-							alert("Failed to delete address");
+							alert(response.message);
 						}
-					});
+					},
+					error: function(xhr, status, error) {
+						alert("Something went wrong while deleting the address.");
+					}
+				});
+
 			}
 		}
-
 		$(function() {
+			//hide the modal if it consists of class flex and exclude hidden class whenever page refresh
+			const $modal = $(window.parent.document).find('#addressModal');
+			if ($modal.hasClass('flex')) {
+				$modal.removeClass('flex').addClass('hidden');
+			}
+
+			
 			// Open modal when clicking "Add New Address"
 			$('#addNewAddressBtn').on('click', function() {
 				clearAddressForm();
 				const $modal = $(window.parent.document).find('#addressModal');
+				$modal.data('mode', 'add'); // Store address ID in modal data
 				$modal.removeClass('hidden').addClass('flex');
 				gsap.from('#addressModal > div', {
 					scale: 0.9,
 					opacity: 0,
 					duration: 0.3
+				});
+			});
+			$(window.parent.document).on('click', '#addressModal #saveModal', function() {
+				const $modal = $(window.parent.document).find('#addressModal');
+				const mode = $modal.data('mode');
+				const addressId = $modal.find('#addressId').val();
+				const shippingInformation = {
+					label: $modal.find('#addressLabel').val(),
+					receiverName: $modal.find('#receiverName').val(),
+					phoneNumber: $modal.find('#phoneNumber').val(),
+					state: $modal.find('#state').val(),
+					postCode: $modal.find('#postCode').val(),
+					addressLine1: $modal.find('#addressLine1').val(),
+					addressLine2: $modal.find('#addressLine2').val()
+				};
+				if (mode === 'edit') {
+					shippingInformation.id = addressId;
+				}
+				$.ajax({
+					url: "<%= request.getContextPath() %>/User/account/addresses/" + mode,
+					method: "POST",
+					data: JSON.stringify({shippingInformation : shippingInformation}),
+					contentType: "application/json",
+					success: function(response) {
+						if (response.status == 200) {
+							setTimeout(() => {
+								location.reload();
+							}, 150); // 300ms delay
+						} else {
+							alert(response.message);
+						}
+					},
+					error: function(xhr, status, error) {
+						alert("Something went wrong while saving the address.");
+					}
 				});
 			});
 		});

@@ -45,7 +45,7 @@ public class SignalHub {
             String metadataKey = key + ":" + Redis.getSyncCachePrefix();
 
             // Store metadata for sync operations
-            String result = jedis.set(metadataKey, metadataJson);
+            jedis.set(metadataKey, metadataJson);
 
             // Verify metadata was stored correctly
             String storedMetadata = jedis.get(metadataKey);
@@ -97,7 +97,7 @@ public class SignalHub {
 
             // Test connection before subscribing
             try {
-                String pingResult = subscribeJedis.ping();
+                subscribeJedis.ping();
             } catch (Exception e) {
                 logger.severe("Connection test failed: " + e.getMessage());
                 throw e; // Re-throw to trigger reconnection logic
@@ -244,11 +244,6 @@ public class SignalHub {
         }
     }
 
-    /**
-     * Restore subscriptions from Redis
-     * 
-     * @param prefix The prefix to search for (typically SYNC_QUERY)
-     */
     public void restore(String prefix) {
         try (Jedis jedis = new Jedis(Redis.getHost(), Redis.getPort())) {
             // First test connection

@@ -6,7 +6,6 @@ import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Helpers.Helpers;
-import mvc.Helpers.JsonConverter;
 import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpMethod;
 
@@ -164,7 +163,6 @@ public class UserController extends ControllerBase {
         int userId = session.getId();
         List<ShippingInformation> ShippingAddresses = accountDA.getShippingInformation(userId);
         request.setAttribute("ShippingAddresses", ShippingAddresses);
-        System.out.println(JsonConverter.serialize(ShippingAddresses));
         return page();
     }
 
@@ -182,16 +180,30 @@ public class UserController extends ControllerBase {
         return success();
     }
 
+    // @Authorization(permissions = "User/account/ShippingAddresses/add")
+    @ActionAttribute(urlPattern = "account/addresses/add")
+    @SyncCache(channel = "User")
+    @HttpRequest(HttpMethod.POST)
+    public Result addShippingAddress(ShippingInformation shippingInformation) throws Exception {
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        boolean response = accountDA.addShippingInformation(userId, shippingInformation);
+        if (response) {
+            return success();
+        }
+        return error("Failed to add addresses");
+    }
+
     // @Authorization(permissions = "User/account/ShippingAddresses/edit")
     @ActionAttribute(urlPattern = "account/addresses/edit")
     @SyncCache(channel = "User")
     @HttpRequest(HttpMethod.POST)
-    public Result editShippingAddress(ShippingInformation ShippingAddress) throws Exception {
+    public Result editShippingAddress(ShippingInformation shippingInformation) throws Exception {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
         int userId = session.getId();
-        boolean response = accountDA.updateShippingInformation(userId, ShippingAddress);
+        boolean response = accountDA.updateShippingInformation(userId, shippingInformation);
         if (response) {
-            return page("account#addresses");
+            return success();
         }
         return error("Failed to update addresses");
     }
@@ -200,12 +212,12 @@ public class UserController extends ControllerBase {
     @ActionAttribute(urlPattern = "account/addresses/delete")
     @SyncCache(channel = "User")
     @HttpRequest(HttpMethod.POST)
-    public Result deleteShippingAddress(int ShippingAddressId) throws Exception {
+    public Result deleteShippingAddress(int shippingAddressId) throws Exception {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
         int userId = session.getId();
-        boolean response = accountDA.deleteShippingInformation(userId, ShippingAddressId);
+        boolean response = accountDA.deleteShippingInformation(userId, shippingAddressId);
         if (response) {
-            return page("account#addresses");
+            return success();
         }
         return error("Failed to delete addresses");
     }
