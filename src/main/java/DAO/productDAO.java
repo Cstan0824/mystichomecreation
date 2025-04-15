@@ -59,7 +59,7 @@ public class productDAO implements Serializable{
         }
     }
 
-    // Catalog use this method to get all products
+    // Catalog use this method to get all products (dont touch this method)
     public List<product> getAllProducts() {
         try {
             TypedQuery<product> query = db.createQuery("SELECT p FROM product p ORDER BY p.createdDate DESC", product.class);
@@ -69,20 +69,8 @@ public class productDAO implements Serializable{
         }
         return null;
     }
-
-    public List<product> getProductsByType(String typeName) {
-        try {
-            TypedQuery<product> query = db.createQuery(
-                "SELECT p FROM product p WHERE p.productType.type = :type",product.class);
-            query.setParameter("type", typeName);
-            return query.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
   
-    // Get all product types
+    // Get all product types (dont touch this method)
     public List<productType> getAllProductTypes() {
         try {
             TypedQuery<productType> query = db.createQuery("SELECT pt FROM productType pt", productType.class);
@@ -92,6 +80,32 @@ public class productDAO implements Serializable{
         }
         return null;
     }   
+
+    // Filter the categories 
+    public List<product> getProductsByCategories(List<String> categoryNames) {
+        try {
+            TypedQuery<product> query = db.createQuery(
+                "SELECT p FROM product p WHERE p.type.type IN :names", product.class
+            );
+            query.setParameter("names", categoryNames);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+
+    // sort for the products
+    public List<product> getAllSorted(String orderByClause) {
+        try {
+            String queryStr = "SELECT p FROM product p ORDER BY p." + orderByClause;
+            TypedQuery<product> query = db.createQuery(queryStr, product.class);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
     
