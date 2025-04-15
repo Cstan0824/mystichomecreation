@@ -2,6 +2,8 @@ package mvc.Http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -11,10 +13,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,6 +38,7 @@ import mvc.Exceptions.InvalidActionResultException;
 import mvc.Exceptions.PageNotFoundException;
 import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
+import mvc.FileType;
 import mvc.Result;
 
 /*
@@ -72,6 +77,12 @@ public abstract class HttpBase extends HttpServlet {
     protected abstract Result content(Object data, String contentType) throws Exception;
 
     protected abstract Result content(Object data, String contentType, HttpStatusCode status) throws Exception;
+
+    protected abstract Result file(Blob blob) throws Exception;
+
+    protected abstract Result file(Blob blob, String fileName) throws Exception;
+
+    protected abstract Result file(Blob blob, String fileName, FileType fileType) throws Exception;
 
     protected abstract Result success() throws Exception;
 
@@ -225,6 +236,10 @@ public abstract class HttpBase extends HttpServlet {
             context.getResponse().setContentType(actionResult.getContentType());
             context.getResponse().setStatus(actionResult.getStatusCode().get());
             context.getResponse().setCharacterEncoding(actionResult.getCharset());
+            // setHeaders
+            for (Entry<String, String> header : actionResult.getHeaders().entrySet()) {
+                context.getResponse().setHeader(header.getKey(), header.getValue());
+            }
             executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
             // Set headers to prevent caching from browser
@@ -250,7 +265,12 @@ public abstract class HttpBase extends HttpServlet {
                                 context.getResponse());
                     }
                 }
-                default -> context.getResponse().getWriter().write((actionResult.getData().toString()));
+                default -> {
+                    if (FileType.contains(actionResult.getContentType())) {
+                        streamFileContent(actionResult.getData());
+                    }
+                    context.getResponse().getWriter().write((actionResult.getData().toString()));
+                }
             }
 
         } else {
@@ -306,6 +326,21 @@ public abstract class HttpBase extends HttpServlet {
                     case OnError -> middleware.onError(context);
                 }
                 break;
+            }
+        }
+    }
+
+    private void streamFileContent(Object data) throws Exception {
+        if (data instanceof Blob blob) {
+            // Read and Write Stream
+            try (InputStream input = blob.getBinaryStream();
+                    OutputStream output = response.getOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, bytesRead);
+                }
+                output.flush();
             }
         }
     }

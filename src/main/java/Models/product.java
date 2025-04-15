@@ -1,6 +1,6 @@
 package Models;
 
-import java.math.BigDecimal;
+import jakarta.persistence.*;
 import java.sql.Date;
 
 import jakarta.persistence.Column;
@@ -24,7 +24,7 @@ public class product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_type_id", referencedColumnName = "product_type_id")
-    private productType prodType;
+    private productType type;
 
     @Column(name = "product_title", length = 50, nullable = false)
     private String title;
@@ -35,8 +35,8 @@ public class product {
     @Column(name = "product_desc", length = 255)
     private String description;
 
-    @Column(name = "product_price", precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(name = "product_price")
+    private double price;
 
     @Column(name = "product_stock")
     private int stock;
@@ -60,9 +60,9 @@ public class product {
     public product() {}
 
     // Parameterized constructor
-    public product(productType prodType, String title, String slug, String description, BigDecimal price, int stock,
+    public product(productType type, String title, String slug, String description, double price, int stock,
                    String retailInfo, int featured, String variations, Date createdDate, String imageUrl) {
-        this.prodType = prodType;
+        this.type = type;
         this.title = title;
         this.slug = slug;
         this.description = description;
@@ -85,11 +85,11 @@ public class product {
     }
 
     public productType getTypeId() {
-        return prodType;
+        return type;
     }
 
-    public void setTypeId(productType prodType) {
-        this.prodType = prodType;
+    public void setTypeId(productType type) {
+        this.type = type;
     }
 
     public String getTitle() {
@@ -116,11 +116,11 @@ public class product {
         this.description = description;
     }
 
-    public BigDecimal getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 

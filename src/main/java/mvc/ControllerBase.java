@@ -2,7 +2,9 @@ package mvc;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Blob;
 import java.util.Scanner;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +20,7 @@ import mvc.Http.HttpStatusCode;
 
 public class ControllerBase extends HttpBase {
     private boolean isRedirect = true; // to hold redirect status temporarily
+    private static final String FILE_UPLOAD_PATH = System.getenv("FILE_UPLOAD_PATH");
 
     public ControllerBase() {
         super();
@@ -28,15 +31,6 @@ public class ControllerBase extends HttpBase {
         // #endregion
     }
 
-    // #region Better Accessibility
-    // protected HttpServletRequest request = context.getRequest();
-    // protected HttpServletResponse response = context.getResponse();
-    // protected SessionHelper session = new SessionHelper(request.getSession());
-    // protected EntityManager db = DataAccess.getEntityManager();
-
-    private static final String FILE_UPLOAD_PATH = System.getenv("FILE_UPLOAD_PATH");
-
-    // #endregion
     @Override
     protected Result page() throws Exception {
         String controller = this.getClass().getSimpleName();
@@ -121,6 +115,27 @@ public class ControllerBase extends HttpBase {
     @Override
     protected Result content(Object data, String contentType) throws Exception {
         return content(data, contentType, HttpStatusCode.OK);
+    }
+
+    protected Result file(Blob blob) throws Exception {
+        String uuid = UUID.randomUUID().toString();
+        return file(blob, uuid);
+    }
+
+    protected Result file(Blob blob, String fileName) throws Exception {
+        return file(blob, fileName, FileType.UNKNOWN);
+    }
+
+    protected Result file(Blob blob, String fileName, FileType fileType) throws Exception {
+        Result result = new Result();
+        result.setContentType(fileType.getMimeType());
+        result.setHeader("Content-Disposition",
+                "attachment; filename=\"" + fileName + "." + fileType.getExtension() + "\"");
+        response.setContentLength((int) blob.length());
+
+        result.setData(blob);
+
+        return result;
     }
 
     @Override

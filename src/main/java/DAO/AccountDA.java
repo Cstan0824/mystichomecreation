@@ -2,6 +2,7 @@ package DAO;
 
 import java.util.List;
 import Models.ShippingInformation;
+import Models.BankType;
 import Models.PaymentCard;
 import Models.User;
 import Models.Voucher;
@@ -186,6 +187,18 @@ public class AccountDA {
         return result;
     }
 
+    public List<BankType> getBankTypes() {
+        List<BankType> bankTypes = null;
+
+        TypedQuery<BankType> typedQuery = this.db.createQuery("SELECT bank FROM BankType bank", BankType.class);
+        try {
+            bankTypes = cache.getOrCreateList("banktypes", BankType.class, typedQuery);
+        } catch (Exception e) {
+            bankTypes = typedQuery.getResultList(); // run without cache if cache fails
+        }
+        return bankTypes;
+    }
+
     public boolean addPaymentCard(PaymentCard paymentCard) {
         db.getTransaction().begin();
         db.persist(paymentCard);
@@ -197,7 +210,7 @@ public class AccountDA {
     public List<PaymentCard> getPaymentCards(int userId) {
         List<PaymentCard> paymentCards = null;
         TypedQuery<PaymentCard> typedQuery = this.db
-                .createQuery("SELECT info FROM PaymentCard info WHERE info.user.id = :id",
+                .createQuery("SELECT info FROM PaymentCard info LEFT JOIN FETCH info.bankType WHERE info.user.id = :id",
                         PaymentCard.class)
                 .setParameter("id", userId);
         try {

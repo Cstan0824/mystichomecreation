@@ -14,12 +14,19 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `user_name` VARCHAR(255) NOT NULL,
   `user_password` VARCHAR(255) NOT NULL,
   `user_email` VARCHAR(50) NOT NULL,
-  `user_image_url` VARCHAR(255),
+  `user_image_id` INT,
   `user_birthdate` DATE,
   `shipping_information` JSON,
   INDEX (`role_id`),
   PRIMARY KEY (`user_id`),
-  FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`) 
+  FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`),
+  FOREIGN KEY (`user_image_id`) REFERENCES `User_Image`(`image_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `User_Image` (
+  `image_id` INT AUTO_INCREMENT,
+  `image_data` BLOB NOT NULL,
+  PRIMARY KEY (`image_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `Order_Status` (
@@ -91,11 +98,18 @@ CREATE TABLE IF NOT EXISTS `Product` (
   `product_featured` INT,
   `product_variations` JSON,
   `product_created_date` DATE NOT NULL,
-  `product_image_url` VARCHAR(255),
+  `product_image_id` INT,
   INDEX (`product_type_id`),
   PRIMARY KEY (`product_id`),
-  FOREIGN KEY (`product_type_id`) REFERENCES `Product_Type`(`product_type_id`)
+  FOREIGN KEY (`product_type_id`) REFERENCES `Product_Type`(`product_type_id`),
+  FOREIGN KEY (`product_image_id`) REFERENCES `Product_Image`(`image_id`)
 );
+
+-- CREATE TABLE IF NOT EXISTS `Product_Image` (
+--   `image_id` INT AUTO_INCREMENT,
+--   `image_data` BLOB NOT NULL,
+--   PRIMARY KEY (`image_id`)
+-- );
 
 CREATE TABLE IF NOT EXISTS `Permission` (
   `permission_id` INT AUTO_INCREMENT,
@@ -145,12 +159,14 @@ CREATE TABLE IF NOT EXISTS `Cart_Item` (
 CREATE TABLE IF NOT EXISTS `User_Payment_Info` (
   `card_id` INT AUTO_INCREMENT,
   `user_id` INT NOT NULL,
+  `bank_type_id` INT NOT NULL,
   `card_name` VARCHAR(50),
   `card_no` VARCHAR(50) NOT NULL,
   `expiry` DATE NOT NULL,
   `card_isDefault` BOOLEAN NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`card_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)
+  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`),
+  FOREIGN KEY (`bank_type_id`) REFERENCES `Bank_Type`(`bank_type_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `Order_Transaction` (
@@ -186,5 +202,12 @@ CREATE TABLE IF NOT EXISTS `dev` (
   `email` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 );
+
+CREATE TABLE IF NOT EXISTS `Bank_Type` (
+  `bank_type_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `bank_type_description` VARCHAR(100) NOT NULL,
+  `bank_type_logo_path` VARCHAR(255) -- stores path or URL to logo image
+);
+
 
 
