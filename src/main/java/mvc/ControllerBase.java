@@ -2,7 +2,9 @@ package mvc;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Blob;
 import java.util.Scanner;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,6 +123,19 @@ public class ControllerBase extends HttpBase {
     @Override
     protected Result content(Object data, String contentType) throws Exception {
         return content(data, contentType, HttpStatusCode.OK);
+    }
+
+    protected Result file(Blob blob) throws Exception {
+        String uuid = UUID.randomUUID().toString();
+        return file(blob, uuid);
+    }
+
+    protected Result file(Blob blob, String fileName) throws Exception {
+        return file(blob, fileName, FileType.UNKNOWN);
+    }
+
+    protected Result file(Blob blob, String fileName, FileType fileType) throws Exception {
+        return success();
     }
 
     @Override

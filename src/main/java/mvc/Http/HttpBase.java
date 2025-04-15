@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,7 @@ import mvc.Exceptions.InvalidActionResultException;
 import mvc.Exceptions.PageNotFoundException;
 import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
+import mvc.FileType;
 import mvc.Result;
 
 /*
@@ -72,6 +74,12 @@ public abstract class HttpBase extends HttpServlet {
     protected abstract Result content(Object data, String contentType) throws Exception;
 
     protected abstract Result content(Object data, String contentType, HttpStatusCode status) throws Exception;
+
+    protected abstract Result file(Blob blob) throws Exception;
+
+    protected abstract Result file(Blob blob, String fileName) throws Exception;
+
+    protected abstract Result file(Blob blob, String fileName, FileType fileType) throws Exception;
 
     protected abstract Result success() throws Exception;
 

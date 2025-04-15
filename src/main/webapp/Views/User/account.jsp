@@ -101,36 +101,45 @@
 				<button id="closeCardModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
 			</div>
 
-			<form id="cardForm" class="space-y-4">
+			<div id="cardForm" class="space-y-4">
+			<input type="hidden" id="cardId" value="-1" />
 				<div>
 					<label class="block text-sm font-medium text-gray-700">Name on Card</label>
-					<input type="text" placeholder="e.g. Tan Choon Shen"
+					<input id="cardName" type="text" placeholder="e.g. Tan Choon Shen"
 						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700">Card Number</label>
-					<input type="text" placeholder="**** **** **** 1234"
+					<input id="cardNo" type="text" placeholder="**** **** **** 1234"
 						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 				</div>
 				<div class="grid sm:grid-cols-2 gap-4">
 					<div>
 						<label class="block text-sm font-medium text-gray-700">Expiry Date</label>
-						<input type="text" placeholder="MM/YYYY"
+						<input id="expiryDate" type="text" placeholder="MM/YYYY"
 							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700">CVV</label>
-						<input type="text" placeholder="123"
+						<label class="block text-sm font-medium text-gray-700">Bank</label>
+						
+						<selection id="banklist"
 							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+							<option value="">Select Bank</option>
+							<option value="bank1">Bank 1</option>
+							<option value="bank2">Bank 2</option>
+							<option value="bank3">Bank 3</option>
+							<option value="bank4">Bank 4</option>
+							<option value="bank5">Bank 5</option>
+						</selection>
 					</div>
 				</div>
 				<div class="flex justify-end space-x-2 pt-2">
 					<button type="button" id="cancelCardModal"
 						class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
-					<button type="submit"
+					<button type="submit" id="saveModal"
 						class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
 				</div>
-			</form>
+			</div>
 		</div>
 	</div>
 

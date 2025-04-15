@@ -145,12 +145,14 @@ CREATE TABLE IF NOT EXISTS `Cart_Item` (
 CREATE TABLE IF NOT EXISTS `User_Payment_Info` (
   `card_id` INT AUTO_INCREMENT,
   `user_id` INT NOT NULL,
+  `bank_type_id` INT NOT NULL,
   `card_name` VARCHAR(50),
   `card_no` VARCHAR(50) NOT NULL,
   `expiry` DATE NOT NULL,
   `card_isDefault` BOOLEAN NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`card_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)
+  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`),
+  FOREIGN KEY (`bank_type_id`) REFERENCES `Bank_Type`(`bank_type_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `Order_Transaction` (
@@ -186,5 +188,12 @@ CREATE TABLE IF NOT EXISTS `dev` (
   `email` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 );
+
+CREATE TABLE IF NOT EXISTS `Bank_Type` (
+  `bank_type_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `bank_type_description` VARCHAR(100) NOT NULL,
+  `bank_type_logo_path` VARCHAR(255) -- stores path or URL to logo image
+);
+
 
 

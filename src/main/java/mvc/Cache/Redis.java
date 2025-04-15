@@ -88,7 +88,7 @@ public class Redis {
 
             // Cache miss
             List<T> value = query.getResultList();
-
+            
             // Create metadata with query parameters by passing the entire query
             QueryMetadata metadata = new QueryMetadata(query, QueryResultType.LIST, level, type.getSimpleName());
 

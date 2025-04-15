@@ -59,3 +59,20 @@ INSERT INTO `Voucher` (`voucher_type`, `vouchar_min`, `voucher_max`, `voucher_am
 -- West Amandamouth, TX 98675', '2025-02-20', 'a377f6f1-d289-40ab-a18a-e30595a5bafa');
 -- INSERT INTO  `Order` (`user_id`, `payment_id`, `status_id`, `shipping_information`, `order_date`, `order_ref_no`) VALUES ('9', '3', '2', 'USS Leonard
 -- FPO AA 03781', '2025-03-05', 'a5cc8bf7-38ab-454c-9c2e-58deea4e3617');
+
+INSERT INTO User_Payment_Info (user_id, card_name, card_no, expiry, card_isDefault) VALUES
+(1, 'John Doe', '4111111111111111', '2026-08-31', TRUE),
+(1, 'John Doe - Travel', '5500000000000004', '2025-12-31', FALSE),
+(2, 'Jane Smith', '4007000000027', '2027-03-31', TRUE),
+(3, 'Alex Johnson', '6011000990139424', '2026-01-31', TRUE),
+(3, 'Alex Johnson - Business', '3530111333300000', '2028-07-31', FALSE);
+
+INSERT INTO Bank_Type (bank_type_description, bank_type_logo_path) VALUES
+('Maybank', '/assets/images/logos/maybank.png'),
+('CIMB Bank', '/assets/images/logos/cimb.png'),
+('RHB Bank', '/assets/images/logos/rhb.png'),
+('Public Bank', '/assets/images/logos/publicbank.png'),
+('Hong Leong Bank', '/assets/images/logos/hongleong.png'),
+('VISA', '/assets/images/logos/visa.png'),
+('Mastercard', '/assets/image/logos/mastercard.png'),
+('Touch ''n Go eWallet', '/assets/image/logos/tng.jpg');
