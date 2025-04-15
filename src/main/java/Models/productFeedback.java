@@ -2,6 +2,7 @@ package Models;
 
 import java.io.Serializable;
 
+import Models.Orders.Order;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

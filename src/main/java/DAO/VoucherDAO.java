@@ -2,7 +2,7 @@ package DAO;
 
 import java.util.List;
 
-import Models.Voucher;
+import Models.Accounts.Voucher;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.Cache.Redis;

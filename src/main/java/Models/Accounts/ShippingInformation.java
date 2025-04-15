@@ -1,4 +1,4 @@
-package Models;
+package Models.Accounts;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

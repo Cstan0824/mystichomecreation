@@ -2,7 +2,7 @@ package DAO;
 
 import java.util.List;
 
-import Models.User;
+import Models.Users.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.DataAccess;

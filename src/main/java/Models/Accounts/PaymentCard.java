@@ -1,5 +1,6 @@
-package Models;
+package Models.Accounts;
 
+import Models.Users.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
