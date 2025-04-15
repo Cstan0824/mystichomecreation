@@ -66,7 +66,6 @@ public class ApplicationContext implements Application {
         logger.setTarget(LogTarget.DATABASE);
 
         logger.log();
-
     }
 
     @Override
