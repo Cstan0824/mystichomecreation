@@ -3,18 +3,21 @@ package Models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -43,9 +46,6 @@ public class User {
     @Column(name = "user_birthdate")
     private String birthdate;
 
-    @Column(name = "user_image_url")
-    private String imageUrl;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentCard> paymentCards = new ArrayList<>();
 
@@ -53,6 +53,10 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id", referencedColumnName = "role_id", insertable = false, updatable = false)
     private Role role;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserImage userImage;
 
     // Constructors
     public User() {
@@ -126,12 +130,20 @@ public class User {
         this.birthdate = birthdate;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public int getImageId() {
+        return this.userImage.getId();
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageId(int imageId) {
+        this.userImage.setId(imageId);
+    }
+
+    public void setUserImage(UserImage userImage) {
+        this.userImage = userImage;
+    }
+
+    public UserImage getUserImage() {
+        return userImage;
     }
 
 }

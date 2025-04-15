@@ -20,6 +20,7 @@ import mvc.Http.HttpStatusCode;
 
 public class ControllerBase extends HttpBase {
     private boolean isRedirect = true; // to hold redirect status temporarily
+    private static final String FILE_UPLOAD_PATH = System.getenv("FILE_UPLOAD_PATH");
 
     public ControllerBase() {
         super();
@@ -30,15 +31,6 @@ public class ControllerBase extends HttpBase {
         // #endregion
     }
 
-    // #region Better Accessibility
-    // protected HttpServletRequest request = context.getRequest();
-    // protected HttpServletResponse response = context.getResponse();
-    // protected SessionHelper session = new SessionHelper(request.getSession());
-    // protected EntityManager db = DataAccess.getEntityManager();
-
-    private static final String FILE_UPLOAD_PATH = System.getenv("FILE_UPLOAD_PATH");
-
-    // #endregion
     @Override
     protected Result page() throws Exception {
         String controller = this.getClass().getSimpleName();
@@ -135,7 +127,15 @@ public class ControllerBase extends HttpBase {
     }
 
     protected Result file(Blob blob, String fileName, FileType fileType) throws Exception {
-        return success();
+        Result result = new Result();
+        result.setContentType(fileType.getMimeType());
+        result.setHeader("Content-Disposition",
+                "attachment; filename=\"" + fileName + "." + fileType.getExtension() + "\"");
+        response.setContentLength((int) blob.length());
+
+        result.setData(blob);
+
+        return result;
     }
 
     @Override

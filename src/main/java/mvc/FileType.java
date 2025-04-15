@@ -35,6 +35,15 @@ public enum FileType {
         return mimeType;
     }
 
+    public static boolean contains(String mimeType) {
+        for (FileType type : values()) {
+            if (type.mimeType.equalsIgnoreCase(mimeType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static FileType fromExtension(String ext) {
         for (FileType type : values()) {
             if (type.extension.equalsIgnoreCase(ext)) {

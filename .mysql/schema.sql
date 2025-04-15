@@ -14,12 +14,19 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `user_name` VARCHAR(255) NOT NULL,
   `user_password` VARCHAR(255) NOT NULL,
   `user_email` VARCHAR(50) NOT NULL,
-  `user_image_url` VARCHAR(255),
+  `user_image_id` INT,
   `user_birthdate` DATE,
   `shipping_information` JSON,
   INDEX (`role_id`),
   PRIMARY KEY (`user_id`),
-  FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`) 
+  FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`),
+  FOREIGN KEY (`user_image_id`) REFERENCES `User_Image`(`image_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `User_Image` (
+  `image_id` INT AUTO_INCREMENT,
+  `image_data` BLOB NOT NULL,
+  PRIMARY KEY (`image_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `Order_Status` (
@@ -91,11 +98,18 @@ CREATE TABLE IF NOT EXISTS `Product` (
   `product_featured` INT,
   `product_variations` JSON,
   `product_created_date` DATE NOT NULL,
-  `product_image_url` VARCHAR(255),
+  `product_image_id` INT,
   INDEX (`product_type_id`),
   PRIMARY KEY (`product_id`),
-  FOREIGN KEY (`product_type_id`) REFERENCES `Product_Type`(`product_type_id`)
+  FOREIGN KEY (`product_type_id`) REFERENCES `Product_Type`(`product_type_id`),
+  FOREIGN KEY (`product_image_id`) REFERENCES `Product_Image`(`image_id`)
 );
+
+-- CREATE TABLE IF NOT EXISTS `Product_Image` (
+--   `image_id` INT AUTO_INCREMENT,
+--   `image_data` BLOB NOT NULL,
+--   PRIMARY KEY (`image_id`)
+-- );
 
 CREATE TABLE IF NOT EXISTS `Permission` (
   `permission_id` INT AUTO_INCREMENT,
