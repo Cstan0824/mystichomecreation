@@ -1,7 +1,15 @@
 package Models;
 
-import jakarta.persistence.*;
 import java.io.Serializable;
+
+import Models.Orders.Order;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Product_Feedback")
@@ -35,7 +43,13 @@ public class productFeedback implements Serializable {
     @Column(name = "review", length = 255)
     private String review; // Optional – if you're using this column
 
+    @ManyToOne
+    @JoinColumn(name = "order_id", referencedColumnName = "order_id", insertable = false, updatable = false)
+    private Order order;
 
+    @ManyToOne
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    private product product;
   
 
     // Constructors

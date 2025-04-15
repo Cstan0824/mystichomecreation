@@ -1,18 +1,33 @@
+package mvc;
+
+import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.annotation.WebListener;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import mvc.Annotations.AuthorizationHandler;
 import mvc.Annotations.SyncCacheHandler;
 import mvc.Annotations.WatcherHandler;
+import mvc.App.Application;
 import mvc.Cache.Redis;
+import mvc.Helpers.AuditTrail;
+import mvc.Helpers.AuditTrail.AuditType;
+import mvc.Helpers.AuditTrail.LogTarget;
 import mvc.Http.HttpBase;
 import java.util.Map;
 
-@WebListener
-public class Configuration implements ServletContextListener {
+public class ApplicationContext implements Application {
+
+    private static Application application = new ApplicationContext();
+
+    private static AuditTrail logger = new AuditTrail();
+
+    public static Application getInstance() {
+        return application;
+    }
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) {
+    public void initialize(ServletContextEvent sce) {
         // ✅ This runs when the web app starts
         System.out.println("[Startup] MysticHome is initializing...");
 
@@ -28,7 +43,33 @@ public class Configuration implements ServletContextListener {
     }
 
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {
+    public void onError(ServletRequest request, ServletResponse response, FilterChain chain, Throwable t) {
+        // log error to file
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+
+        logger.setSource(httpRequest.getPathInfo());
+        logger.setMessage(t.getMessage());
+        logger.setType(AuditType.ERROR);
+        logger.setTarget(LogTarget.FILE);
+
+        logger.log();
+    }
+
+    @Override
+    public void onHttpRequest(ServletRequest request, ServletResponse response, FilterChain chain) {
+        // Log to Database to replace Watcher
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+
+        logger.setSource(httpRequest.getPathInfo());
+        logger.setMessage("API Request");
+        logger.setType(AuditType.INFO);
+        logger.setTarget(LogTarget.DATABASE);
+
+        logger.log();
+    }
+
+    @Override
+    public void onDestroy(ServletContextEvent sce) {
         System.out.println("[Shutdown] MysticHome is being undeployed...");
 
         try {

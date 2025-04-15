@@ -17,9 +17,7 @@
   <%
     // Get the user from request attributes
     Models.User user = (Models.User)request.getAttribute("profile");
-    String imageUrl = user != null && user.getImageUrl() != null ? 
-                     user.getImageUrl() : 
-                     request.getContextPath() + "/Content/images/default-profile.jpg";
+    String imageUrl = request.getContextPath() + "/Content/images/default-profile.jpg";
     String username = user != null ? user.getUsername() : "Guest";
     String email = user != null ? user.getEmail() : "Not logged in";
     String birthdate = user != null ? user.getBirthdate() : "";

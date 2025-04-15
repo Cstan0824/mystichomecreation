@@ -1,11 +1,12 @@
 package DAO;
 
 import java.util.List;
-import Models.ShippingInformation;
-import Models.BankType;
-import Models.PaymentCard;
-import Models.User;
-import Models.Voucher;
+
+import Models.Accounts.BankType;
+import Models.Accounts.PaymentCard;
+import Models.Accounts.ShippingInformation;
+import Models.Accounts.Voucher;
+import Models.Users.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.DataAccess;

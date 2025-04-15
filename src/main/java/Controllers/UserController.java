@@ -13,11 +13,11 @@ import java.util.List;
 
 import DAO.AccountDA;
 import DAO.UserDA;
-import Models.BankType;
-import Models.PaymentCard;
-import Models.ShippingInformation;
-import Models.User;
-import Models.Voucher;
+import Models.Accounts.BankType;
+import Models.Accounts.PaymentCard;
+import Models.Accounts.ShippingInformation;
+import Models.Accounts.Voucher;
+import Models.Users.User;
 import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/User/*")
