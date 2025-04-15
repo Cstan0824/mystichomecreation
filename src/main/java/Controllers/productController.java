@@ -5,6 +5,7 @@ import mvc.Result;
 import mvc.Annotations.ActionAttribute;
 import mvc.Helpers.JsonConverter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -104,23 +105,44 @@ public class productController extends ControllerBase {
         return page();
     }
 
-    // this is filter for category 
-    // @ActionAttribute(urlPattern = "getProductsByType")
-    // public Result getProductsByType() throws Exception {
-    //     String type = request.getParameter("type");
-    
-    //     List<product> products;
-    //     if (type != null && !type.isEmpty()) {
-    //         products = productDAO.getProductsByType(type);
-    //     } else {
-    //         products = productDAO.getAllProducts();
-    //     }
-    
-    //     ObjectMapper mapper = new ObjectMapper();
-    //     String productsJson = mapper.writeValueAsString(products);
-    //     return json(productsJson);
-    // }
+    @ActionAttribute(urlPattern = "productCatalog/Filter")
+    public Result filterByCategory() throws Exception {
+        String[] selected = request.getParameterValues("categories[]");
+        List<String> categoryList = selected != null ? Arrays.asList(selected) : new ArrayList<>();
 
+        System.out.println("🟡 Selected categories: " + categoryList);
+
+        List<product> filtered = productDAO.getProductsByCategories(categoryList);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(filtered);
+
+        return json(json);
+    }
+
+
+
+    // @ActionAttribute(urlPattern = "productCatalog/Sort")
+    // public Result getSortedProducts() throws Exception {
+    //     String sort = request.getParameter("sort");
+    //     List<product> products;
+
+    //     switch (sort) {
+    //         case "priceLowHigh":
+    //             products = productDAO.getAllSorted("price ASC");
+    //             break;
+    //         case "priceHighLow":
+    //             products = productDAO.getAllSorted("price DESC");
+    //             break;
+    //         case "newest":
+    //             products = productDAO.getAllSorted("createdDate DESC");
+    //             break;
+    //         default:
+    //             products = productDAO.getAllProducts(); // fallback
+    //     }
+
+    //     return json(new ObjectMapper().writeValueAsString(products));
+    // }
 
 
 
