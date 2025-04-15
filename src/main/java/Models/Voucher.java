@@ -1,12 +1,18 @@
 package Models;
 
-import jakarta.persistence.GeneratedValue;
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "Voucher")
 public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +42,9 @@ public class Voucher {
 
     @Column(name = "voucher_status")
     private boolean status;
+
+    @OneToMany(mappedBy = "voucher")
+    private List<Payment> payments = new ArrayList<>();
 
     public Voucher() {
 

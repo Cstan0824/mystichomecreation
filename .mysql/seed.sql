@@ -31,8 +31,9 @@ INSERT INTO `Product` (`product_type_id`, `product_title`, `product_slug`, `prod
 INSERT INTO `Product` (`product_type_id`, `product_title`, `product_slug`, `product_desc`, `product_price`, `product_stock`, `product_retail_info`, `product_featured`, `product_variations`, `product_created_date`, `product_image_url`) VALUES ('2', 'National', 'high-prevent', 'Personal service data near until just recognize.', '89.06', '76', 'Pierce-Tran', '1', '{"color": "Yellow", "size": "XL"}', '2025-01-19', 'https://placeimg.com/460/232/any');
 INSERT INTO `Product` (`product_type_id`, `product_title`, `product_slug`, `product_desc`, `product_price`, `product_stock`, `product_retail_info`, `product_featured`, `product_variations`, `product_created_date`, `product_image_url`) VALUES ('3', 'Your', 'buy-raise-there', 'Usually factor relate indeed lot line lead.', '81.41', '22', 'Hill Group', '1', '{"color": "Red", "size": "S"}', '2025-03-07', 'https://placekitten.com/547/5');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Pending');
-INSERT INTO `Order_Status` (`status_description`) VALUES ('Paid');
-INSERT INTO `Order_Status` (`status_description`) VALUES ('Shipped');
+INSERT INTO `Order_Status` (`status_description`) VALUES ('Packing');
+INSERT INTO `Order_Status` (`status_description`) VALUES ('Shipping');
+INSERT INTO `Order_Status` (`status_description`) VALUES ('Received');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Cancelled');
 INSERT INTO `Payment_Method` (`method_description`) VALUES ('Credit Card');
 INSERT INTO `Payment_Method` (`method_description`) VALUES ('Online Banking');
