@@ -2,7 +2,7 @@ package DAO;
 
 import java.util.List;
 
-import Models.OrderStatus;
+import Models.Orders.OrderStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.Cache.Redis;

@@ -1,5 +1,6 @@
 package Models;
 
+import Models.Accounts.Voucher;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

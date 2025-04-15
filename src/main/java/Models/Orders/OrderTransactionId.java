@@ -1,4 +1,4 @@
-package Models;
+package Models.Orders;
 
 import java.io.Serializable;
 import java.util.Objects;

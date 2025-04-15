@@ -4,7 +4,7 @@ import java.util.List;
 
 import Models.Payment;
 import Models.PaymentMethod;
-import Models.Voucher;
+import Models.Accounts.Voucher;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.Cache.Redis;

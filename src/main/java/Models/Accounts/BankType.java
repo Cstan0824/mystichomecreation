@@ -1,4 +1,4 @@
-package Models;
+package Models.Accounts;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
