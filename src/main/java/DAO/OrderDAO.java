@@ -1,9 +1,11 @@
 package DAO;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import Models.Order;
 import Models.OrderStatus;
+import Models.Payment;
 import Models.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -79,6 +81,46 @@ public class OrderDAO {
                 .setParameter("statusId", statusId);
         try {
             orders = cache.getOrCreateList("orders-status-" + statusId, Order.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orders = query.getResultList();
+        }
+        return orders;
+    }
+
+    public List<Order> getOrdersByUserAndStatus(User user, OrderStatus status) {
+        List<Order> orders = null;
+        int userId = user.getId();
+        int statusId = status.getId();
+        TypedQuery<Order> query = db.createQuery("SELECT o FROM Order o WHERE o.user.id=:userId AND o.status.id=:statusId", Order.class)
+                .setParameter("userId", userId)
+                .setParameter("statusId", statusId);
+        try {
+            orders = cache.getOrCreateList("orders-user-" + userId + "-status-" + statusId, Order.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orders = query.getResultList();
+        }
+        return orders;
+    }
+
+    public Order getOrderByPayment(Payment payment) {
+        Order order = null;
+        int paymentId = payment.getId();
+        TypedQuery<Order> query = db.createQuery("SELECT o FROM Order o WHERE o.payment.id=:paymentId", Order.class)
+                .setParameter("paymentId", paymentId);
+        try {
+            order = cache.getOrCreate("order-payment-" + paymentId, Order.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            order = db.find(Order.class, paymentId);
+        }
+        return order;
+    }
+
+    public List<Order> getOrderByDate(LocalDate date){
+        List<Order> orders = null;
+        TypedQuery<Order> query = db.createQuery("SELECT o FROM Order o WHERE o.orderDate=:date", Order.class)
+                .setParameter("date", date);
+        try {
+            orders = cache.getOrCreateList("orders-date-" + date, Order.class, query, Redis.CacheLevel.LOW);
         } catch (Exception e) {
             orders = query.getResultList();
         }
