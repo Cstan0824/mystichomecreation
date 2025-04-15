@@ -1,14 +1,15 @@
 package Models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.Table;
 
 
 @Entity
@@ -20,7 +21,7 @@ public class OrderStatus{
     @Column(name = "status_id")
     private int id;
 
-    @Column(name = "status_desc")
+    @Column(name = "status_description")
     private String statusDesc;
 
     // One order can have one status, but a status can be associated with multiple orders

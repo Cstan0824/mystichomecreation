@@ -28,6 +28,9 @@ public class Payment {
     @JoinColumn(name = "voucher_id", referencedColumnName = "voucher_id")
     private Voucher voucher;  
 
+    @Column(name = "payment_info")
+    private String paymentInfo; // Store raw JSON as string
+
     @Column(name = "total_paid")
     private double totalPaid;
 
@@ -64,6 +67,14 @@ public class Payment {
 
     public void setVoucher(Voucher voucher) {
         this.voucher = voucher;
+    }
+
+    public String getPaymentInfo() {
+        return paymentInfo;
+    }
+
+    public void setPaymentInfo(String paymentInfo) {
+        this.paymentInfo = paymentInfo;
     }
 
     public double getTotalPaid() {
