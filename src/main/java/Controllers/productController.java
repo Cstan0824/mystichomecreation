@@ -18,6 +18,7 @@ import Models.product;
 import Models.productVariationOptions;
 import Models.productFeedback; // Ensure this class exists in the Models package
 import Models.productType;
+import Models.productDTO;
 import jakarta.servlet.annotation.WebServlet;
 
 
@@ -106,46 +107,48 @@ public class productController extends ControllerBase {
         request.setAttribute("products", products);
         return page();
     }
+    
+    @ActionAttribute(urlPattern = "productCatalog/Categories")
+    public Result getProductsByCategories() throws Exception {
+        String[] selectedCategories = request.getParameterValues("categories");
+        System.out.println("Selected Categories: " + Arrays.toString(selectedCategories));
 
-    @ActionAttribute(urlPattern = "productCatalog/Filter")
-    public Result filterByCategory() throws Exception {
-        String[] selected = request.getParameterValues("categories[]");
-        List<String> categoryList = selected != null ? Arrays.asList(selected) : new ArrayList<>();
+        // convert the selected categories to a list of integers
+        List<Integer> categoryIds = selectedCategories != null ? Arrays.stream(selectedCategories).map(Integer::parseInt).toList() : new ArrayList<>();
 
-        System.out.println("🟡 Selected categories: " + categoryList);
+        System.out.println("📦 Category IDs: " + categoryIds);
 
-        List<product> filtered = productDAO.getProductsByCategories(categoryList);
+        // Get the min and max price from the request parameters
+        String minPriceRaw = request.getParameter("minPrice");
+        String maxPriceRaw = request.getParameter("maxPrice");
 
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(filtered);
+        //for safety check , force it to be double 
+        Double minPrice = minPriceRaw != null && !minPriceRaw.isEmpty() ? Double.parseDouble(minPriceRaw) : null;
+        Double maxPrice = maxPriceRaw != null && !maxPriceRaw.isEmpty() ? Double.parseDouble(maxPriceRaw) : null;
 
-        return json(json);
+        System.out.println("💰 Min price: " + minPrice + " | Max price: " + maxPrice);
+
+        //Get Sort Option 
+        String sortBy = request.getParameter("sortBy"); 
+        System.out.println("🔄 Sort by: " + sortBy);
+
+
+        List<product> filteredProducts = productDAO.filterProducts(categoryIds, minPrice, maxPrice, sortBy);
+        System.out.println("✅ DAO returned products: " + filteredProducts.size());
+
+
+        List<productDTO> dtos = filteredProducts.stream().map(productDTO::new).toList();
+
+        System.out.println("🚀 Returning product DTOs as JSON");
+
+        return json(dtos); // Convert to JSON and return
+  
     }
+    
 
 
 
-    // @ActionAttribute(urlPattern = "productCatalog/Sort")
-    // public Result getSortedProducts() throws Exception {
-    //     String sort = request.getParameter("sort");
-    //     List<product> products;
-
-    //     switch (sort) {
-    //         case "priceLowHigh":
-    //             products = productDAO.getAllSorted("price ASC");
-    //             break;
-    //         case "priceHighLow":
-    //             products = productDAO.getAllSorted("price DESC");
-    //             break;
-    //         case "newest":
-    //             products = productDAO.getAllSorted("createdDate DESC");
-    //             break;
-    //         default:
-    //             products = productDAO.getAllProducts(); // fallback
-    //     }
-
-    //     return json(new ObjectMapper().writeValueAsString(products));
-    // }
-
+    
 
 
 
