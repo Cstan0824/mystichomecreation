@@ -18,12 +18,13 @@ public class HttpRequestListener implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+        System.out
+                .println("[Request] " + request.getRemoteAddr() + " - " + request.getServletContext().getContextPath());
         try {
             application.onHttpRequest(request, response, chain);
-            chain.doFilter(request, response);
         } catch (Throwable t) {
             application.onError(request, response, chain, t);
         }
-
+        chain.doFilter(request, response);
     }
 }
