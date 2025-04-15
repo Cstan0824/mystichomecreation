@@ -2,6 +2,7 @@
 <%@ page import="Models.productVariationOptions" %>
 <%@ page import="Models.product" %>
 <%@ page import="Models.productType" %>
+<%@ page import="Models.productDTO" %>
 <%@ page import="java.util.List" %>
 
 <!DOCTYPE html>
@@ -47,45 +48,49 @@
                     <button class="text-yellow-500 text-sm">Clear All</button>
                 </div>
 
-                <!-- Price Range Section -->
-                <div class="border-b pb-3 mb-3">
-                    <h3 class="text-gray-600 font-semibold mb-2">Price Range</h3>
-                    <div class="flex gap-2">
-                        <input type="number" name="minPrice" placeholder="Min"
-                            class="w-1/2 border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
-                        <input type="number" name="maxPrice" placeholder="Max"
-                            class="w-1/2 border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
+               <form id="filterForm" oninput="filterByCategory()">
+                    <!-- 🔽 Price Range -->
+                    <div class="border-b pb-3 mb-3">
+                        <h3 class="text-gray-600 font-semibold mb-2">Price Range</h3>
+                        <div class="flex gap-2">
+                            <input type="number" name="minPrice" placeholder="Min"
+                                class="w-1/2 border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
+                            <input type="number" name="maxPrice" placeholder="Max"
+                                class="w-1/2 border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
+                        </div>
                     </div>
-                </div>
 
-                <!-- Sort By Section -->
-                <div class="border-b pb-3 mb-3">
-                    <h3 class="text-gray-600 font-semibold mb-2">Sort By</h3>
-                    <select name="sortBy" class="w-full border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
-                        <option value="">Select...</option>
-                        <option value="priceLowHigh">Price: Low to High</option>
-                        <option value="priceHighLow">Price: High to Low</option>
-                        <option value="newest">Newest</option>
-                        <option value="popularity">Popularity</option>
-                    </select>
-                </div>
-
-                <!-- Category Section -->
-                <div class="border-b pb-3 mb-3">
-                    <h3 class="text-gray-600 font-semibold mb-2">Category</h3>
-                    <div class="space-y-1">
-                        <%
-                            List<productType> type = (List<productType>) request.getAttribute("productTypes");
-                            if (type != null && !type.isEmpty()) {
-                                for (productType t : type) {
-                        %>
-                            <label class="flex items-center">
-                            <input type="checkbox" name="filterCategory[]" value="<%= t.gettype() %>" class="form-checkbox text-yellow-500" onchange="filterByCategory()" />
-                            <span class="ml-2 text-sm text-gray-600"><%= t.gettype() %></span>
-                            </label>
-                        <% }} %>
+                    <!-- 🔽 Sort By -->
+                    <div class="border-b pb-3 mb-3">
+                        <h3 class="text-gray-600 font-semibold mb-2">Sort By</h3>
+                        <select name="sortBy" class="w-full border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="priceLowHigh">Price: Low to High</option>
+                            <option value="priceHighLow">Price: High to Low</option>
+                            <option value="newest">Newest</option>
+                        </select>
                     </div>
-                </div>
+
+                    <!-- 🔽 Category -->
+                    <div class="border-b pb-3 mb-3">
+                        <h3 class="text-gray-600 font-semibold mb-2">Category</h3>
+                        <div class="space-y-1">
+                            <%
+                                List<productType> type = (List<productType>) request.getAttribute("productTypes");
+                                if (type != null && !type.isEmpty()) {
+                                    for (productType t : type) {
+                            %>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="categories" value="<%= t.getId() %>" class="form-checkbox text-yellow-500">
+                                    <span class="ml-2 text-sm text-gray-600"><%= t.gettype() %></span>
+                                </label>
+                            <%
+                                    }
+                                }
+                            %>
+                        </div>
+                    </div>
+                </form>
             </div>
 
             <!-- Main content -->
@@ -141,44 +146,113 @@
         </div>
 
         <!-- JavaScript for toggling the mobile filter modal -->
-        <script>
-            function toggleFilterModal() {
-                const modal = document.getElementById('mobileFilterModal');
-                modal.classList.toggle('hidden');
-            }
-
-            function clearAllFilters() {
-                alert("Clear all filters");
-                // Implement your clear logic here.
-            }
-
-            function toggleFilterSection(sectionId) {
-                const section = document.getElementById(sectionId);
-                section.classList.toggle('hidden');
-                const icon = document.getElementById('icon-' + sectionId.replace('Section', ''));
-                if (icon) {
-                    icon.classList.toggle('rotate-180');
-                }
-            }
-
-            function clearAllFilters() {
-                document.getElementById('filterForm').reset();
-                const sections = ['priceSection', 'sortSection', 'categorySection'];
-                sections.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el && !el.classList.contains('hidden')) {
-                        el.classList.add('hidden');
-                    }
-                    const icon = document.getElementById('icon-' + id.replace('Section', ''));
-                    if (icon && icon.classList.contains('rotate-180')) {
-                        icon.classList.remove('rotate-180');
-                    }
-                });
-            }
-
-         
-        </script>
     </div>
+    <script>
+        function toggleFilterModal() {
+            const modal = document.getElementById('mobileFilterModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function clearAllFilters() {
+            alert("Clear all filters");
+            // Implement your clear logic here.
+        }
+
+        function toggleFilterSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('hidden');
+            const icon = document.getElementById('icon-' + sectionId.replace('Section', ''));
+            if (icon) {
+                icon.classList.toggle('rotate-180');
+            }
+        }
+
+        function clearAllFilters() {
+            document.getElementById('filterForm').reset();
+            const sections = ['priceSection', 'sortSection', 'categorySection'];
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.classList.contains('hidden')) {
+                    el.classList.add('hidden');
+                }
+                const icon = document.getElementById('icon-' + id.replace('Section', ''));
+                if (icon && icon.classList.contains('rotate-180')) {
+                    icon.classList.remove('rotate-180');
+                }
+            });
+        }
+
+        function filterByCategory() {
+            const form = document.getElementById("filterForm");
+
+            // Step 1: Grab all the form data
+            const formData = new FormData(form);
+
+            // Step 2: Convert to URL parameters
+            const params = new URLSearchParams(formData).toString();
+
+            // Step 3: Debug output
+            console.log("✅ Collected filter params:", params);
+
+            // Step 4: Send AJAX request
+            fetch("<%= request.getContextPath() %>/product/productCatalog/Categories?" + params)
+                .then(function(response) {
+                    console.log("📥 Server responded:", response);
+                    // Use .text() first for debug
+                    return response.json(); 
+                })
+                .then(function(data) {
+                    let products;
+                    try {
+                        products = JSON.parse(data.data); // data.data is a string
+                        console.log("✅ Parsed products from string:", products);
+                        renderProducts(products);
+                    } catch (e) {
+                        console.error("❌ JSON parse error:", e);
+                        console.warn("🚨 Backend might be sending stringified JSON.");
+                    }
+                })
+                .catch(function(err) {
+                    console.error("🔥 Fetch error:", err);
+                });
+        }
+
+        function renderProducts(products) {
+            const container = document.getElementById("cardView");
+            container.innerHTML = ""; 
+
+            if (!products || products.length === 0) {
+                container.innerHTML = "<p>No products found.</p>";
+                return;
+            }
+            
+            for (let i = 0; i < products.length; i++) {
+                let p = products[i];
+
+                let html = ""
+                    + "<a href='productPage?id=" + p.id + "' class='block hover:shadow-lg transition-shadow duration-200'>"
+                    +     "<div class='bg-white rounded-lg overflow-hidden shadow relative'>"
+                    +         "<img src='" + p.imageUrl + "' alt='" + p.title + "' class='w-full h-40 object-cover'>"
+                    +         "<div class='p-3'>"
+                    +             "<h3 class='font-medium'>" + p.title + "</h3>"
+                    +             "<p class='text-xs text-gray-500'>" + p.retailInfo + "</p>"
+                    +             "<div class='flex justify-between items-center mt-2'>"
+                    +                 "<span class='font-bold'>RM " + p.price.toFixed(2) + "</span>"
+                    +                 "<div class='flex items-center text-xs text-gray-500'>"
+                    +                     "<i class='fas fa-box mr-1'></i>"
+                    +                     "<span>" + p.stock + " left</span>"
+                    +                 "</div>"
+                    +             "</div>"
+                    +         "</div>"
+                    +     "</div>"
+                    + "</a>";
+
+                container.innerHTML += html;
+
+                console.log("✅ Rendered " + products.length + " products to frontend.");
+            }
+        }
+    </script>
 </body>
 
 </html>
