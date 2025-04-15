@@ -13,6 +13,7 @@ import java.util.List;
 
 import DAO.AccountDA;
 import DAO.UserDA;
+import Models.BankType;
 import Models.PaymentCard;
 import Models.ShippingInformation;
 import Models.User;
@@ -227,8 +228,13 @@ public class UserController extends ControllerBase {
     public Result payments() throws Exception {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
         int userId = session.getId();
+
+        // Get User payment cards
         List<PaymentCard> paymentCards = accountDA.getPaymentCards(userId);
         request.setAttribute("paymentCards", paymentCards);
+
+        List<BankType> bankTypes = accountDA.getBankTypes();
+        request.setAttribute("bankTypes", bankTypes);
         return page();
     }
 

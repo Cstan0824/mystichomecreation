@@ -4,7 +4,7 @@
         {
             "label": "Java Hot Reload",
             "type": "shell",
-            "command": "./mvnw clean package; docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war; docker run --rm -v .:/app -w /app node:22 sh -c 'rm -rf node_modules package-lock.json; npm cache clean --force; npm install -g npm@latest; npm install tailwindcss@3 postcss autoprefixer; npx tailwindcss -i ./src/main/webapp/Content/css/tailwind.css -o ./src/main/webapp/Content/css/output.css --minify'; if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }; echo '@@@@@@@@@@BUILD SUCCESS@@@@@@@@@@@'",
+            "command": "./mvnw clean package; docker cp ./target/mystichomecreation.war mystichome:/opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war; docker run --rm -v .:/app -w /app node:22 sh -c 'rm -rf node_modules package-lock.json; npm cache clean --force; npm install -g npm@latest; npm install tailwindcss@3 postcss autoprefixer; npx tailwindcss -i ./src/main/webapp/Content/css/tailwind.css -o ./src/main/webapp/Content/css/output.css --minify'; if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }; docker cp ./src/main/webapp/Views mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Views; docker cp ./src/main/webapp/Content mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Content; echo '@@@@@@@@@@BUILD SUCCESS@@@@@@@@@@@'",
             "options": {
                 "shell": {
                     "executable": "powershell.exe"
@@ -24,7 +24,7 @@
         {
             "label": "Java Build/Start Containers",
             "type": "shell",
-            "command": "docker-compose down; docker build -t mystichome .; docker-compose up",
+            "command": "docker-compose down; docker build -t mystichome .; docker-compose up; docker cp ./src/main/webapp/Views mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Views; docker cp ./src/main/webapp/Content mystichome:/opt/glassfish7/glassfish/domains/domain1/applications/mystichome/webapp/Content",
             "options": {
                 "shell": {
                     "executable": "powershell.exe"

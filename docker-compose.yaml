@@ -30,8 +30,8 @@ services:
             - ./src/main/webapp/Content:${CLEINT_FILE_PATH}/Content:rw
 
             #backup use only
-            - ./src/main/webapp/Views:${FILE_UPLOAD_PATH}/../webapp/Views:rw
-            - ./src/main/webapp/Content:${FILE_UPLOAD_PATH}/../webapp/Content:rw
+            # - ./src/main/webapp/Views:${FILE_UPLOAD_PATH}/../webapp/Views:rw
+            # - ./src/main/webapp/Content:${FILE_UPLOAD_PATH}/../webapp/Content:rw
 
             # LOAD SERVER FILE DYNAMICALLY
             - ./target/classes:${DEPLOY_FILE_PATH}:rw

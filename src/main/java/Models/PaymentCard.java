@@ -25,13 +25,35 @@ public class PaymentCard {
     private String expiryDate;
     @Column(name = "card_isDefault")
     private boolean isDefault;
+    @Column(name = "bank_type_id")
+    private int bankTypeId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "bank_type_id", referencedColumnName = "bank_type_id", insertable = false, updatable = false)
+    private BankType bankType;
+
     public PaymentCard() {
 
+    }
+
+    public int getBankTypeId() {
+        return bankTypeId;
+    }
+
+    public void setBankTypeId(int bankTypeId) {
+        this.bankTypeId = bankTypeId;
+    }
+
+    public BankType getBankType() {
+        return bankType;
+    }
+
+    public void setBankType(BankType bankType) {
+        this.bankType = bankType;
     }
 
     public User getUser() {
