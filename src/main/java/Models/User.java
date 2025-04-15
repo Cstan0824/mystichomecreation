@@ -130,10 +130,12 @@ public class User {
         this.birthdate = birthdate;
     }
 
+    @JsonIgnore
     public int getImageId() {
         return this.userImage.getId();
     }
 
+    @JsonIgnore
     public void setImageId(int imageId) {
         this.userImage.setId(imageId);
     }
