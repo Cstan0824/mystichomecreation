@@ -6,10 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import Models.dev;
-import Models.product;
-import Models.productFeedback;
-import Models.productVariationOptions;
-import Models.productType; // Added import for productType
+import Models.Products.product;
+import Models.Products.productFeedback;
+import Models.Products.productType;
+import Models.Products.productVariationOptions;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -82,9 +82,9 @@ public class productDAO implements Serializable{
     }   
 
     // Get all param from the form and then process it 
-    public List<product> filterProducts(List<Integer> categoryIds , Double minPrice , Double maxPrice , String sortBy ){
+    public List<product> filterProducts(List<Integer> categoryIds , Double minPrice , Double maxPrice , String sortBy , String keyword){
         try{
-            // the 1=1 is to make the query always valid cuz 1=1 is always true
+            // the 1=1 is to make the query always valid cuz 1=1 is always true and this help to reterieve all the products
             StringBuilder jpql = new StringBuilder("SELECT p FROM product p WHERE 1=1");
 
             if (categoryIds != null && !categoryIds.isEmpty()) {
@@ -96,7 +96,9 @@ public class productDAO implements Serializable{
             if (maxPrice != null) {
                 jpql.append(" AND p.price <= :maxPrice");
             }
-
+            if (keyword != null && !keyword.isBlank()) {
+                jpql.append(" AND (LOWER(p.title) LIKE :kw )");
+            }
             if (sortBy != null) {
 
                 switch (sortBy) {
@@ -132,6 +134,10 @@ public class productDAO implements Serializable{
             if (maxPrice != null) {
                 System.out.println("🟡 Binding maxPrice: " + maxPrice);
                 query.setParameter("maxPrice", maxPrice);
+            }
+            if (keyword != null && !keyword.isBlank()) {
+                System.out.println("🟡 Binding keyword: %" + keyword.toLowerCase() + "%");
+                query.setParameter("kw", "%" + keyword.toLowerCase() + "%");
             }
 
             // this is where we get the result

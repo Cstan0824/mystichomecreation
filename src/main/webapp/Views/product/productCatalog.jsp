@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="Models.productVariationOptions" %>
-<%@ page import="Models.product" %>
-<%@ page import="Models.productType" %>
-<%@ page import="Models.productDTO" %>
+<%@ page import="Models.Products.productVariationOptions" %>
+<%@ page import="Models.Products.product" %>
+<%@ page import="Models.Products.productType" %>
+<%@ page import="Models.Products.productDTO" %>
 <%@ page import="java.util.List" %>
 
 <!DOCTYPE html>
@@ -22,7 +22,7 @@
         <div class="flex flex-row justify-between items-center mb-6 gap-4">
             <!-- Search Container -->
             <div class="relative flex-1 md:flex-none md:w-96">
-                <input type="text" placeholder="Search Product / Brand"
+                <input type="text" placeholder="Search Product / Brand" name="keywords" id="searchInput" oninput="filterByCategory()"
                     class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
@@ -187,6 +187,11 @@
 
             // Step 1: Grab all the form data
             const formData = new FormData(form);
+
+            const keywords = document.getElementById("searchInput").value;
+            if (keywords) {
+                formData.append("keyword", keywords);
+            }
 
             // Step 2: Convert to URL parameters
             const params = new URLSearchParams(formData).toString();

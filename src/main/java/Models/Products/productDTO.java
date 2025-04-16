@@ -1,4 +1,4 @@
-package Models;
+package Models.Products;
 
 public class productDTO {
     public int id;
