@@ -175,8 +175,37 @@ public class CartDAO {
     }
 
 
+    // increase quantity of cartItem
+    public boolean increaseCartItemQuantity(CartItem cartItem) {
+        try {
+            db.getTransaction().begin();
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
+            db.merge(cartItem);
+            db.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    // decrease quantity of cartItem
+    public boolean decreaseCartItemQuantity(CartItem cartItem) {
+        try {
+            db.getTransaction().begin();
+            cartItem.setQuantity(cartItem.getQuantity() - 1);
+            db.merge(cartItem);
+            db.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    
 }
 
 

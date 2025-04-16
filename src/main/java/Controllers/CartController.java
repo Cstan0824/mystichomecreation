@@ -190,7 +190,6 @@ public class CartController extends ControllerBase{
         return json(jsonResponse);
     }
 
-
     // Remove Cart Item
     @SyncCache(channel = "user", message ="from cart/removeCartItem")
     @HttpRequest(HttpMethod.POST)
@@ -247,4 +246,6 @@ public class CartController extends ControllerBase{
 
         return json(jsonResponse);
     }
+
+
 }
