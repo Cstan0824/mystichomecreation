@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <%@ page import="java.util.List" %>
-<%@ page import="Models.ShippingInformation" %>
+<%@ page import="Models.Accounts.ShippingInformation" %>
+<%@ page import="mvc.Helpers.Helpers" %>
 
 <head>
 	<meta charset="UTF-8" />
@@ -66,7 +67,7 @@
 					<p><%= address.getPostCode() %> <%= address.getState() %></p>
 					<div class="space-x-3 text-xs">
 						<button
-							onclick="editAddress(<%= address.getId() %>, '<%= address.getLabel() %>', '<%= address.getReceiverName() %>', '<%= address.getPhoneNumber() %>', '<%= address.getState() %>', '<%= address.getPostCode() %>', '<%= address.getAddressLine1() %>', '<%= address.getAddressLine2() != null ? address.getAddressLine2().replace("'", "\\'") : "" %>')"
+							onclick="editAddress(<%= address.getId() %>, '<%= Helpers.escapeString(address.getLabel()) %>', '<%= Helpers.escapeString(address.getReceiverName()) %>', '<%= address.getPhoneNumber() %>', '<%= address.getState() %>', '<%= address.getPostCode() %>', '<%= Helpers.escapeString(address.getAddressLine1()) %>', '<%= address.getAddressLine2() != null ? Helpers.escapeString(address.getAddressLine2()) : "" %>')"
 							class="text-blue-500 hover:underline">Edit</button>
 						<button onclick="deleteAddress(<%= address.getId() %>)"
 							class="text-red-500 hover:underline">Delete</button>
@@ -112,7 +113,7 @@
 					if (response.status == 200) {
 						setTimeout(() => {
 							location.reload();
-						}, 150); // 300ms delay
+						}, 500); // 300ms delay
 
 					} else {
 						alert(response.message);
@@ -165,7 +166,7 @@
 						if (response.status == 200) {
 							setTimeout(() => {
 								location.reload();
-							}, 150); // 300ms delay
+							}, 500); // 300ms delay
 						} else {
 							alert(response.message);
 						}
@@ -222,7 +223,7 @@
 						if (response.status == 200) {
 							setTimeout(() => {
 								location.reload();
-							}, 150); // 300ms delay
+							}, 500); // 300ms delay
 						} else {
 							alert(response.message);
 						}

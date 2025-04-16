@@ -1,5 +1,7 @@
 package Models.Accounts;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import Models.Users.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -102,14 +104,18 @@ public class PaymentCard {
     }
 
     public void setUserId(int userId) {
-        this.user = new User(); // or fetch from DB if needed
+        if (this.user == null) {
+            this.user = new User(); // or fetch from DB if needed
+        }
         this.user.setId(userId);
     }
 
+    @JsonProperty("isDefault")
     public boolean isDefault() {
         return isDefault;
     }
 
+    @JsonProperty("isDefault")
     public void setDefault(boolean isDefault) {
         this.isDefault = isDefault;
     }

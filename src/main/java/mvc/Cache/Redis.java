@@ -54,7 +54,7 @@ public class Redis {
             }
 
             // Cache miss
-            T value = query.getSingleResult();
+            T value = query.getResultList().get(0);
 
             // Create metadata with query parameters by passing the entire query
             QueryMetadata metadata = new QueryMetadata(query, QueryResultType.SINGLE, level, type.getSimpleName());
@@ -88,7 +88,7 @@ public class Redis {
 
             // Cache miss
             List<T> value = query.getResultList();
-            
+
             // Create metadata with query parameters by passing the entire query
             QueryMetadata metadata = new QueryMetadata(query, QueryResultType.LIST, level, type.getSimpleName());
 
@@ -115,6 +115,12 @@ public class Redis {
     // #region CACHE RESULT
     public static <T> void cacheResult(Jedis jedis, String key, CacheLevel level, T value)
             throws JsonProcessingException {
+        if (value == null) {
+            // assume that value already removed
+            jedis.del(key);
+            jedis.del(key + ":" + Redis.getSyncCachePrefix());
+            return;
+        }
         if (level.get() == CacheLevel.CRITICAL.get()) {
             jedis.set(key, JsonConverter.serialize(value));
         } else {
@@ -130,6 +136,12 @@ public class Redis {
 
     public static <T> void cacheResult(Jedis jedis, String key, CacheLevel level, List<T> value)
             throws JsonProcessingException {
+        if (value == null) {
+            // assume that value already removed
+            jedis.del(key);
+            jedis.del(key + ":" + Redis.getSyncCachePrefix());
+            return;
+        }
         if (level.get() == CacheLevel.CRITICAL.get()) {
             jedis.set(key, JsonConverter.serialize(value));
         } else {

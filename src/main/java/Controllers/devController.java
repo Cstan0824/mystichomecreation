@@ -13,7 +13,6 @@ import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
-import mvc.Annotations.Watcher;
 import mvc.Helpers.SessionHelper;
 import mvc.ControllerBase;
 import mvc.Http.HttpMethod;
@@ -69,7 +68,6 @@ public class devController extends ControllerBase {
     @Authorization(permissions = "addDev")
     @HttpRequest(HttpMethod.POST)
     @SyncCache(channel = "dev", message = "from dev/addDev")
-    @Watcher(source = "addDev", description = "from dev/addDev")
     public Result addDev(dev user) throws Exception {
         System.out.println("Add Dev");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -82,7 +80,6 @@ public class devController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    @Watcher(source = "setSession", description = "from dev/deleteDev")
     public Result setSession() throws Exception {
         System.out.println("Sessions");
         SessionHelper session = new SessionHelper(context.getRequest().getSession());

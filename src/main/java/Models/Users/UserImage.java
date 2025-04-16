@@ -25,7 +25,7 @@ public class UserImage {
 
     // link to user object
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    @JoinColumn(name = "image_id", referencedColumnName = "user_image_id")
     private User user;
 
     public int getId() {
@@ -52,6 +52,4 @@ public class UserImage {
         this.user = user;
     }
 
-
-    
 }

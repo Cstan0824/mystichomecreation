@@ -10,7 +10,7 @@ public class AuthorizationHandler implements Middleware {
     private String permissions;
 
     @Override
-    public void onError(HttpContext context) {
+    public void onError(HttpContext context, Exception ex) {
     }
 
     @Override

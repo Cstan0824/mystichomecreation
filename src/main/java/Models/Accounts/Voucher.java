@@ -30,19 +30,19 @@ public class Voucher {
     private String type;
 
     @Column(name = "voucher_min")
-    private String minSpent;
+    private double minSpent;
 
     @Column(name = "voucher_amount")
-    private String amount;
+    private double amount;
 
     @Column(name = "voucher_max")
-    private String maxCoverage;
+    private double maxCoverage;
 
     @Column(name = "voucher_usage_per_month")
     private int usagePerMonth;
 
     @Column(name = "voucher_status")
-    private boolean status;
+    private int status;
 
     @OneToMany(mappedBy = "voucher")
     private List<Payment> payments = new ArrayList<>();
@@ -83,27 +83,27 @@ public class Voucher {
         this.type = type;
     }
 
-    public String getMinSpent() {
+    public double getMinSpent() {
         return minSpent;
     }
 
-    public void setMinSpent(String minSpent) {
+    public void setMinSpent(double minSpent) {
         this.minSpent = minSpent;
     }
 
-    public String getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
-    public String getMaxCoverage() {
+    public double getMaxCoverage() {
         return maxCoverage;
     }
 
-    public void setMaxCoverage(String maxCoverage) {
+    public void setMaxCoverage(double maxCoverage) {
         this.maxCoverage = maxCoverage;
     }
 
@@ -115,11 +115,11 @@ public class Voucher {
         this.usagePerMonth = usagePerMonth;
     }
 
-    public boolean getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 

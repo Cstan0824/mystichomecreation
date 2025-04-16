@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="Models.Users.User" %>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,7 +19,7 @@
 <body class="m-2 pb-24 p-2">
   <%
     // Get the user from request attributes
-    Models.User user = (Models.User)request.getAttribute("profile");
+    User user = (User)request.getAttribute("profile");
     String imageUrl = request.getContextPath() + "/Content/images/default-profile.jpg";
     String username = user != null ? user.getUsername() : "Guest";
     String email = user != null ? user.getEmail() : "Not logged in";

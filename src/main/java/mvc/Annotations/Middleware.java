@@ -3,7 +3,7 @@ package mvc.Annotations;
 import mvc.Http.HttpContext;
 
 public interface Middleware {
-    public void onError(HttpContext context);
+    public void onError(HttpContext context, Exception ex);
 
     public void executeBeforeAction(HttpContext context);
 

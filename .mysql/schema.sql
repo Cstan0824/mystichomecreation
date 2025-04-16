@@ -8,6 +8,12 @@ CREATE TABLE IF NOT EXISTS `Role` (
   PRIMARY KEY (`role_id`)
 );
 
+CREATE TABLE IF NOT EXISTS `User_Image` (
+  `image_id` INT AUTO_INCREMENT,
+  `image_data` BLOB NOT NULL,
+  PRIMARY KEY (`image_id`)
+);
+
 CREATE TABLE IF NOT EXISTS `Users` (
   `user_id` INT AUTO_INCREMENT,
   `role_id` INT NOT NULL,
@@ -23,11 +29,6 @@ CREATE TABLE IF NOT EXISTS `Users` (
   FOREIGN KEY (`user_image_id`) REFERENCES `User_Image`(`image_id`)
 );
 
-CREATE TABLE IF NOT EXISTS `User_Image` (
-  `image_id` INT AUTO_INCREMENT,
-  `image_data` BLOB NOT NULL,
-  PRIMARY KEY (`image_id`)
-);
 
 CREATE TABLE IF NOT EXISTS `Order_Status` (
   `status_id` INT AUTO_INCREMENT,
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `Payment_Method` (
 CREATE TABLE IF NOT EXISTS `Voucher` (
   `voucher_id` INT AUTO_INCREMENT,
   `voucher_type` VARCHAR(20) NOT NULL,
-  `vouchar_min` DECIMAL,
+  `voucher_min` DECIMAL,
   `voucher_max` DECIMAL,
   `voucher_amount` DECIMAL,
   `voucher_usage_per_month` INT,
@@ -63,14 +64,18 @@ CREATE TABLE IF NOT EXISTS `Payment` (
   FOREIGN KEY (`method_id`) REFERENCES `Payment_Method`(`method_id`)
 );
 
-CREATE TABLE IF NOT EXISTS `Order` (
-  `order_id` INT AUTO_INCREMENT,
-  `user_id` INT NOT NULL,
-  `payment_id` INT NOT NULL,
-  `status_id` INT NOT NULL,
-  `shipping_information` VARCHAR(255),
-  `order_date` DATE NOT NULL,
-  `order_ref_no` VARCHAR(255) NOT NULL,
+
+CREATE TABLE  IF NOT EXISTS `Order` (
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `payment_id` int NOT NULL,
+  `status_id` int NOT NULL,
+  `shipping_information` varchar(255) DEFAULT NULL,
+  `order_date` date NOT NULL,
+  `pack_date` date DEFAULT NULL,
+  `ship_date` date DEFAULT NULL,
+  `receive_date` date DEFAULT NULL,
+  `order_ref_no` varchar(255) NOT NULL,
   INDEX (`user_id`),
   INDEX (`status_id`),
   INDEX (`payment_id`),
@@ -78,12 +83,19 @@ CREATE TABLE IF NOT EXISTS `Order` (
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`) ,
   FOREIGN KEY (`status_id`) REFERENCES `Order_Status`(`status_id`),
   FOREIGN KEY (`payment_id`) REFERENCES `Payment`(`payment_id`)
-);
+) ;
+
 
 CREATE TABLE IF NOT EXISTS `Product_Type` (
   `product_type_id` INT AUTO_INCREMENT,
   `product_type` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`product_type_id`)
+);
+
+ CREATE TABLE IF NOT EXISTS `Product_Image` (
+   `image_id` INT AUTO_INCREMENT,
+   `image_data` BLOB NOT NULL,
+    PRIMARY KEY (`image_id`)
 );
 
 CREATE TABLE IF NOT EXISTS `Product` (
@@ -105,11 +117,7 @@ CREATE TABLE IF NOT EXISTS `Product` (
   FOREIGN KEY (`product_image_id`) REFERENCES `Product_Image`(`image_id`)
 );
 
--- CREATE TABLE IF NOT EXISTS `Product_Image` (
---   `image_id` INT AUTO_INCREMENT,
---   `image_data` BLOB NOT NULL,
---   PRIMARY KEY (`image_id`)
--- );
+
 
 CREATE TABLE IF NOT EXISTS `Permission` (
   `permission_id` INT AUTO_INCREMENT,
@@ -156,7 +164,13 @@ CREATE TABLE IF NOT EXISTS `Cart_Item` (
   FOREIGN KEY (`cart_id`) REFERENCES `Cart`(`cart_id`) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS `User_Payment_Info` (
+CREATE TABLE IF NOT EXISTS `Bank_Type` (
+  `bank_type_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `bank_type_description` VARCHAR(100) NOT NULL,
+  `bank_type_logo_path` VARCHAR(255) -- stores path or URL to logo image
+);
+
+CREATE TABLE IF NOT EXISTS `User_Payment_Card` (
   `card_id` INT AUTO_INCREMENT,
   `user_id` INT NOT NULL,
   `bank_type_id` INT NOT NULL,
@@ -203,11 +217,7 @@ CREATE TABLE IF NOT EXISTS `dev` (
   PRIMARY KEY (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `Bank_Type` (
-  `bank_type_id` INT AUTO_INCREMENT PRIMARY KEY,
-  `bank_type_description` VARCHAR(100) NOT NULL,
-  `bank_type_logo_path` VARCHAR(255) -- stores path or URL to logo image
-);
+
 
 
 

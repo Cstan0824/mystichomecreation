@@ -7,7 +7,6 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import mvc.Annotations.AuthorizationHandler;
 import mvc.Annotations.SyncCacheHandler;
-import mvc.Annotations.WatcherHandler;
 import mvc.App.Application;
 import mvc.Cache.Redis;
 import mvc.Helpers.AuditTrail;
@@ -34,7 +33,6 @@ public class ApplicationContext implements Application {
         // Register middlewares
         HttpBase.addMiddleware(new AuthorizationHandler());
         HttpBase.addMiddleware(new SyncCacheHandler());
-        HttpBase.addMiddleware(new WatcherHandler());
         System.out.println("[Startup] Middleware handlers registered");
 
         // Restore Redis SignalHub

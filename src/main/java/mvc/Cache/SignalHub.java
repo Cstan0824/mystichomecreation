@@ -21,6 +21,8 @@ import redis.clients.jedis.JedisPubSub;
 public class SignalHub {
     private Set<String> subscribers = ConcurrentHashMap.newKeySet(); // Thread-safe set
     private final Map<String, Thread> activeSubscriptions = new ConcurrentHashMap<>();
+    // Map channel name to a set of keys subscribed to that channel
+    private final Map<String, Set<String>> channelKeys = new ConcurrentHashMap<>();
 
     private final JedisPool pool;
     private static Logger logger = AuditTrail.getLogger();
@@ -34,7 +36,8 @@ public class SignalHub {
      */
     public void buildSubscriber(String channel, String key, QueryMetadata metadata)
             throws JsonProcessingException {
-        if (channel == null || channel.isEmpty()) {
+        if (channel == null || channel.isEmpty() || key == null || key.isEmpty()) {
+            logger.warning("Cannot build subscriber with null or empty channel/key.");
             return;
         }
 
@@ -42,31 +45,42 @@ public class SignalHub {
         try (Jedis jedis = pool.getResource()) {
             ObjectMapper objectMapper = new ObjectMapper();
             String metadataJson = objectMapper.writeValueAsString(metadata);
+            // Use a specific key for metadata storage, including the channel context if
+            // needed
+            // Example: key + ":" + channel + ":" + Redis.getSyncCachePrefix();
+            // For simplicity, keeping original metadata key structure for now:
             String metadataKey = key + ":" + Redis.getSyncCachePrefix();
 
-            // Store metadata for sync operations
             jedis.set(metadataKey, metadataJson);
+            logger.fine("Stored metadata for key [" + key + "] under metadata key [" + metadataKey + "]");
 
-            // Verify metadata was stored correctly
+            // Verify metadata was stored correctly (optional)
             String storedMetadata = jedis.get(metadataKey);
             if (storedMetadata == null || storedMetadata.isEmpty()) {
-                logger.warning("Failed to store metadata for key: " + metadataKey);
+                logger.warning("Verification failed: Failed to store metadata for key: " + metadataKey);
             }
+        } catch (Exception e) {
+            logger.severe("Error storing metadata for key [" + key + "]: " + e.getMessage());
+            throw new RuntimeException("Failed to store metadata", e); // Re-throw critical error
         }
 
-        // Only create subscription thread if it doesn't exist
-        if (!activeSubscriptions.containsKey(channel)) {
+        // Add the key to the set for this channel
+        channelKeys.computeIfAbsent(channel, k -> ConcurrentHashMap.newKeySet()).add(key);
+        logger.info("Associated key [" + key + "] with channel [" + channel + "]");
+
+        // Only create subscription thread if it doesn't exist for the channel
+        activeSubscriptions.computeIfAbsent(channel, c -> {
             Thread thread = new Thread(() -> {
-                logger.info("Subscription thread started for channel: " + channel);
-                subscribe(channel, key);
+                logger.info("Subscription thread starting for channel: " + c);
+                // Pass only the channel name to the subscribe method
+                subscribe(c);
             });
-            thread.setName("Redis-PubSub-" + channel); // Named threads are easier to debug
+            thread.setName("Redis-PubSub-" + c); // Named threads are easier to debug
             thread.setDaemon(true);
             thread.start();
-            activeSubscriptions.put(channel, thread);
-        } else {
-            logger.info("Subscription already exists for channel: " + channel);
-        }
+            logger.info("Started new subscription thread for channel: " + c);
+            return thread;
+        });
     }
 
     /**
@@ -82,9 +96,10 @@ public class SignalHub {
     }
 
     /**
-     * Handle subscription to a Redis channel
+     * Handle subscription to a Redis channel. This method now only needs the
+     * channel.
      */
-    private void subscribe(String channel, String key) {
+    private void subscribe(String channel) { // Removed 'key' parameter
         Jedis subscribeJedis = null;
 
         try {
@@ -92,6 +107,7 @@ public class SignalHub {
             subscribeJedis = pool.getResource();
 
             if (subscribeJedis == null) {
+                logger.warning("Failed to get Jedis resource for subscription on channel: " + channel);
                 return;
             }
 
@@ -99,34 +115,49 @@ public class SignalHub {
             try {
                 subscribeJedis.ping();
             } catch (Exception e) {
-                logger.severe("Connection test failed: " + e.getMessage());
+                logger.severe("Connection test failed for channel [" + channel + "]: " + e.getMessage());
                 throw e; // Re-throw to trigger reconnection logic
             }
 
             // Create fresh subscriber for each attempt
             JedisPubSub subscriber = new JedisPubSub() {
                 @Override
-                public void onSubscribe(String channel, int subscribedChannels) {
-                    logger.info("Successfully subscribed to channel: " + channel);
-                    subscribers.add(channel);
+                public void onSubscribe(String subscribedChannel, int subscribedChannels) {
+                    logger.info("Successfully subscribed to channel: " + subscribedChannel);
+                    subscribers.add(subscribedChannel);
                 }
 
                 @Override
-                public void onUnsubscribe(String channel, int subscribedChannels) {
-                    logger.info("Unsubscribed from channel: " + channel);
-                    subscribers.remove(channel);
+                public void onUnsubscribe(String unsubscribedChannel, int subscribedChannels) {
+                    logger.info("Unsubscribed from channel: " + unsubscribedChannel);
+                    subscribers.remove(unsubscribedChannel);
                 }
 
                 @Override
-                public void onMessage(String channel, String message) {
-                    logger.info("Received message: " + message + " on channel: " + channel);
-                    // Use a separate thread to avoid blocking pubsub
-                    new Thread(() -> syncCache(key)).start();
+                public void onMessage(String receivedChannel, String message) {
+                    logger.info("Received message: [" + message + "] on channel: [" + receivedChannel + "]");
+
+                    // Get all keys associated with this channel
+                    Set<String> keysToSync = channelKeys.get(receivedChannel);
+
+                    if (keysToSync != null && !keysToSync.isEmpty()) {
+                        logger.info(
+                                "Found " + keysToSync.size() + " keys to sync for channel [" + receivedChannel + "]");
+                        for (String keyToSync : keysToSync) {
+                            // Use a separate thread for each sync to avoid blocking pubsub
+                            new Thread(() -> syncCache(keyToSync)).start();
+                            logger.fine("Dispatched sync task for key [" + keyToSync + "] on channel ["
+                                    + receivedChannel + "]");
+                        }
+                    } else {
+                        logger.warning(
+                                "Received message on channel [" + receivedChannel + "] but no keys found to sync.");
+                    }
                 }
 
                 @Override
-                public void onPMessage(String pattern, String channel, String message) {
-                    logger.info("Received pattern message on " + pattern + ": " + message);
+                public void onPMessage(String pattern, String msgChannel, String message) {
+                    logger.info("Received pattern message on " + pattern + " (" + msgChannel + "): " + message);
                 }
 
                 @Override
@@ -141,10 +172,12 @@ public class SignalHub {
             };
 
             // This is a blocking call that won't return until unsubscribed
+            logger.info("Jedis subscribing to channel: " + channel);
             subscribeJedis.subscribe(subscriber, channel);
+            logger.info("Jedis subscribe call returned for channel: " + channel);
 
         } catch (Exception e) {
-            logger.severe("ERROR in subscribe: " + e.getMessage());
+            logger.severe("ERROR during subscription process for channel [" + channel + "]: " + e.getMessage());
             e.printStackTrace();
 
             // Clean up the subscription record if it fails
@@ -159,17 +192,29 @@ public class SignalHub {
                         // Ignore close errors
                     }
                 }
+                logger.info("Attempting reconnection for channel [" + channel + "] in 5 seconds...");
                 Thread.sleep(5000);
 
-                // If there's still an active subscription request, try again
-                if (!activeSubscriptions.containsKey(channel)) {
-                    Thread thread = new Thread(() -> subscribe(channel, key));
-                    thread.setDaemon(true);
-                    thread.start();
-                    activeSubscriptions.put(channel, thread);
+                // Check if the channel should still be actively subscribed
+                if (channelKeys.containsKey(channel) && !channelKeys.get(channel).isEmpty()) {
+                    activeSubscriptions.computeIfAbsent(channel, c -> {
+                        Thread thread = new Thread(() -> subscribe(c));
+                        thread.setDaemon(true);
+                        thread.setName("Redis-PubSub-" + c + "-Reconnect");
+                        thread.start();
+                        logger.info("Restarted subscription thread via reconnection logic for channel: " + c);
+                        return thread;
+                    });
+                } else {
+                    logger.info(
+                            "Skipping reconnection for channel [" + channel + "] as no keys are associated anymore.");
                 }
             } catch (InterruptedException ie) {
+                logger.warning("Reconnection attempt interrupted for channel [" + channel + "]");
                 Thread.currentThread().interrupt();
+            } catch (Exception reconEx) {
+                logger.severe(
+                        "Exception during reconnection attempt for channel [" + channel + "]: " + reconEx.getMessage());
             }
         }
     }
@@ -218,11 +263,13 @@ public class SignalHub {
                 // Execute query with parameters
                 switch (metadata.getType()) {
                     case SINGLE -> {
-                        Object result = query.getSingleResult();
+                        Object result = query.getResultList().get(0);
+                        System.out.println("Result: " + result);
                         Redis.cacheResult(threadJedis, key, metadata.getLevel(), result);
                     }
                     case LIST -> {
                         List<Object> results = query.getResultList();
+                        System.out.println("Results: " + results);
                         Redis.cacheResult(threadJedis, key, metadata.getLevel(), results);
                     }
                 }
@@ -231,7 +278,7 @@ public class SignalHub {
             }
         } catch (Exception e) {
             logger.warning("ERROR in syncCache: " + e.getMessage());
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         }
     }
 
@@ -309,7 +356,7 @@ public class SignalHub {
 
                     // Build the subscriber
                     buildSubscriber(channel, actualKey, metadata);
-                    logger.info("Successfully restored subscription for key " + actualKey + " on channel " + channel);
+                    logger.info("Successfully restored subscription for key [" + actualKey + "] on channel " + channel);
                     success++;
 
                 } catch (Exception e) {
@@ -339,18 +386,19 @@ public class SignalHub {
 
                 if (thread != null && thread.isAlive()) {
                     logger.info("Shutting down subscription for channel: " + channel);
-                    thread.interrupt();
+                    thread.interrupt(); // Interrupt the thread
                     count++;
                 }
             } catch (Exception e) {
-                logger.warning("Error shutting down subscription: " + e.getMessage());
+                logger.warning("Error shutting down subscription thread: " + e.getMessage());
             }
         }
 
         // Clear the collections
         activeSubscriptions.clear();
-        subscribers.clear();
+        subscribers.clear(); // Clear the old set if still used
+        channelKeys.clear(); // Clear the channel-to-keys mapping
 
-        logger.info("SignalHub shutdown complete. Terminated " + count + " subscription threads.");
+        logger.info("SignalHub shutdown complete. Interrupted " + count + " subscription threads.");
     }
 }

@@ -8,8 +8,8 @@ public class SyncCacheHandler implements Middleware {
     private String message;
 
     @Override
-    public void onError(HttpContext context) {
-        System.out.println("SyncCacheHandler: onError() called");
+    public void onError(HttpContext context, Exception ex) {
+        System.out.println(ex.getMessage());
     }
 
     @Override
