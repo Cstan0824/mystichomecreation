@@ -11,9 +11,9 @@ import DAO.PaymentDAO;
 import Models.Orders.Order;
 import Models.Orders.OrderTransaction;
 import Models.Payment;
+import Models.Products.product;
+import Models.Products.productType;
 import Models.Users.User;
-import Models.product;
-import Models.productType;
 import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
@@ -29,6 +29,7 @@ public class OrderController extends ControllerBase {
     private PaymentDAO paymentDAO = new PaymentDAO();
     private OrderDAO orderDAO = new OrderDAO();
 
+    // #region PAYMENT
     @SyncCache(channel = "user", message = "from order/addPayment")
     @HttpRequest(HttpMethod.POST)
     public Result addPayment(Payment payment) throws Exception {
@@ -103,7 +104,9 @@ public class OrderController extends ControllerBase {
 
     }
 
+    // #endregion PAYMENT
 
+    // #region ORDER
     @SyncCache(channel = "user", message = "from order/addOrder")
     @HttpRequest(HttpMethod.POST)
     public Result addOrder(Order order) throws Exception {
@@ -149,8 +152,10 @@ public class OrderController extends ControllerBase {
         JsonNode jsonResponse = mapper.createObjectNode();
 
         try {
+            System.out.println("here #1");
             Order order = orderDAO.getOrderById(id);
             if (order != null) {
+                System.out.println("here #2");
                 ((ObjectNode) jsonResponse).put("success", true);
                 ((ObjectNode) jsonResponse).put("order_id", order.getId());
                 ((ObjectNode) jsonResponse).put("user_id", order.getUser().getId());
@@ -162,12 +167,14 @@ public class OrderController extends ControllerBase {
                 ((ObjectNode) jsonResponse).put("shipDate", order.getShipDate());
                 ((ObjectNode) jsonResponse).put("receiveDate", order.getReceiveDate());
                 ((ObjectNode) jsonResponse).put("orderRefNo", order.getOrderRefNo());
-
+                System.out.println("here #3");
             } else {
+                System.out.println("here #11");
                 ((ObjectNode) jsonResponse).put("success", false);
                 ((ObjectNode) jsonResponse).put("error msg", "Order not found");
             }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             ((ObjectNode) jsonResponse).put("success", false);
             ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
         
@@ -215,6 +222,9 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
+    // #endregion ORDER
+
+    // #region ORDER TRANSACTION
     @SyncCache(channel = "user", message = "from order/addOrderTransaction")
     @HttpRequest(HttpMethod.POST)
     public Result addOrderTransaction(OrderTransaction orderTransaction) throws Exception{
@@ -314,6 +324,5 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-
-
+    // #endregion ORDER TRANSACTION
 }

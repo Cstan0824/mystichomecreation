@@ -3,7 +3,7 @@ package Models.Orders;
 import java.io.Serializable;
 import java.util.Objects;
 
-import Models.product;
+import Models.Products.product;
 
 public class OrderTransactionId implements Serializable {
     private Order order;

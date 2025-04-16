@@ -6,7 +6,6 @@ import java.util.List;
 import Models.Payment;
 import Models.Products.productFeedback;
 import Models.Users.User;
-import Models.productFeedback;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
