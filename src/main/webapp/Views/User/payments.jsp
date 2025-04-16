@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <%@ page import="java.util.List" %>
-<%@ page import="Models.PaymentCard" %>
+<%@ page import="Models.Accounts.PaymentCard" %>
 <%@ page import="java.time.LocalDate" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 <%@ page import="java.time.format.DateTimeParseException" %>
@@ -107,7 +107,7 @@
     <!-- "Add New Card" Tile -->
     <div
       class="bg-white rounded-xl border-2 border-dashed border-gray-300 
-             flex items-center justify-center py-8 cursor-pointer hover:bg-gray-50">
+             flex items-center justify-center py-8 cursor-pointer hover:bg-gray-50" id="addNewCardBtn">
       <div class="flex flex-col items-center space-y-2">
         <span class="text-2xl text-gray-400">+</span>
         <p class="text-gray-600 text-sm">Add New Card</p>
@@ -118,14 +118,14 @@
   <script>
 	function setDefaultCard(cardId) {
 		$.ajax({
-			url: "<%= request.getContextPath() %>/User/account/payments/default",
+			url: "<%= request.getContextPath() %>/User/account/payment/default",
 			method: "POST",
 			contentType: "application/json",
 			dataType: "json",
-			data: JSON.stringify({ paymentCardId: cardId }),
+			data: JSON.stringify({ cardId: cardId }),
 			success: function (response) {
 				if (response.status == 200) {
-					setTimeout(() => location.reload(), 150);
+					setTimeout(() => location.reload(), 500);
 				} else {
 					alert(response.message);
 				}
@@ -141,24 +141,24 @@
 		const $modal = $(window.parent.document).find('#cardModal');
 		$modal.data('mode', 'edit');
 		$modal.find('#cardId').val(id);
-		$modal.find('#cardHolderName').val(name);
-		$modal.find('#cardNumber').val(number);
+		$modal.find('#cardName').val(name);
+		$modal.find('#cardNo').val(number);
 		$modal.find('#expiryDate').val(expiryDate);
-		$modal.find('#bankType').val(bankTypeId);
+		$modal.find('#bankId').val(bankTypeId).trigger('change');
 		$modal.removeClass('hidden').addClass('flex');
 	}
 
 	function deletePaymentCard(id) {
 		if (confirm("Are you sure you want to delete this card?")) {
 			$.ajax({
-				url: "<%= request.getContextPath() %>/User/account/payments/delete",
+				url: "<%= request.getContextPath() %>/User/account/payment/delete",
 				method: "POST",
 				contentType: "application/json",
 				dataType: "json",
-				data: JSON.stringify({ paymentCardId: id }),
+				data: JSON.stringify({ cardId: id }),
 				success: function (response) {
 					if (response.status == 200) {
-						setTimeout(() => location.reload(), 150);
+						setTimeout(() => location.reload(), 500);
 					} else {
 						alert(response.message);
 					}
@@ -172,10 +172,10 @@
 
 	function clearCardForm() {
 		const $modal = $(window.parent.document).find('#cardModal');
-		$modal.find('#cardHolderName').val('');
-		$modal.find('#cardNumber').val('');
+		$modal.find('#cardName').val('');
+		$modal.find('#cardNo').val('');
 		$modal.find('#expiryDate').val('');
-		$modal.find('#bankType').val('');
+		$modal.find('#bankId').val('');
 	}
 
 	$(function () {
@@ -190,28 +190,40 @@
 			$modal.removeClass('hidden').addClass('flex');
     	});
 
+		$("#addNewCardBtn").on("click", function () {
+			clearCardForm(); // Show modal
+			const $modal = $(window.parent.document).find('#cardModal');
+			$modal.data('mode', 'add'); // Store address ID in modal data
+			$modal.removeClass('hidden').addClass('flex'); // Show the modal
+			gsap.from('#cardModal > div', {
+					scale: 0.9,
+					opacity: 0,
+					duration: 0.3
+				});
+		});
+
 		// Save logic
 		$(window.parent.document).on('click', '#cardModal #saveModal', function () {
 			const mode = $modal.data('mode');
 			const cardId = $modal.find('#cardId').val();
 			const cardInfo = {
-				name: $modal.find('#cardHolderName').val(),
-				cardNumber: $modal.find('#cardNumber').val(),
+				name: $modal.find('#cardName').val(),
+				cardNumber: $modal.find('#cardNo').val(),
 				expiryDate: $modal.find('#expiryDate').val(),
-				bankTypeId: $modal.find('#bankType').val()
+				bankTypeId: $modal.find('#bankId').val()
 			};
 			if (mode === 'edit') {
 				cardInfo.id = cardId;
 			}
 
 			$.ajax({
-				url: "<%= request.getContextPath() %>/User/account/payments/" + mode,
+				url: "<%= request.getContextPath() %>/User/account/payment/" + mode,
 				method: "POST",
 				contentType: "application/json",
 				data: JSON.stringify({ paymentCard: cardInfo }),
 				success: function (response) {
 					if (response.status == 200) {
-						setTimeout(() => location.reload(), 150);
+						setTimeout(() => location.reload(), 500);
 					} else {
 						alert(response.message);
 					}

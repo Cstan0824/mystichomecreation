@@ -5,10 +5,10 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
 public class DataAccess {
-    private static EntityManagerFactory entityManagerFactory;
-    
+    private static EntityManagerFactory entityManagerFactory = Persistence
+            .createEntityManagerFactory("myPersistenceUnit");
+
     public static EntityManager getEntityManager() {
-        entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
         return entityManagerFactory.createEntityManager();
     }
 

@@ -139,11 +139,12 @@ public abstract class HttpBase extends HttpServlet {
             // Logging service
             logger.log(Level.WARNING,
                     "Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: " + e.getMessage());
+            e.printStackTrace(System.err);
             if (action == null) {
                 return;
             }
             try {
-                executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError);
+                executeMiddleware(action.getAnnotations(), MiddlewareAction.OnError, e);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: "
                         + e.getMessage());
@@ -275,6 +276,7 @@ public abstract class HttpBase extends HttpServlet {
 
         } else {
             throw new InvalidActionResultException("Invalid Request");
+            // TODO: Redirect to error page, define the url in web.xml
         }
         // #endregion
 
@@ -298,7 +300,7 @@ public abstract class HttpBase extends HttpServlet {
         return queryString.toString();
     }
 
-    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception {
+    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action, Exception ex) throws Exception {
         for (Annotation annotation : annotations) {
             String annotationName = annotation.annotationType().getSimpleName();
             String expectedHandlerName = annotationName + "Handler";
@@ -323,11 +325,15 @@ public abstract class HttpBase extends HttpServlet {
                 switch (action) {
                     case BeforeAction -> middleware.executeBeforeAction(context);
                     case AfterAction -> middleware.executeAfterAction(context);
-                    case OnError -> middleware.onError(context);
+                    case OnError -> middleware.onError(context, ex);
                 }
                 break;
             }
         }
+    }
+
+    private void executeMiddleware(Annotation[] annotations, MiddlewareAction action) throws Exception {
+        executeMiddleware(annotations, action, null);
     }
 
     private void streamFileContent(Object data) throws Exception {

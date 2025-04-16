@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<%@ page import="java.util.List" %>
+<%@ page import="Models.Accounts.Voucher" %>
+<%@ page import="mvc.Helpers.Helpers" %>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,77 +23,48 @@
 
     <div class="bg-white w-full p-4">
         <hr class="border-gray-200 p-2" />
-
-        <!-- Voucher 1 (example) -->
-        <div class="bg-gray-50 p-4 rounded shadow mb-4">
-            <div class="flex justify-between">
-                <div class="text-sm">
-                    <p class="font-semibold text-gray-700">VOUCHER NAME &middot; VOURCHER AMOUNT[VOUCHER
-                        TYPE{integer/decimal}]</p>
-                    <p class="text-xs text-gray-500">VOUCHER DESCRIPTION</p>
-                    <p class="text-xs text-gray-400">MIN: RMXX &middot; MAX: RMXXX</p>
-                    <p class="text-xs text-gray-400">USED FOR CURRENT MONTH/TOTAL AVAILABLE FOR CURRENT MONTH</p>
-                </div>
-                <!-- Replace this block -->
-                <div class="flex space-x-2 items-start">
-                    <button
-                        class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
-                        data-status="active">
-                        Active
-                    </button><button
-                        class="border border-blue-500 text-blue-500 text-xs px-3 py-1 rounded-md hover:bg-blue-50">Edit</button>
-
-                    <button
-                        class="border border-red-500 text-red-500 text-xs px-3 py-1 rounded-md hover:bg-red-50">Remove</button>
-
-                </div>
-            </div>
-        </div>
-        <!-- Voucher 1 (example) -->
-        <div class="bg-gray-50 p-4 rounded shadow mb-4">
-            <div class="flex justify-between">
-                <div class="text-sm">
-                    <p class="font-semibold text-gray-700">Huge Discount For this Month only &middot; RM300</p>
-                    <p class="text-xs text-gray-500">Huge discount for current month</p>
-                    <p class="text-xs text-gray-400">MIN: RM50 &middot; MAX: RM350</p>
-                    <p class="text-xs text-gray-400">Usage: 2/3</p>
-                </div>
-                <div class="flex space-x-2 items-start">
-                    <button
-                        class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
-                        data-status="active">
-                        Active
-                    </button><button
-                        class="border border-blue-500 text-blue-500 text-xs px-3 py-1 rounded-md hover:bg-blue-50">Edit</button>
-
-                    <button
-                        class="border border-red-500 text-red-500 text-xs px-3 py-1 rounded-md hover:bg-red-50">Remove</button>
-
+        <%
+            List<Voucher> vouchers = (List<Voucher>) request.getAttribute("vouchers");
+            if(vouchers != null){
+                for(Voucher voucher : vouchers){
+            %>
+            <div class="bg-gray-50 p-4 rounded shadow mb-4">
+                <div class="flex justify-between">
+                    <div class="text-sm">
+                        <p class="font-semibold text-gray-700"><%= voucher.getName() %> &middot; <%= voucher.getType().equals("Percent") ? voucher.getAmount() + "%" : "RM" + voucher.getAmount() %></p>
+                        <p class="text-xs text-gray-500"><%= voucher.getDescription() %></p>
+                        <p class="text-xs text-gray-400">MIN: RM<%= voucher.getMinSpent() %> &middot; MAX: RM<%= voucher.getMaxCoverage() %></p>
+                        <p class="text-xs text-gray-400">Usage: 2/3</p>
+                    </div>
+                    <div class="flex space-x-2 items-start">
+                        
+                        <% if(voucher.getStatus() == 1) { %>
+                            <button
+                            class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
+                            data-status="active" data-id="<%= voucher.getId() %>">
+                            Active
+                        </button>
+                        <% } else { %>
+                            <button
+                            class="status-btn border border-gray-900 text-gray-900 text-xs px-3 py-1 rounded-md hover:bg-gray-100"
+                            data-status="inactive" data-id="<%= voucher.getId() %>">
+                            Inactive
+                        </button>
+                        <% } %>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- Voucher 1 (example) -->
-        <div class="bg-gray-50 p-4 rounded shadow mb-4">
-            <div class="flex justify-between">
-                <div class="text-sm">
-                    <p class="font-semibold text-gray-700">Huge Discount For this Month only &middot; 30%</p>
-                    <p class="text-xs text-gray-500">Huge discount for current month</p>
-                    <p class="text-xs text-gray-400">MIN: RM50 &middot; MAX: RM350</p>
-                    <p class="text-xs text-gray-400">Usage: 2/3</p>
-                </div>
-                <div class="flex space-x-2 items-start">
-                    <button
-                        class="status-btn border text-gray-500 border-gray-400 text-xs px-3 py-1 rounded-md  hover:bg-gray-100"
-                        data-status="inactive">
-                        Inactive
-                    </button><button
-                        class="border border-blue-500 text-blue-500 text-xs px-3 py-1 rounded-md hover:bg-blue-50">Edit</button>
-                    <button
-                        class="border border-red-500 text-red-500 text-xs px-3 py-1 rounded-md hover:bg-red-50">Remove</button>
-                    <!-- Toggleable Status -->
-                </div>
+            <% 
+                }
+            } else {
+                
+            %>
+            <div class="text-center py-6 text-gray-500">
+                <p>No saved Vouchers yet.</p>
             </div>
-        </div>
+            <% 
+            }
+            %>
 
         <!-- Add New Voucher -->
         <div class="bg-white rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center py-8 cursor-pointer hover:bg-gray-50"
@@ -104,41 +77,89 @@
     </div>
 
     <script>
-        $(function() {
-            $('#addVoucherTile, .edit-voucher').on('click', function() {
+        $(function () {
+            $voucherModal = $(window.parent.document).find('#voucherModal');
+
+		if ($voucherModal.hasClass('flex')) {
+			$voucherModal.removeClass('flex').addClass('hidden');
+		}
+            function clearVoucherForm() {
+                $modal = $(window.parent.document).find('#voucherModal');
+                $modal.find('#voucherId').val('');
+                $modal.find('#voucherName').val('');
+                $modal.find('#voucherType').val('');
+                $modal.find('#voucherAmount').val('');
+                $modal.find('#minSpend').val('');
+                $modal.find('#maxDiscount').val('');
+                $modal.find('#usagePerMonth').val('');
+            }
+
+            $('#addVoucherTile').on('click', function () {
+                clearVoucherForm();
                 const parentDoc = $(window.parent.document);
                 parentDoc.find('#voucherModal').removeClass('hidden').addClass('flex');
-                // Optional: prefill for editing
-                const id = $(this).data('id');
-                if (id) {
-                    // simulate AJAX or populate values
-                    const form = parentDoc.find('#voucherForm');
-                    form.find('#voucherId').val(id);
-                    form.find('#voucherName').val('WELCOME10');
-                    form.find('#voucherType').val('Percentage');
-                    form.find('#voucherMin').val(50);
-                    form.find('#voucherMax').val(200);
-                    form.find('#voucherAmount').val(10);
-                    form.find('#voucherUsage').val(3);
-                    form.find('#voucherDesc').val('10% off for new users');
-                    parentDoc.find('#modalTitle').text('Edit Voucher');
-                } else {
-                    parentDoc.find('#voucherForm')[0].reset();
-                    parentDoc.find('#modalTitle').text('Add Voucher');
-                    parentDoc.find('#voucherId').val('');
-                }
+                parentDoc.find('#voucherForm')[0].reset();
+                parentDoc.find('#modalTitle').text('Add Voucher');
+                parentDoc.find('#voucherId').val('');
             });
-            $(document).on('click', '.status-btn', function() {
+
+            $(document).on('click', '.status-btn', function () {
                 const isActive = $(this).data('status') === 'active';
-                $(this).data('status', isActive ? 'inactive' : 'active');
-                $(this)
-                    .text(isActive ? 'Inactive' : 'Active')
-                    .toggleClass('text-green-500 border-green-500 hover:bg-green-50', !isActive)
-                    .toggleClass('text-gray-500 border-gray-400 hover:bg-gray-100', isActive);
+                const voucherId = $(this).data('id');
+                
+                $.ajax({
+                    url: '<%= request.getContextPath() %>/User/account/voucher/status',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        voucherId: voucherId,
+                        status: !isActive
+                    }),
+                    success: function (response) {
+                        if (response.status == 200) {
+                            setTimeout(() => location.reload(), 300);
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error updating status');
+                    }
+                });
             });
-            $('.cursor-pointer').on('click', function() {
-                const $modal = $(window.parent.document).find('#voucherModal');
-                $modal.removeClass('hidden').addClass('flex');
+            $(window.parent.document).on('click', '#voucherModal #saveModal', function () {
+                //write ajax to add voucher
+                $modal = $(window.parent.document).find('#voucherModal');
+                const formData = {
+                    voucherId: $modal.find('#voucherId').val(),
+                    name: $modal.find('#voucherName').val(),
+                    description: $modal.find('#voucherDescription').val(),
+                    type: $modal.find('#voucherType').val(),
+                    amount: $modal.find('#voucherAmount').val(),
+                    minSpent: $modal.find('#minSpend').val(),
+                    maxCoverage: $modal.find('#maxDiscount').val(),
+                    usagePerMonth: $modal.find('#usagePerMonth').val(),
+
+                };
+
+                $.ajax({
+                    url: '<%= request.getContextPath() %>/User/account/voucher/add',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                            voucher : formData
+                        }),
+                    success: function (response) {
+                        if (response.status == 200) {
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error adding voucher');
+                    }
+                });
             });
         });
     </script>

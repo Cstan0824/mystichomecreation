@@ -10,9 +10,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import mvc.Annotations.AuthorizationHandler;
-import mvc.Annotations.SyncCacheHandler;
-import mvc.Annotations.WatcherHandler;
 import mvc.Helpers.JsonConverter;
 import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpBase;
@@ -24,11 +21,7 @@ public class ControllerBase extends HttpBase {
 
     public ControllerBase() {
         super();
-        // #region Register Middlewares
-        super.addMiddleware(new AuthorizationHandler());
-        super.addMiddleware(new SyncCacheHandler());
-        super.addMiddleware(new WatcherHandler());
-        // #endregion
+
     }
 
     @Override

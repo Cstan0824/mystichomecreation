@@ -1,0 +1,32 @@
+# Node modules and build artifacts
+node_modules/
+dist/
+target/
+
+# IDE/editor config
+.vscode/
+.netbeans*/  # or specific e.g. .netbean-25/
+
+# Maven & temp files
+
+
+# Git & versioning
+.git/
+.gitignore
+.gitattributes
+
+# OS & editor junk files
+*.log
+*.DS_Store
+Thumbs.db
+
+# Optional: exclude full MySQL init if only .sql is needed
+.mysql/*.cnf
+.mysql/glassfish_init/
+
+# Docker & env
+docker-compose.yaml
+.env
+
+# Tailwind/PostCSS config not needed in image
+

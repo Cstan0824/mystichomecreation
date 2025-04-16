@@ -44,10 +44,7 @@ public class UserDA {
         db.merge(user);
         db.getTransaction().commit();
 
-        if (db.getTransaction().getRollbackOnly()) {
-            return false;
-        }
-        return true;
+        return !db.getTransaction().getRollbackOnly();
     }
 
     public boolean changeUserImage(User user) {

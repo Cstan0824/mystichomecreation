@@ -1,4 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="Models.Accounts.BankType" %>
+<%@ page import="Models.Accounts.PaymentCard" %>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -92,17 +95,17 @@
 		</div>
 	</div>
 	<!-- Add New Card Modal -->
-	<div id="cardModal"
+	<div id="cardModal" data-mode="add"
 		class="fixed inset-0 z-50 hidden items-center justify-center bg-[rgba(0,0,0,0.4)] backdrop-blur-sm">
 		<div id="cardModalContent"
-			class="bg-white rounded-lg w-full max-w-[550px] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+			class="bg-white rounded-lg w-full max-w-[550px] p-6 space-y-4 max-h-[90vh] overflow-visible">
 			<div class="flex justify-between items-center mb-2">
 				<h2 class="text-lg font-semibold text-gray-800">Add New Card</h2>
 				<button id="closeCardModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
 			</div>
 
 			<div id="cardForm" class="space-y-4">
-			<input type="hidden" id="cardId" value="-1" />
+				<input type="hidden" id="cardId" value="-1" />
 				<div>
 					<label class="block text-sm font-medium text-gray-700">Name on Card</label>
 					<input id="cardName" type="text" placeholder="e.g. Tan Choon Shen"
@@ -121,16 +124,40 @@
 					</div>
 					<div>
 						<label class="block text-sm font-medium text-gray-700">Bank</label>
-						
-						<selection id="banklist"
-							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-							<option value="">Select Bank</option>
-							<option value="bank1">Bank 1</option>
-							<option value="bank2">Bank 2</option>
-							<option value="bank3">Bank 3</option>
-							<option value="bank4">Bank 4</option>
-							<option value="bank5">Bank 5</option>
-						</selection>
+						<div class="relative w-full">
+							<button id="bankDropdownBtn" type="button" tabindex="0" role="button"
+								class="w-full text-left border rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-blue-50 transition duration-200 ease-in-out">
+								<span id="selectedBankText">Select Bank</span>
+							</button>
+
+							<div id="bankDropdownList"
+								class="absolute w-full mt-1 bg-white border rounded shadow hidden z-100 max-h-40 overflow-y-auto">
+								<%
+								List<BankType> bankTypes = (List<BankType>) request.getAttribute("bankTypes");
+								if (bankTypes != null) {
+									for (BankType bank : bankTypes) {
+								%>
+								<div class="bank-option flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+									data-id="<%= bank.getId() %>" data-name="<%= bank.getDescription() %>"
+									data-logo="<%= request.getContextPath() + "/Content" + bank.getLogoPath() %>">
+									<img src="<%= request.getContextPath() + "/Content" + bank.getLogoPath() %>"
+										class="w-5 h-5 mr-2" />
+									<span><%= bank.getDescription() %></span>
+								</div>
+								<%
+									}
+								} else {
+								%>
+								<div class="px-3 py-2 text-gray-500">No banks available</div>
+								<%
+								}
+								%>
+							</div>
+
+							<!-- Hidden input for form -->
+							<input type="hidden" id="bankId" name="bankId" />
+						</div>
+
 					</div>
 				</div>
 				<div class="flex justify-end space-x-2 pt-2">
@@ -144,81 +171,83 @@
 	</div>
 
 	<!-- Address Modal -->
-<div id="addressModal" data-mode="add" class="fixed inset-0 z-50 hidden items-center justify-center w-full  bg-[rgba(0,0,0,0.4)] backdrop-blur-sm">
-	<div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto" id="modalContent" >
+	<div id="addressModal" data-mode="add"
+		class="fixed inset-0 z-50 hidden items-center justify-center w-full  bg-[rgba(0,0,0,0.4)] backdrop-blur-sm">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+			id="modalContent">
 
-		<div class="flex justify-between items-center mb-2">
-			<h2 class="text-lg font-semibold text-gray-800">Add New Address</h2>
-			<button id="closeModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-		</div>
-
-		<div id="addressForm" class="space-y-4">
-			<input type="hidden" id="addressId" value="-1" />
-			<div>
-				<label for="addressLabel" class="block text-sm font-medium text-gray-700">Address Label</label>
-				<input id="addressLabel" type="text" placeholder="e.g. Home, Office"
-					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<div class="flex justify-between items-center mb-2">
+				<h2 class="text-lg font-semibold text-gray-800">Add New Address</h2>
+				<button id="closeModal" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
 			</div>
 
-			<div>
-				<label for="receiverName" class="block text-sm font-medium text-gray-700">Receiver Name</label>
-				<input id="receiverName" type="text" placeholder="Full name"
-					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-			</div>
-
-			<div>
-				<label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
-				<input id="phoneNumber" type="tel" placeholder="e.g. +60 1234 5678"
-					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-			</div>
-
-			<!-- State + Postal Code side-by-side (50% each) -->
-			<div class="grid grid-cols-2 gap-4">
+			<div id="addressForm" class="space-y-4">
+				<input type="hidden" id="addressId" value="-1" />
 				<div>
-					<label for="state" class="block text-sm font-medium text-gray-700">State</label>
-					<select id="state"
-						class="w-full border rounded px-3 py-2 mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-						<option value="">Select State</option>
-						<option>Selangor</option>
-						<option>Kuala Lumpur</option>
-						<option>Penang</option>
-						<option>Johor</option>
-						<option>Sabah</option>
-						<option>Sarawak</option>
-					</select>
-				</div>
-				<div>
-					<label for="postCode" class="block text-sm font-medium text-gray-700">Postal Code</label>
-					<input id="postCode" type="text" placeholder="e.g. 41200"
+					<label for="addressLabel" class="block text-sm font-medium text-gray-700">Address Label</label>
+					<input id="addressLabel" type="text" placeholder="e.g. Home, Office"
 						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 				</div>
+
+				<div>
+					<label for="receiverName" class="block text-sm font-medium text-gray-700">Receiver Name</label>
+					<input id="receiverName" type="text" placeholder="Full name"
+						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				</div>
+
+				<div>
+					<label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
+					<input id="phoneNumber" type="tel" placeholder="e.g. +60 1234 5678"
+						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				</div>
+
+				<!-- State + Postal Code side-by-side (50% each) -->
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="state" class="block text-sm font-medium text-gray-700">State</label>
+						<select id="state"
+							class="w-full border rounded px-3 py-2 mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+							<option value="">Select State</option>
+							<option>Selangor</option>
+							<option>Kuala Lumpur</option>
+							<option>Penang</option>
+							<option>Johor</option>
+							<option>Sabah</option>
+							<option>Sarawak</option>
+						</select>
+					</div>
+					<div>
+						<label for="postCode" class="block text-sm font-medium text-gray-700">Postal Code</label>
+						<input id="postCode" type="text" placeholder="e.g. 41200"
+							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+					</div>
+				</div>
+
+				<div>
+					<label for="addressLine1" class="block text-sm font-medium text-gray-700">Address Line 1</label>
+					<input id="addressLine1" type="text" placeholder="Street, building, etc."
+						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				</div>
+
+				<div>
+					<label for="addressLine2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
+					<input id="addressLine2" type="text" placeholder="Apartment, unit, floor, etc. (optional)"
+						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				</div>
+
+				<div class="flex justify-end space-x-2 pt-2">
+					<button type="button" id="cancelModal"
+						class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
+					<button type="submit" id="saveModal"
+						class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
+				</div>
 			</div>
 
-			<div>
-				<label for="addressLine1" class="block text-sm font-medium text-gray-700">Address Line 1</label>
-				<input id="addressLine1" type="text" placeholder="Street, building, etc."
-					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-			</div>
-
-			<div>
-				<label for="addressLine2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
-				<input id="addressLine2" type="text" placeholder="Apartment, unit, floor, etc. (optional)"
-					class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-			</div>
-
-			<div class="flex justify-end space-x-2 pt-2">
-				<button type="button" id="cancelModal"
-					class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
-				<button type="submit" id="saveModal"
-					class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
-			</div>
 		</div>
-
 	</div>
-</div>
 
 	<!-- Voucher Modal -->
-	<div id="voucherModal"
+	<div id="voucherModal" data-mode="add"
 		class="fixed inset-0 z-50 hidden items-center justify-center bg-[rgba(0,0,0,0.4)] backdrop-blur-sm">
 		<div id="voucherModalContent"
 			class="bg-white rounded-lg w-full max-w-[550px] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -228,27 +257,33 @@
 			</div>
 
 			<div id="voucherForm" class="space-y-4">
-				<div>
-					<label class="block text-sm font-medium text-gray-700">Voucher Name</label>
-					<input type="text" placeholder="e.g. Mega Saver"
-						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+				<div class="grid grid-cols-10 gap-4">
+					<div class="col-span-6">
+						<label class="block text-sm font-medium text-gray-700">Voucher Name</label>
+						<input type="text" placeholder="e.g. Mega Saver" id="voucherName"
+							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">	
+					</div>
+					<div class="col-span-4">
+						<label class="block text-sm font-medium text-gray-700">Voucher Usage Per Month</label>
+						<input type="number" placeholder="e.g. 3" id="usagePerMonth"
+							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+					</div>
 				</div>
-
 				<div>
 					<label class="block text-sm font-medium text-gray-700">Description</label>
-					<textarea rows="2" placeholder="e.g. Valid for all orders above RM50"
+					<textarea rows="2" placeholder="e.g. Valid for all orders above RM50" id="voucherDescription"
 						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
 				</div>
 
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<label class="block text-sm font-medium text-gray-700">Voucher Amount</label>
-						<input type="number" placeholder="e.g. 300"
+						<input type="number" placeholder="e.g. 300" id="voucherAmount"
 							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 					</div>
 					<div>
 						<label class="block text-sm font-medium text-gray-700">Voucher Type</label>
-						<select
+						<select id="voucherType"
 							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 							<option value="flat">RM Amount</option>
 							<option value="percentage">Percentage (%)</option>
@@ -259,12 +294,12 @@
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<label class="block text-sm font-medium text-gray-700">Min Spend</label>
-						<input type="number" placeholder="e.g. 50"
+						<input type="number" placeholder="e.g. 50" id="minSpend"
 							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 					</div>
 					<div>
 						<label class="block text-sm font-medium text-gray-700">Max Discount</label>
-						<input type="number" placeholder="e.g. 300"
+						<input type="number" placeholder="e.g. 300" id="maxDiscount"
 							class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 					</div>
 				</div>
@@ -272,7 +307,7 @@
 				<div class="flex justify-end space-x-2 pt-2">
 					<button type="button" id="cancelVoucherModal"
 						class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
-					<button type="submit"
+					<button type="submit" id="saveModal"
 						class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save</button>
 				</div>
 			</div>
@@ -372,6 +407,45 @@
 				e.preventDefault();
 				alert('Voucher saved!');
 				$voucherModal.addClass('hidden').removeClass('flex');
+			});
+			$('#bankDropdownBtn').on('click', function(e) {
+				e.stopPropagation();
+				$('#bankDropdownList').toggle();
+			});
+			$('.bank-option').on('click', function() {
+				var bankId = $(this).attr('data-id');
+				var bankName = $(this).attr('data-name');
+				var bankLogo = $(this).attr('data-logo');
+				// Update the button text/HTML to show the selected bank
+				$('#selectedBankText').html('<img src="' + bankLogo +
+					'" class="w-5 h-5 inline-block mr-2" /> ' + bankName);
+				// Set the hidden input value
+				$('#bankId').val(bankId).trigger('change'); // Trigger change event after setting value programmatically
+				// Hide the dropdown
+				$('#bankDropdownList').hide();
+			});
+
+			// Whenever the hidden bankId input changes (e.g., during edit)
+			$('#bankId').on('change', function() {
+				var selectedBankId = $(this).val();
+				// Find the corresponding option in the dropdown
+				var $selectedOption = $('.bank-option[data-id="' + selectedBankId + '"]');
+
+				if ($selectedOption.length) {
+					// If found, update the display button's content
+					var bankName = $selectedOption.attr('data-name');
+					var bankLogo = $selectedOption.attr('data-logo');
+					$('#selectedBankText').html('<img src="' + bankLogo +
+						'" class="w-5 h-5 inline-block mr-2" /> ' + bankName);
+				} else {
+					// If no matching option (e.g., invalid ID), reset the display
+					$('#selectedBankText').text('Select Bank');
+				}
+			});
+			$(document).on('click', function(e) {
+				if (!$(e.target).closest('#bankDropdownBtn, #bankDropdownList').length) {
+					$('#bankDropdownList').hide();
+				}
 			});
 		});
 	</script>

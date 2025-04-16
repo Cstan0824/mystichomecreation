@@ -28,6 +28,8 @@ public class UserController extends ControllerBase {
     // #region User Account
     // @Authorization(permissions = "User/account")
     public Result account() throws Exception {
+        List<BankType> bankTypes = accountDA.getBankTypes();
+        request.setAttribute("bankTypes", bankTypes);
         return page();
     }
 
@@ -232,15 +234,12 @@ public class UserController extends ControllerBase {
         // Get User payment cards
         List<PaymentCard> paymentCards = accountDA.getPaymentCards(userId);
         request.setAttribute("paymentCards", paymentCards);
-
-        List<BankType> bankTypes = accountDA.getBankTypes();
-        request.setAttribute("bankTypes", bankTypes);
         return page();
     }
 
     // @Authorization(permissions = "User/account/payment/default")
     @ActionAttribute(urlPattern = "account/payment/default")
-    @SyncCache(channel = "User")
+    @SyncCache(channel = "PaymentCard")
     @HttpRequest(HttpMethod.POST)
     public Result setDefaultPaymentCard(int cardId) throws Exception {
         SessionHelper session = getSessionHelper();
@@ -252,25 +251,43 @@ public class UserController extends ControllerBase {
     }
 
     // @Authorization(permissions = "User/account/payment/edit")
+    @ActionAttribute(urlPattern = "account/payment/add")
+    @SyncCache(channel = "PaymentCard")
+    @HttpRequest(HttpMethod.POST)
+    public Result addPaymentCard(PaymentCard paymentCard) throws Exception {
+        SessionHelper session = getSessionHelper();
+        int userId = session.getId();
+        boolean response = accountDA.addPaymentCard(paymentCard, userId);
+        if (response) {
+            return success();
+        }
+        return error("Failed to update payment card details");
+    }
+
+    // @Authorization(permissions = "User/account/payment/edit")
     @ActionAttribute(urlPattern = "account/payment/edit")
-    @SyncCache(channel = "User")
+    @SyncCache(channel = "PaymentCard")
     @HttpRequest(HttpMethod.POST)
     public Result editPaymentCard(PaymentCard paymentCard) throws Exception {
         boolean response = accountDA.updatePaymentCard(paymentCard);
+        System.out.println(response);
+        System.out.println("Payment card ID: " + paymentCard.getId());
+        System.out.println("Payment card name: " + paymentCard.getName());
         if (response) {
-            return page("account#payments");
+            return success();
         }
         return error("Failed to update payment card details");
     }
 
     // @Authorization(permissions = "User/account/payment/delete")
     @ActionAttribute(urlPattern = "account/payment/delete")
-    @SyncCache(channel = "User")
+    @SyncCache(channel = "PaymentCard")
     @HttpRequest(HttpMethod.POST)
     public Result deletePaymentCard(int cardId) throws Exception {
         boolean response = accountDA.deletePaymentCard(cardId);
+        System.out.println(response);
         if (response) {
-            return page("account#payments");
+            return success();
         }
         return error("Failed to delete payment card");
     }
@@ -284,20 +301,20 @@ public class UserController extends ControllerBase {
     }
 
     // @Authorization(permissions = "User/account/vouchers/add")
-    @ActionAttribute(urlPattern = "account/vouchers/add")
-    @SyncCache(channel = "Voucher")
+    @ActionAttribute(urlPattern = "account/voucher/add")
+    @SyncCache(channel = "Voucher", message = "addVoucher")
     @HttpRequest(HttpMethod.POST)
     public Result addVoucher(Voucher voucher) throws Exception {
         boolean response = accountDA.addVoucher(voucher);
         if (response) {
-            return page("account#vouchers");
+            return success();
         }
         return error("Failed to add voucher");
     }
 
     // @Authorization(permissions = "User/account/vouchers/status")
-    @ActionAttribute(urlPattern = "account/vouchers/status")
-    @SyncCache(channel = "Voucher")
+    @ActionAttribute(urlPattern = "account/voucher/status")
+    @SyncCache(channel = "Voucher", message = "updateVoucherStatus")
     @HttpRequest(HttpMethod.POST)
     public Result updateVoucherStatus(int voucherId, boolean status) throws Exception {
         boolean response = accountDA.updateVoucherStatus(voucherId, status);
