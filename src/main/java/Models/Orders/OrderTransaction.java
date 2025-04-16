@@ -1,6 +1,5 @@
 package Models.Orders;
-
-import Models.product;
+import Models.Products.product;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

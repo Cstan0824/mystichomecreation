@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="Models.Products.productVariationOptions" %>
-<%@ page import="Models.Products.product" %>
-<%@ page import="Models.Products.productFeedback" %>
+<%@ page import="Models.productVariationOptions" %>
+<%@ page import="Models.product" %>
+<%@ page import="Models.productFeedback" %>
 <%@ page import="java.util.Map, java.util.List" %>
 
 <!DOCTYPE html>

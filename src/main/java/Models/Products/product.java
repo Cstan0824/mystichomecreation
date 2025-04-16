@@ -1,4 +1,4 @@
-package Models;
+package Models.Products;
 
 import java.sql.Date;
 
@@ -21,7 +21,7 @@ public class product {
     @Column(name = "product_id")
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne 
     @JoinColumn(name = "product_type_id", referencedColumnName = "product_type_id")
     private productType type;
 
