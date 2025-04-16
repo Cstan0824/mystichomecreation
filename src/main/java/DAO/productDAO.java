@@ -6,10 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import Models.dev;
-import Models.product;
-import Models.productFeedback;
-import Models.productVariationOptions;
-import Models.productType; // Added import for productType
+import Models.Products.product;
+import Models.Products.productFeedback;
+import Models.Products.productType;
+import Models.Products.productVariationOptions;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -81,29 +81,74 @@ public class productDAO implements Serializable{
         return null;
     }   
 
-    // Filter the categories 
-    public List<product> getProductsByCategories(List<String> categoryNames) {
-        try {
-            TypedQuery<product> query = db.createQuery(
-                "SELECT p FROM product p WHERE p.type.type IN :names", product.class
-            );
-            query.setParameter("names", categoryNames);
-            return query.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-    }
+    // Get all param from the form and then process it 
+    public List<product> filterProducts(List<Integer> categoryIds , Double minPrice , Double maxPrice , String sortBy , String keyword){
+        try{
+            // the 1=1 is to make the query always valid cuz 1=1 is always true and this help to reterieve all the products
+            StringBuilder jpql = new StringBuilder("SELECT p FROM product p WHERE 1=1");
 
-    // sort for the products
-    public List<product> getAllSorted(String orderByClause) {
-        try {
-            String queryStr = "SELECT p FROM product p ORDER BY p." + orderByClause;
-            TypedQuery<product> query = db.createQuery(queryStr, product.class);
-            return query.getResultList();
-        } catch (Exception e) {
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                jpql.append(" AND p.type.id IN :ids");
+            }
+            if (minPrice != null) {
+                jpql.append(" AND p.price >= :minPrice");
+            }
+            if (maxPrice != null) {
+                jpql.append(" AND p.price <= :maxPrice");
+            }
+            if (keyword != null && !keyword.isBlank()) {
+                jpql.append(" AND (LOWER(p.title) LIKE :kw )");
+            }
+            if (sortBy != null) {
+
+                switch (sortBy) {
+                    case "priceLowHigh":
+                        jpql.append(" ORDER BY p.price ASC");
+                        break;
+                        
+                    case "priceHighLow":
+                        jpql.append(" ORDER BY p.price DESC");
+                        break;
+                    case "newest":
+                        jpql.append(" ORDER BY p.createdDate DESC");
+                        break;
+                    default:
+                        System.out.println("⚠ Unknown sortBy value: " + sortBy);
+                }
+            }
+
+            System.out.println("🛠 Final JPQL: " + jpql);
+
+
+            //So now we have the query and we need to set the params
+            TypedQuery<product> query = db.createQuery(jpql.toString(), product.class);
+
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                System.out.println("🟡 Binding categoryIds: " + categoryIds);
+                query.setParameter("ids", categoryIds);
+            }
+            if (minPrice != null) {
+                System.out.println("🟡 Binding minPrice: " + minPrice);
+                query.setParameter("minPrice", minPrice);
+            }
+            if (maxPrice != null) {
+                System.out.println("🟡 Binding maxPrice: " + maxPrice);
+                query.setParameter("maxPrice", maxPrice);
+            }
+            if (keyword != null && !keyword.isBlank()) {
+                System.out.println("🟡 Binding keyword: %" + keyword.toLowerCase() + "%");
+                query.setParameter("kw", "%" + keyword.toLowerCase() + "%");
+            }
+
+            // this is where we get the result
+            List<product> result = query.getResultList(); // this is where we execute the query 
+            System.out.println("✅ Found products: " + result.size());
+            return result;
+
+        }catch (Exception e) {
             e.printStackTrace();
-            return null;
+            System.out.println("❌ Error in filterProducts: " + e.getMessage());
+            return new ArrayList<>();
         }
     }
 

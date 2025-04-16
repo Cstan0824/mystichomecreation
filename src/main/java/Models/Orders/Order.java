@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Models.Payment;
-import Models.productFeedback;
+import Models.Products.productFeedback;
 import Models.Users.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "Order")
+@Table(name = "Orders")
 public class Order {
     
     @Id
