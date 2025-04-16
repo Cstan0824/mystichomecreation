@@ -20,15 +20,11 @@ import mvc.Result;
 
 
 
-@WebServlet("/cart/*")
-public class CartController extends ControllerBase{
+@WebServlet("/carts/*")
+public class CartsController extends ControllerBase{
 
     private CartDAO cartDAO = new CartDAO();
     private UserDA userDA = new UserDA();
-
-    public Result index() throws Exception {
-        return page();
-    }
 
     // Add New Cart to New User
     // This method is called when a new user is created and a cart is created for them.
