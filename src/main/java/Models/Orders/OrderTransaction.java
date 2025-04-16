@@ -1,4 +1,5 @@
 package Models.Orders;
+
 import Models.product;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,8 +14,6 @@ import jakarta.persistence.Table;
 @IdClass(OrderTransactionId.class)
 public class OrderTransaction {
 
-    // Composite primary key using Order and Product IDs
-    // This means that the combination of order_id and product_id must be unique in this table
     @Id
     @ManyToOne
     @JoinColumn(name = "order_id", referencedColumnName = "order_id")
@@ -26,57 +25,61 @@ public class OrderTransaction {
     private product product;
 
     @Column(name = "order_quantity")
-    private int quantity;
+    private int orderQuantity;
 
     @Column(name = "ordered_product_price")
     private double orderedProductPrice;
 
-    @Column(name = "selected_variations")
-    private String selectedVariations; // use String or JSON handler depending on how you manage it
+    @Column(name = "selected_variations", columnDefinition = "JSON")
+    private String selectedVariations;
 
-    // Getters and setters
+    public OrderTransaction() {}
+
+    public OrderTransaction(Order order, product product, int orderQuantity, double orderedProductPrice, String selectedVariations) {
+        this.order = order;
+        this.product = product;
+        this.orderQuantity = orderQuantity;
+        this.orderedProductPrice = orderedProductPrice;
+        this.selectedVariations = selectedVariations;
+    }
+
     public Order getOrder() {
         return order;
     }
+
     public void setOrder(Order order) {
         this.order = order;
     }
+
     public product getProduct() {
         return product;
     }
+
     public void setProduct(product product) {
         this.product = product;
     }
-    public int getQuantity() {
-        return quantity;
+
+    public int getOrderQuantity() {
+        return orderQuantity;
     }
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+
+    public void setOrderQuantity(int orderQuantity) {
+        this.orderQuantity = orderQuantity;
     }
+
     public double getOrderedProductPrice() {
         return orderedProductPrice;
     }
+
     public void setOrderedProductPrice(double orderedProductPrice) {
         this.orderedProductPrice = orderedProductPrice;
     }
+
     public String getSelectedVariations() {
         return selectedVariations;
     }
+
     public void setSelectedVariations(String selectedVariations) {
         this.selectedVariations = selectedVariations;
     }
-    // Constructors
-    public OrderTransaction() {
-    }
-
-
-    public OrderTransaction(Order order, product product, int quantity, double orderedProductPrice, String selectedVariations) {
-        this.order = order;
-        this.product = product;
-        this.quantity = quantity;
-        this.orderedProductPrice = orderedProductPrice;
-        this.selectedVariations = selectedVariations;
-    }
-
-
 }

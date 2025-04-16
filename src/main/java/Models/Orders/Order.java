@@ -1,12 +1,11 @@
 package Models.Orders;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import Models.Payment;
-import Models.productFeedback;
 import Models.Users.User;
+import Models.productFeedback;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +21,7 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "Order")
+@Table(name = "Orders")
 public class Order {
     
     @Id
@@ -51,16 +50,16 @@ public class Order {
     private String shippingInfo;
 
     @Column(name = "order_date")
-    private LocalDate orderDate;
+    private String orderDate;
 
     @Column(name = "pack_date")
-    private LocalDate packDate;
+    private String packDate;
 
     @Column(name = "ship_date")
-    private LocalDate shipDate;
+    private String shipDate;
 
     @Column(name = "receive_date")
-    private LocalDate receiveDate;
+    private String receiveDate;
 
     @Column(name = "order_ref_no")
     private String orderRefNo;
@@ -77,7 +76,7 @@ public class Order {
     public Order() {
     }
 
-    public Order(User user, Payment payment, OrderStatus status, String shippingInfo, LocalDate orderDate, LocalDate packDate, LocalDate shipDate, LocalDate receiveDate, String orderRefNo) {
+    public Order(User user, Payment payment, OrderStatus status, String shippingInfo, String orderDate, String packDate, String shipDate, String receiveDate, String orderRefNo) {
         this.user = user;
         this.payment = payment;
         this.status = status;
@@ -126,31 +125,31 @@ public class Order {
         this.shippingInfo = shippingInfo;
     }
 
-    public LocalDate getOrderDate() {
+    public String getOrderDate() {
         return orderDate;
     }
-    public void setOrderDate(LocalDate orderDate) {
+    public void setOrderDate(String orderDate) {
         this.orderDate = orderDate;
     }
 
-    public LocalDate getPackDate() {
+    public String getPackDate() {
         return packDate;
     }
-    public void setPackDate(LocalDate packDate) {
+    public void setPackDate(String packDate) {
         this.packDate = packDate;
     }
 
-    public LocalDate getShipDate() {
+    public String getShipDate() {
         return shipDate;
     }
-    public void setShipDate(LocalDate shipDate) {
+    public void setShipDate(String shipDate) {
         this.shipDate = shipDate;
     }
 
-    public LocalDate getReceiveDate() {
+    public String getReceiveDate() {
         return receiveDate;
     }
-    public void setReceiveDate(LocalDate receiveDate) {
+    public void setReceiveDate(String receiveDate) {
         this.receiveDate = receiveDate;
     }
 

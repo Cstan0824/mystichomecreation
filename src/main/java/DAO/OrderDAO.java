@@ -5,7 +5,10 @@ import java.util.List;
 
 import Models.Orders.Order;
 import Models.Orders.OrderStatus;
+import Models.Orders.OrderTransaction;
+import Models.Payment;
 import Models.Users.User;
+import Models.product;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.Cache.Redis;
@@ -18,7 +21,7 @@ public class OrderDAO {
 
     public OrderDAO() {
     }
-
+    // #region ORDER
     // Create a new order in the database
     public boolean createOrder(Order order) {
         try {
@@ -157,6 +160,154 @@ public class OrderDAO {
         }
     }
 
+    // #endregion END ORDER
 
+    // #region ORDER TRANSACTION
+    public boolean createOrderTransaction(OrderTransaction orderTransaction) {
+        try {
+            db.getTransaction().begin();
+    
+            // ✅ Find and attach the existing Order
+            if (orderTransaction.getOrder() != null && orderTransaction.getOrder().getId() > 0) {
+                Order managedOrder = db.find(Order.class, orderTransaction.getOrder().getId());
+                orderTransaction.setOrder(managedOrder);
+            }
+    
+            // ✅ Find and attach the existing Product
+            if (orderTransaction.getProduct() != null && orderTransaction.getProduct().getId() > 0) {
+                product managedProduct = db.find(product.class, orderTransaction.getProduct().getId());
+                orderTransaction.setProduct(managedProduct);
+            }
+    
+            // ✅ Now safe to persist
+            db.persist(orderTransaction);
+            db.getTransaction().commit();
+            return true;
+    
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Method to read an order transaction by order from the database
+    public List<OrderTransaction> getAllOrderTransactionByOrder(Order order){
 
+        List<OrderTransaction> orderTransactions = null;
+        TypedQuery<OrderTransaction> query = db.createQuery("SELECT ot FROM OrderTransaction ot WHERE ot.order.id=:id", OrderTransaction.class)
+                .setParameter("id", order.getId());
+        try {
+            orderTransactions = cache.getOrCreateList("orderTransactions-" + order.getId(), OrderTransaction.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orderTransactions = db.createQuery("SELECT ot FROM OrderTransaction ot WHERE ot.order.id=:id", OrderTransaction.class)
+                    .setParameter("id", order.getId()).getResultList();
+        }
+        return orderTransactions;
+    }
+
+    // Method to read an order transaction by products from the database
+    public List<OrderTransaction> getAllOrderTransactionByProduct(product product){
+
+        List<OrderTransaction> orderTransactions = null;
+        TypedQuery<OrderTransaction> query = db.createQuery("SELECT ot FROM OrderTransaction ot WHERE ot.product.id=:id", OrderTransaction.class)
+                .setParameter("id", product.getId());
+        try {
+            orderTransactions = cache.getOrCreateList("orderTransactions-" + product.getId(), OrderTransaction.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orderTransactions = db.createQuery("SELECT ot FROM OrderTransaction ot WHERE ot.product.id=:id", OrderTransaction.class)
+                    .setParameter("id", product.getId()).getResultList();
+        }
+        return orderTransactions;
+    }
+
+    // Method to read an order transaction by order and product from the database
+    public OrderTransaction getOrderTransactionByOrderAndProduct(Order order, product product){
+
+        OrderTransaction orderTransaction = null;
+        TypedQuery<OrderTransaction> query = db.createQuery("SELECT ot FROM OrderTransaction ot WHERE ot.order.id=:orderId AND ot.product.id=:productId", OrderTransaction.class)
+                .setParameter("orderId", order.getId())
+                .setParameter("productId", product.getId());
+        try {
+            orderTransaction = cache.getOrCreate("orderTransaction-" + order.getId() + "-" + product.getId(), OrderTransaction.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orderTransaction = db.createQuery("SELECT ot FROM OrderTransaction ot WHERE ot.order.id=:orderId AND ot.product.id=:productId", OrderTransaction.class)
+                    .setParameter("orderId", order.getId())
+                    .setParameter("productId", product.getId()).getSingleResult();
+        }
+        return orderTransaction;
+    }
+
+    // #endregion ORDER TRANSACTION
+
+    // #region ORDER STATUS
+    // Read all order statuses from the database
+    public List<OrderStatus> getAllOrderStatuses() {
+        List<OrderStatus> orderStatuses = null;
+        TypedQuery<OrderStatus> query = db.createQuery("SELECT os FROM OrderStatus os", OrderStatus.class);
+        try {
+            orderStatuses = cache.getOrCreateList("orderStatuses", OrderStatus.class, query);
+        } catch (Exception e) {
+            orderStatuses = query.getResultList();
+        }
+        return orderStatuses;
+    }
+
+    // Read a specific order status by ID from the database
+    public OrderStatus getOrderStatusById(int id) {
+        OrderStatus orderStatus = null;
+        TypedQuery<OrderStatus> query = db.createQuery("SELECT os FROM OrderStatus os WHERE id=:id", OrderStatus.class)
+                .setParameter("id", id);
+        try {
+            orderStatus = cache.getOrCreate("orderStatus-" + id, OrderStatus.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orderStatus = db.find(OrderStatus.class, id);
+        }
+        return orderStatus;
+    }
+
+    // Update an order status in the database
+    public boolean updateOrderStatus(OrderStatus orderStatus) {
+        try {
+            db.getTransaction().begin();
+            db.merge(orderStatus);
+            db.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Create a new order status in the database
+    public boolean createOrderStatus(OrderStatus orderStatus) {
+        try {
+            db.getTransaction().begin();
+            db.persist(orderStatus);
+            db.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+
+    // Delete an order status from the database
+    public boolean deleteOrderStatus(OrderStatus orderStatus) {
+        try {
+            db.getTransaction().begin();
+            db.remove(orderStatus);
+            db.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // #endregion ORDER STATUS
 }

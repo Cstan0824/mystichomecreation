@@ -1,6 +1,5 @@
 package Models;
 
-import jakarta.persistence.*;
 import java.sql.Date;
 
 import jakarta.persistence.Column;
