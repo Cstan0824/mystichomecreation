@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DAO.productDAO;
-import Models.product;
-import Models.productVariationOptions;
-import Models.productFeedback; // Ensure this class exists in the Models package
-import Models.productType;
-import Models.productDTO;
+import Models.Products.product;
+import Models.Products.productDTO;
+import Models.Products.productFeedback;
+import Models.Products.productType;
+import Models.Products.productVariationOptions;
 import jakarta.servlet.annotation.WebServlet;
 
 
@@ -132,8 +132,11 @@ public class productController extends ControllerBase {
         String sortBy = request.getParameter("sortBy"); 
         System.out.println("🔄 Sort by: " + sortBy);
 
+        String keywords =  request.getParameter("keyword");
+        System.out.println("🔍 Keywords: " + keywords);
 
-        List<product> filteredProducts = productDAO.filterProducts(categoryIds, minPrice, maxPrice, sortBy);
+
+        List<product> filteredProducts = productDAO.filterProducts(categoryIds, minPrice, maxPrice, sortBy , keywords);
         System.out.println("✅ DAO returned products: " + filteredProducts.size());
 
 

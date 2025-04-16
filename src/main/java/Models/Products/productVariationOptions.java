@@ -1,4 +1,4 @@
-package Models;
+package Models.Products;
 
 import java.util.List;
 import java.util.Map;
