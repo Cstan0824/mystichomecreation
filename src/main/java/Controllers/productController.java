@@ -277,6 +277,10 @@ public class productController extends ControllerBase {
         String variationsJson = request.getParameter("variations");
         System.out.println("🧩 Raw variations JSON: " + variationsJson); 
 
+        if(variationsJson == null || variationsJson.isEmpty()){
+            variationsJson = "{}"; // set to empty json if it is null or empty
+        }
+
         System.out.println("📩 title       = " + title);
         System.out.println("📩 description = " + desc);
         System.out.println("📩 priceRaw    = " + priceRaw);
@@ -286,6 +290,7 @@ public class productController extends ControllerBase {
         System.out.println("📩 imageUrl    = " + imageUrl);
         System.out.println("📩 slug        = " + slug);
         System.out.println("📩 featured    = " + featured);
+        System.out.println("📩 variationsJson = " + variationsJson);
 
         double price = Double.parseDouble(priceRaw);
         int stock    = Integer.parseInt(stockRaw);
@@ -301,6 +306,7 @@ public class productController extends ControllerBase {
 
 
         product newProduct = new product();
+        newProduct.setId(id); // set the id of the product to be updated
         newProduct.setTitle(title);
         newProduct.setDescription(desc);
         newProduct.setPrice(price);
@@ -313,15 +319,11 @@ public class productController extends ControllerBase {
         newProduct.setImageUrl(imageUrl);
         newProduct.setFeatured(featured ? 1 : 0); 
 
-        try {
-
-            if(productDAO.searchProducts(id) == null){ 
-                System.out.println("❌ Product name already exists: " + title);
-                return error("Product name already exists");
-            }else{
-                productDAO.updateProduct(newProduct);
-                System.out.println("✅ product updated, id=" + newProduct.getId());
-            }
+      
+        try{
+            productDAO.updateProduct(newProduct);
+            System.out.println("✅ product updated, id=" + newProduct.getId());
+            
            
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -329,8 +331,7 @@ public class productController extends ControllerBase {
         }
 
          // 7. redirect to catalog
-         response.sendRedirect(request.getContextPath() + "/product/productCatalog");
-         return null;
+         return success("Product updated successfully");
 
 
 

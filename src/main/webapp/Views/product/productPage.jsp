@@ -4,7 +4,6 @@
 <%@ page import="Models.Products.productFeedback" %>
 <%@ page import="Models.Products.productType" %>
 <%@ page import="java.util.Map, java.util.List" %>
-<%@ include file="/Views/product/updateProduct.jsp" %>
 
 
 <!DOCTYPE html>
@@ -22,6 +21,7 @@
 
 <%@ include file="/Views/Shared/Header.jsp" %>
 
+
 <body>
 
     <%
@@ -32,13 +32,17 @@
             <div class="flex justify-end space-x-4 mb-4">
                 <!-- Update Button -->
 
+                <!-- for the update and delete button, we need to pass the product-->
+
+
                 <button  onclick="openeditModal()" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
                     Update
                 </button>
                 
                 <!-- Delete Button -->
                 <form action="<%= request.getContextPath() %>/product/deleteProduct" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
-                    <input type="hidden" name="productId" value="<%= product.getId() %>">
+                                <input type="hidden" name="productId" value="<%= product.getId() %>">
+
                     <button type="submit" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
                         Delete
                     </button>
@@ -193,6 +197,8 @@
     </div>
 
     <%@ include file="/Views/Shared/Footer.jsp" %>
+    <%@ include file="/Views/product/updateProduct.jsp" %>
+
 
     <script>
         var swiper = new Swiper(".mySwiper", {
