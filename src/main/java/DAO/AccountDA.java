@@ -12,7 +12,9 @@ import jakarta.persistence.TypedQuery;
 import mvc.DataAccess;
 import mvc.Cache.Redis;
 import mvc.Cache.Redis.CacheLevel;
+import mvc.Helpers.Helpers;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.Notify.Notification;
 
 public class AccountDA {
     private EntityManager db = DataAccess.getEntityManager();
@@ -327,12 +329,13 @@ public class AccountDA {
         return !db.getTransaction().getRollbackOnly();
     }
 
-    public boolean verifyPassword(int userId, String password) {
-        User user = userDA.getUserById(userId);
-        if (user == null) {
+    public boolean verifyPassword(int userId, String entryPassword) {
+        String password = userDA.getUserPasswordById(userId);
+        if ("".equals(password)) {
             return false;
         }
-        if (user.getPassword().equals(password)) { // Need to hash the password before compare
+        entryPassword = Helpers.hashPassword(entryPassword);
+        if (Helpers.verifyPassword(entryPassword, password)) {
             return true;
         }
         return false;
@@ -343,8 +346,8 @@ public class AccountDA {
         if (user == null) {
             return false;
         }
-
-        user.setPassword(password); // TODO: Hash Function
+        password = Helpers.hashPassword(password);
+        user.setPassword(password);
 
         db.getTransaction().begin();
         db.merge(user);
@@ -396,5 +399,45 @@ public class AccountDA {
         db.merge(voucher);
         db.getTransaction().commit();
         return !db.getTransaction().getRollbackOnly();
+    }
+
+    public List<Notification> getNotifications(int id) {
+        List<Notification> notifications = null;
+        TypedQuery<Notification> typedQuery = this.db.createQuery("SELECT n FROM Notification n WHERE n.user.id = :id",
+                Notification.class)
+                .setParameter("id", id);
+        try {
+            notifications = cache.getOrCreateList("user-notifications-" + id, Notification.class, typedQuery,
+                    CacheLevel.CRITICAL);
+        } catch (Exception e) {
+            notifications = typedQuery.getResultList(); // run without cache if cache fails
+        }
+        return notifications;
+    }
+
+    public Notification getNotificationById(int id) {
+        Notification notification = null;
+        TypedQuery<Notification> typedQuery = this.db.createQuery("SELECT n FROM Notification n WHERE id = :id",
+                Notification.class)
+                .setParameter("id", id);
+        try {
+            notification = cache.getOrCreate("notification-" + id, Notification.class, typedQuery, CacheLevel.CRITICAL);
+        } catch (Exception e) {
+            notification = typedQuery.getSingleResult(); // run without cache if cache fails
+        }
+        return notification;
+    }
+
+    public String triggerReadNotification(int id) {
+        Notification notification = getNotificationById(id);
+        if (notification == null) {
+            return null;
+        }
+        notification.setRead(true);
+        notification.setReadAt(Helpers.getCurrentDateTime());
+        db.getTransaction().begin();
+        db.merge(notification);
+        db.getTransaction().commit();
+        return notification.getUrl();
     }
 }

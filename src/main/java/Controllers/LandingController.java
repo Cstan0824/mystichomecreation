@@ -1,10 +1,10 @@
 package Controllers;
 
 import jakarta.servlet.annotation.WebServlet;
-import mvc.ControllerBase;
-import mvc.Result;
 import mvc.Annotations.HttpRequest;
+import mvc.ControllerBase;
 import mvc.Http.HttpMethod;
+import mvc.Result;
 
 @WebServlet("/Landing/*")
 public class LandingController extends ControllerBase {

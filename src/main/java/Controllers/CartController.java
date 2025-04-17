@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import DAO.CartDAO;
 import DAO.UserDA;
+import DAO.productDAO;
+import Models.Products.product;
 import Models.Users.Cart;
 import Models.Users.CartItem;
 import Models.Users.User;
@@ -20,13 +22,23 @@ import mvc.Result;
 
 
 
-@WebServlet("/cart/*")
+@WebServlet("/Cart/*")
 public class CartController extends ControllerBase{
 
     private CartDAO cartDAO = new CartDAO();
     private UserDA userDA = new UserDA();
+    private productDAO productDAO = new productDAO();
 
-    public Result index() throws Exception {
+    @SyncCache(channel = "CartItem", message ="from cart/index")
+    public Result cart() throws Exception {
+        System.out.println("Cart Index Page");
+        User user = userDA.getUserById(1);
+        if (user == null) {
+            return json("User not found");
+        }
+        List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
+        request.setAttribute("cartItems", cartItems);
+
         return page();
     }
 
@@ -85,7 +97,7 @@ public class CartController extends ControllerBase{
 
     // Get Cart Items by User ID
     @SyncCache(channel = "user", message ="from cart/getCartItems")
-    @HttpRequest(HttpMethod.GET)
+    @HttpRequest(HttpMethod.POST)
     public Result getCartItems(int userId) throws Exception {
         System.out.println("Get Cart Items by User ID");
         ObjectMapper mapper = new ObjectMapper();
@@ -105,9 +117,14 @@ public class CartController extends ControllerBase{
 
                     for (CartItem item : cartItems) {
                         ObjectNode cartItemNode = mapper.createObjectNode();
-                        cartItemNode.put("cart_item_name", item.getProduct().getTitle());
-                        cartItemNode.put("cart_item_quantity", item.getQuantity());
-                        cartItemNode.put("cart_item_selected_variation", item.getSelectedVariation());
+                        cartItemNode.put("cart_id", item.getCart().getId());
+                        cartItemNode.put("product_id", item.getProduct().getId());
+                        cartItemNode.put("product_name", item.getProduct().getTitle());
+                        cartItemNode.put("product_img", item.getProduct().getImageUrl());
+                        cartItemNode.put("product_category", item.getProduct().getTypeId().gettype());
+                        cartItemNode.put("product_price", item.getProduct().getPrice());
+                        cartItemNode.put("quantity", item.getQuantity());
+                        cartItemNode.put("selected_variation", item.getSelectedVariation());
                         cartItemArray.add(cartItemNode);
                     }
                     System.out.println("Cart Items 2: " + cartItems.size());
@@ -138,7 +155,7 @@ public class CartController extends ControllerBase{
     }
 
     // Add Cart Item
-    @SyncCache(channel = "user", message ="from cart/addToCart")
+    @SyncCache(channel = "CartItem", message ="from cart/addToCart")
     @HttpRequest(HttpMethod.POST)
     public Result addToCart(CartItem cartItem) throws Exception {
 
@@ -167,7 +184,7 @@ public class CartController extends ControllerBase{
     }
 
     // Update Cart Item
-    @SyncCache(channel = "user", message ="from cart/updateCartItem")
+    @SyncCache(channel = "CartItem", message ="from cart/updateCartItem")
     @HttpRequest(HttpMethod.POST)
     public Result updateCartItems(CartItem cartItem) throws Exception {
 
@@ -194,8 +211,72 @@ public class CartController extends ControllerBase{
         return json(jsonResponse);
     }
 
+    // Increase Cart Item Quantity
+    @SyncCache(channel = "CartItem", message ="from cart/increaseCartItemQuantity")
+    @HttpRequest(HttpMethod.POST)
+    public Result updateQuantity(int cartId, int productId, int delta) throws Exception {
+
+        System.out.println("Update Cart Item Quantity");
+        System.out.println("Cart ID: " + cartId);   
+        System.out.println("Product ID: " + productId);
+        System.out.println("Delta: " + delta);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonResponse = mapper.createObjectNode();
+        Cart cart = null;
+        product product = null;
+        CartItem cartItem = null;
+        try{
+            cart = cartDAO.getCartById(cartId);
+            System.out.println("Cart #1: " + cart.getId());
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
+            return json(jsonResponse);
+        }
+        try{
+            product = productDAO.searchProducts(productId);
+            System.out.println("Product #2: " + product.getId());
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Product not found");
+            return json(jsonResponse);
+        }
+        try {
+            System.out.println("here #3 getCartItemByCartAndProduct");
+            cartItem = cartDAO.getCartItemByCartAndProduct(cart, product);
+
+        }   catch (Exception e) {
+            System.out.println("here #3 getCartItemByCartAndProduct exception");
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
+            return json(jsonResponse);
+        }
+
+        try {
+            System.out.println("here #4 updateCartItemQuantity");
+            if (cartDAO.updateCartItemQuantity(cartItem, delta)) {
+                
+                ((ObjectNode) jsonResponse).put("success", true);
+                ((ObjectNode) jsonResponse).put("quantity", cartItem.getQuantity());
+                ((ObjectNode) jsonResponse).put("selected_variation", cartItem.getSelectedVariation());
+                ((ObjectNode) jsonResponse).put("cart_id", cartItem.getCart().getId());
+                ((ObjectNode) jsonResponse).put("cart_item_name", cartItem.getProduct().getTitle());
+            } else {
+                System.out.println("here #4 updateCartItemQuantity if false");
+                ((ObjectNode) jsonResponse).put("success", false);
+                ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
+            }
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+        }
+
+        return json(jsonResponse);
+    }
+
+
     // Remove Cart Item
-    @SyncCache(channel = "user", message ="from cart/removeCartItem")
+    @SyncCache(channel = "CartItem", message ="from cart/removeCartItem")
     @HttpRequest(HttpMethod.POST)
     public Result removeCartItem(CartItem cartItem) throws Exception {
 
@@ -218,8 +299,56 @@ public class CartController extends ControllerBase{
         return json(jsonResponse);
     }
 
+    // Remove Cart Item by Cart ID and Product ID
+    @SyncCache(channel = "CartItem", message ="from cart/removeCartItemById")
+    @HttpRequest(HttpMethod.POST)
+    public Result removeCartItemById(int cartId, int productId) throws Exception {
+
+        System.out.println("Remove Cart Item");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonResponse = mapper.createObjectNode();
+        Cart cart = null;
+        product product = null;
+        CartItem cartItem = null;
+        try{
+            cart = cartDAO.getCartById(cartId);
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
+            return json(jsonResponse);
+        }
+        try{
+            product = productDAO.searchProducts(productId);
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Product not found");
+            return json(jsonResponse);
+        }
+        try {
+            cartItem = cartDAO.getCartItemByCartAndProduct(cart, product);
+        }   catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
+            return json(jsonResponse);
+        }
+
+        try {
+            if (cartDAO.deleteCartItem(cartItem)) {
+                ((ObjectNode) jsonResponse).put("success", true);
+            } else {
+                ((ObjectNode) jsonResponse).put("success", false);
+                ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
+            }
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+        }
+
+        return json(jsonResponse);
+    }
+
     // Clear Cart by User ID
-    @SyncCache(channel = "user", message ="from cart/clearCart")
+    @SyncCache(channel = "CartItem", message ="from cart/clearCart")
     @HttpRequest(HttpMethod.POST)
     public Result clearCart(int userId) throws Exception {
         System.out.println("Clear Cart by User ID");

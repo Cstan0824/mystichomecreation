@@ -43,66 +43,23 @@
                             <i class="fa-solid fa-cart-shopping fa-lg"></i>
                         </div>
                         <!--Popover Cart-->
-                        <div class="hidden opacity-0 min-w-[330px] min-h-[550px] max-w-[330px] max-h-[630px] bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="cart-popup">
+                        <div class="hidden opacity-0 min-w-[330px] min-h-[550px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="cart-popup">
                             <div class="flex flex-col">
                                 <div class="flex justify-between items-center p-4 pb-2">
-                                    <h1 class="text-lg font-semibold font-poppins">Your Cart</h1>
+                                    <div class="flex items-center gap-4">
+                                        <h1 class="text-lg font-semibold font-poppins">Your Cart</h1>
+                                        <div class="hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300" id="cart-refresh">
+                                            <i class="fa-solid fa-arrows-rotate"></i>
+                                        </div>
+                                    </div>
                                     <a href="#" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
-        
-                                <div id="cart-item" class="px-6 py-4 flex gap-2">
-                                    <div class="w-full h-full max-w-[26px] max-h-[26px] lg:max-w-[30px] lg:max-h-[30px]">
-                                        <img src=https://placehold.co/26x26/png alt="product-img" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] rounded-[6px] object-cover border border-grey2 box-border"/>
-                                    </div>
-                                    <div class="w-full flex flex-col gap-3">
-                                        <div class="w-full flex justify-between gap-3">
-                                            <div class="w-full flex flex-col gap-0.5">
-                                                <h1 class="text-sm font-normal text-black">Product Name</h1>
-                                                <p class="text-xs font-normal text-grey4 italic">Category</p>
-                                            </div>
-                                            <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300"> 
-                                                <i class="fa-solid fa-trash"></i>
-                                            </div>
-                                        </div>
-                                        <div class="w-full flex gap-1.5 items-center flex-wrap text-xs font-semibold">
-                                            <select id="variants" name="variants" class="text-xs font-poppins border bg-grey2 border-grey1 rounded p-1">
-                                                <option value="variant1">Variant 1</option>
-                                                <option value="variant2">Variant 2</option>
-                                                <option value="variant3">Variant 3</option>
-                                            </select>
-                                            <select id="variants" name="variants" class="text-xs font-poppins border bg-grey2 border-grey1 rounded p-1">
-                                                <option value="variant1">Variant 1</option>
-                                                <option value="variant2">Variant 2</option>
-                                                <option value="variant3">Variant 3</option>
-                                            </select>
-                                        </div>
-                                        <div class="flex justify-between items-center gap-2">
-        
-                                            <p class="font-semibold text-sm italic py-1">RM 88.00</p>
-        
-                                            <div class="flex items-center h-[26px] bg-white">
-                                                <!-- Decrease Button -->
-                                                <button id="decrease-btn" type="button" 
-                                                    class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200 px-2">
-                                                    <span>-</span>
-                                                </button>
-                                        
-                                                <!-- Value Display -->
-                                                <div id="quantity-value" 
-                                                    class="min-w-[33px] h-full flex items-center justify-center border-y-2 border-gray2 border-gray2 text-lg text-center px-2">
-                                                    <span>1</span>
-                                                </div>
-                                        
-                                                <!-- Increase Button -->
-                                                <button id="decrease-btn" type="button" 
-                                                    class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200 px-2">
-                                                    <span>+</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+
+                                <div class="flex flex-col max-h-[550px] overflow-y-auto" id="cart-items">
                                     
                                 </div>
+
+
                             </div>
                         </div>
                     </div>  
@@ -136,11 +93,126 @@
 
     <!-- Content -->
     <script>
+        function fetchCartItems() {
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Cart/getCartItems',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    userId: 1 // Replace with actual user ID with session data
+                }), 
+                success: function (response) {
+                    const cartContainer = document.getElementById('cart-items');
+                    let html = '';
+
+                    // If response.data is a string, parse it
+                    const innerData = typeof response.data === 'string'
+                        ? JSON.parse(response.data)
+                        : response.data;
+
+                    if (innerData.cart_items && Array.isArray(innerData.cart_items)) {
+                        innerData.cart_items.forEach(item => {
+                            const variation = JSON.parse(item.selected_variation);
+                            console.log("product name: ", item.product_name);
+                            console.log("product img: ", item.product_img);
+                            console.log("product category: ", item.product_category);
+                            console.log("product price: RM", item.product_price);
+                            console.log("product quantity: ", item.quantity);
+    
+
+                            html += 
+                            
+                                `
+                                
+                                <div id="cart-item" class="px-6 py-4 flex gap-2">
+                                        <div class="w-full h-full max-w-[26px] max-h-[26px] lg:max-w-[30px] lg:max-h-[30px]">
+                                            <img src="`+ item.product_img + `" alt="product-img" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] rounded-[6px] object-cover border border-grey2 box-border"/>
+                                        </div>
+                                        <div class="w-full flex flex-col gap-3">
+                                            <div class="w-full flex justify-between gap-3">
+                                                <div class="w-full flex flex-col gap-0.5">
+                                                    <h1 class="text-sm font-normal text-black" id="cart-product-name">`+ item.product_name +`</h1>
+                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-category">`+ item.product_category +`y</p>
+                                                </div>
+                                                <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`)"> 
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flex justify-between items-center gap-2">
+            
+                                                <p class="font-semibold text-sm italic py-1" id="cart-item-price">RM `+ item.product_price.toFixed(2) +`</p>
+            
+                                                <div class="flex items-center h-[26px] bg-white">
+                                                    <!-- Decrease Button -->
+                                                    <button id="decrease-btn" type="button" 
+                                                        class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200 px-2">
+                                                        <span>-</span>
+                                                    </button>
+                                            
+                                                    <!-- Value Display -->
+                                                    <div id="quantity-value" 
+                                                        class="min-w-[33px] h-full flex items-center justify-center border-y-2 border-gray2 border-gray2 text-lg text-center px-2">
+                                                        <span>`+ item.quantity +`</span>
+                                                    </div>
+                                            
+                                                    <!-- Increase Button -->
+                                                    <button id="increase-btn" type="button" 
+                                                        class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200 px-2">
+                                                        <span>+</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                
+                                
+                                
+                                
+                                
+                            `;
+
+                        });
+                        // Update the cart container with the generated HTML
+                        cartContainer.innerHTML = html;
+                    } else {
+                        console.warn('cart_items is not defined or not an array:', innerData.cart_items);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error fetching cart items:', error);
+                }
+            });
+        }
+
+        // Function to delete cart item
+        function deleteCartItem(cartId, productId) {
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Cart/removeCartItemById',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    cartId: cartId,
+                    productId: productId
+                }),
+                success: function (response) {
+                    console.log('Item deleted successfully:', response);
+                    // Optionally, refresh the cart items after deletion
+                    setTimeout(fetchCartItems(), 1000);
+                },
+                error: function (error) {
+                    console.error('Error deleting item:', error);
+                }
+            });
+        }
+
         $(document).ready(function() {
           
 
         const $cartButton = $('#cart-button');
         const $cartPopup = $('#cart-popup');
+        const $cartRefresh = $('#cart-refresh');
 
         let isCartPopupVisible = false;
 
@@ -162,16 +234,19 @@
             }
 
             if (!isCartPopupVisible) {
-                $cartPopup.removeClass('hidden');
-                gsap.fromTo($cartPopup[0],
-                    { y: 10, autoAlpha: 0 },
-                    {
-                        y: 0,
-                        autoAlpha: 1,
-                        duration: 0.2,
-                        ease: 'power2.out'
-                    }
-                );
+                setTimeout(function() {
+                    $cartPopup.removeClass('hidden');
+                    gsap.fromTo($cartPopup[0],
+                        { y: 10, autoAlpha: 0 },
+                        {
+                            y: 0,
+                            autoAlpha: 1,
+                            duration: 0.2,
+                            ease: 'power2.out'
+                        }
+                    );
+                }, 100); // Delay the popup display by 100ms
+                
                 isCartPopupVisible = true;
             } else {
                 gsap.to($cartPopup[0], {
@@ -186,6 +261,17 @@
                 });
                 isCartPopupVisible = false;
             }
+        });
+
+        // Fetch cart items when the cart button is clicked
+        $cartButton.on('click', function (e) {
+            e.stopPropagation(); // Prevent the event from bubbling up to the document
+            fetchCartItems();
+        });
+
+        $cartRefresh.on('click', function (e) {
+            e.stopPropagation(); // Prevent the event from bubbling up to the document
+            fetchCartItems();
         });
 
         // Hide when clicking outside the cart popup

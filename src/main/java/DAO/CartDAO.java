@@ -50,6 +50,20 @@ public class CartDAO {
         return cart;
     }
 
+    // Read a cart by id
+    public Cart getCartById(int cartId) {
+        Cart cart = null;
+        TypedQuery<Cart> query = db.createQuery(
+            "SELECT c FROM Cart c WHERE c.id = :cartId", Cart.class
+        ).setParameter("cartId", cartId);
+
+        try {
+            cart = cache.getOrCreate("cart-" + cartId, Cart.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            cart = query.getSingleResult(); // fallback if cache fails
+        }
+        return cart;
+    }
     // #endregion CART
 
     // #region CART ITEM
@@ -175,35 +189,43 @@ public class CartDAO {
     }
 
 
-    // increase quantity of cartItem
-    public boolean increaseCartItemQuantity(CartItem cartItem) {
+    public boolean updateCartItemQuantity(CartItem cartItem, int delta) {
         try {
-            db.getTransaction().begin();
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
-            db.merge(cartItem);
-            db.getTransaction().commit();
-            return true;
-        } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
-            e.printStackTrace();
-            return false;
-        }
-    }
+            db.clear(); // Clear the persistence context to avoid stale data
+            int newQuantity = cartItem.getQuantity() + delta;
+            System.out.println("New quantity: " + newQuantity);
+            if (newQuantity <= 0) {
+                // Optional: prevent negative quantity
+                System.out.println("Trying to delete cartItem with ID: " + cartItem.getProduct().getId() + " from cart with ID: " + cartItem.getCart().getId());
+                return deleteCartItem(cartItem);
+            }
 
-    // decrease quantity of cartItem
-    public boolean decreaseCartItemQuantity(CartItem cartItem) {
-        try {
             db.getTransaction().begin();
-            cartItem.setQuantity(cartItem.getQuantity() - 1);
-            db.merge(cartItem);
-            db.getTransaction().commit();
+
+            CartItem existingItem = db.find(CartItem.class, new CartItemId(cartItem.getCart(), cartItem.getProduct()));
+
+            if (existingItem != null) {
+                System.out.println("before merge --------------------------------------------------------");
+                existingItem.setQuantity(newQuantity);
+                db.merge(existingItem); // merge optional since managed, but safe
+                db.getTransaction().commit();
+                System.out.println("after merge --------------------------------------------------------");
+                cartItem.setQuantity(newQuantity); // Update the quantity in the passed cartItem object
+                return true;
+            }else {
+                System.out.println("CartItem not found for update.");
+                db.getTransaction().rollback();
+            }
             return true;
         } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            System.out.println("Error updating cart item quantity:-------------------------------------------------------- " + e.getMessage() + "--------------------------------------------------------");
             e.printStackTrace();
-            return false;
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
         }
+        return false;
     }
+    
+
 }
 
 
