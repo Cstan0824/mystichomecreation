@@ -4,6 +4,7 @@
 <%@ page import="Models.Products.productType" %>
 <%@ page import="Models.Products.productDTO" %>
 <%@ page import="java.util.List" %>
+<%@ include file="/Views/product/addProduct.jsp" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -29,13 +30,10 @@
 
             <!-- Cart Container -->
             <div class="flex items-center">
-                <!-- Cart Icon with Badge -->
+                <!-- Plus Icon -->
                 <div class="relative">
-                    <i class="fas fa-shopping-cart text-gray-700 text-xl hover:text-yellow-500 transition-colors"></i>
-                    <span
-                        class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        3
-                    </span>
+                <i class="fa-solid fa-plus cursor-pointer" onclick="openAddModal()"></i>                    
+
                 </div>
             </div>
         </div>
@@ -257,6 +255,19 @@
                 console.log("✅ Rendered " + products.length + " products to frontend.");
             }
         }
+
+        function openAddModal() {
+            const m = document.getElementById("addProductModal");
+            m.classList.remove("hidden");
+            document.body.classList.add("overflow-hidden");
+        }
+        function closeAddModal() {
+            const m = document.getElementById("addProductModal");
+            m.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        }
+
+
     </script>
 </body>
 

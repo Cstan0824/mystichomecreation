@@ -8,6 +8,7 @@ public class productDTO {
     public String retailInfo;
     public String imageUrl;
     public String type;
+    
 
     public productDTO(product p) {
         this.id = p.getId();
@@ -17,5 +18,6 @@ public class productDTO {
         this.retailInfo = p.getRetailInfo();
         this.imageUrl = p.getImageUrl();
         this.type = p.getTypeId().gettype(); // returns category name
+
     }
 }

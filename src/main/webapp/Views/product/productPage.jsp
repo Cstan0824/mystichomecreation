@@ -2,7 +2,10 @@
 <%@ page import="Models.Products.productVariationOptions" %>
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productFeedback" %>
+<%@ page import="Models.Products.productType" %>
 <%@ page import="java.util.Map, java.util.List" %>
+<%@ include file="/Views/product/updateProduct.jsp" %>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,7 +23,29 @@
 <%@ include file="/Views/Shared/Header.jsp" %>
 
 <body>
+
+    <%
+        product product = (product) request.getAttribute("product");
+
+    %>
     <div class="content-wrapper">
+            <div class="flex justify-end space-x-4 mb-4">
+                <!-- Update Button -->
+
+                <button  onclick="openeditModal()" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
+                    Update
+                </button>
+                
+                <!-- Delete Button -->
+                <form action="<%= request.getContextPath() %>/product/deleteProduct" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                    <input type="hidden" name="productId" value="<%= product.getId() %>">
+                    <button type="submit" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
+                        Delete
+                    </button>
+                </form>
+            </div>
+
+
         <div class="grid grid-cols-1 md:grid-cols-7 gap-4 bg-white">
 
             <!-- Image Gallery -->
@@ -50,7 +75,6 @@
 
             <!-- Product Details -->
             <%
-                product product = (product) request.getAttribute("product");
                 productVariationOptions options = (productVariationOptions) request.getAttribute("variationOptions");
             %>
             <div class="order-2 md:col-span-3 md:sticky md:top-[30px] h-fit md:z-10">
@@ -190,6 +214,17 @@
                 swiper: swiper,
             },
         });
+
+         function openeditModal() {
+            const m = document.getElementById("editProductModal");
+            m.classList.remove("hidden");
+            document.body.classList.add("overflow-hidden");
+        }
+        function closeeditModal() {
+            const m = document.getElementById("editProductModal");
+            m.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        }
     </script>
 </body>
 

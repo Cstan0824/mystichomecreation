@@ -153,11 +153,83 @@ public class productDAO implements Serializable{
     }
 
 
-    
+    public productType findTypeById(int id) {
+        return db.find(productType.class, id);
+    }
+
+    public void addProduct(product p) {
+        try {
+            db.getTransaction().begin();
+            db.persist(p);
+            db.getTransaction().commit();
+            System.out.println("🗃️ DAO: product saved");
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            System.out.println("❌ DAO error on addProduct: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public void deleteProduct(int id) {
+        try {
+            product p = db.find(product.class, id);
+
+            if (p != null) {
+                db.getTransaction().begin();
+                db.remove(p);
+                db.getTransaction().commit();
+                System.out.println("🗑️ DAO: product deleted");
+            } else {
+                System.out.println("❌ DAO: product not found for deletion");
+            }
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            System.out.println("❌ DAO error on deleteProduct: " + e.getMessage());
+        }
+    }
+
+    public void updateProduct(product p){
+        try {
+            db.getTransaction().begin();
+            db.merge(p);
+            db.getTransaction().commit();
+            System.out.println("🔄 DAO: product updated");
+            
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            System.out.println("❌ DAO error on updateProduct: " + e.getMessage());
+        }
+    }
 
 
+    public boolean isProductNameExists(String name) {
+        try {
+            Long count = this.db.createQuery("SELECT COUNT(p) FROM product p WHERE p.title = :name", Long.class)
+                                .setParameter("name", name)
+                                .getSingleResult();
 
-  
+            return (count > 0) ? true : false;
 
+        } catch (Exception e) {
+            e.printStackTrace(); // Handle exceptions
+        }
+        return false;
+    }
+
+    public void addProductType(productType type) {
+        try {
+            db.getTransaction().begin();
+            db.persist(type);
+            db.getTransaction().commit();
+            System.out.println("🗃️ DAO: product type saved");
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            System.out.println("❌ DAO error on addProductType: " + e.getMessage());
+        }
+    }
 
 }
