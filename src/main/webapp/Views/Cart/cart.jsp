@@ -4,10 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/output.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>Cart</title>
 </head>
+<%@ page import="java.util.List" %>
+<%@ page import="Models.Users.CartItem" %>
+<%@ page import="mvc.Helpers.Helpers" %>
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
     <div class="content-wrapper">
@@ -18,131 +22,48 @@
             <!-- LEFT: Cart Items -->
             <div class="basis-2/3">
               <!-- Header Row -->
-              <div class="grid grid-cols-10 border-b border-grey3 text-lg font-dmSans font-semibold py-6">
-                <div class="col-span-5">Product</div>
-                <div class="col-span-2 text-center">Quantity</div>
-                <div class="col-span-2 text-center">Subtotal</div>
-                <div class="col-span-1 text-center"></div>
-              </div>
+              
 
               <!-- Product List -->
-          
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="99.00">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
-                            </div>
-                            
-                            <p class="text-sm font-normal">RM99.00</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center subtotal">
-                    RM99.00
-                </div>                
-                <div class="col-span-1 flex justify-center">
-                    <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
-                        <i class="fa-solid fa-trash" onclick="showDeleteModal(this)"></i>
-                    </div>
-                </div>
-              </div>
+            
+                <% List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
+                
+                if(cartItems != null){ %>
 
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="89.00">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
-                            </div>
-                            
-                            <p class="text-sm font-normal">RM99.00</p>
-                        </div>
-                    </div>
+                <div class="grid grid-cols-10 border-b border-grey3 text-lg font-dmSans font-semibold py-6">
+                    <div class="col-span-5">Product</div>
+                    <div class="col-span-2 text-center">Quantity</div>
+                    <div class="col-span-2 text-center">Subtotal</div>
+                    <div class="col-span-1 text-center"></div>
                 </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center subtotal">
-                    RM99.00
-                </div>                
-                <div class="col-span-1 flex justify-center">
-                    <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
-                        <i class="fa-solid fa-trash" onclick="showDeleteModal(this)"></i>
-                    </div>
-                </div>
-              </div>
 
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="79.00">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
-                            </div>
-                            
-                            <p class="text-sm font-normal">RM99.00</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center subtotal">
-                    RM99.00
-                </div>                
-                <div class="col-span-1 flex justify-center">
-                    <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
-                        <i class="fa-solid fa-trash" onclick="showDeleteModal(this)"></i>
-                    </div>
-                </div>
-              </div>
+                <%
+                    for(CartItem item : cartItems){  %>
+                    
 
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="199.00">
+              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="<%= item.getProduct().getPrice() %>" data-product-id="<%= item.getProduct().getId() %>" data-cart-id="<%= item.getCart().getId() %>">
                 <div class="col-span-5">
                     <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
+                        <img src="<%= item.getProduct().getImageUrl() %>" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
                         <div class="flex flex-col justify-between">
                             <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
+                                <p class="font-medium text-md lineClamp-2"><%= item.getProduct().getTitle() %></p>
+                                <p class="text-sm font-normal"><%= item.getSelectedVariation() %></p>
                             </div>
                             
-                            <p class="text-sm font-normal">RM99.00</p>
+                            <p class="text-sm font-normal">RM<%= item.getProduct().getPrice() %></p>
                         </div>
                     </div>
                 </div>
                 <div class="col-span-2 text-center flex justify-center">
                     <div class="flex items-center justify-between w-28 border border-black rounded select-none">
                         <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
+                        <span class="text-lg font-medium qty"><%= item.getQuantity() %></span>
                         <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
                     </div>
                 </div>
                 <div class="col-span-2 text-center subtotal">
-                    RM99.00
+                    RM0.00
                 </div>                
                 <div class="col-span-1 flex justify-center">
                     <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
@@ -150,96 +71,18 @@
                     </div>
                 </div>
               </div>
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="199.00">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
-                            </div>
-                            
-                            <p class="text-sm font-normal">RM99.00</p>
-                        </div>
+                <% 
+                    } // end for loop
+                } else {
+                    
+                %>
+                    <div class="text-center py-6 text-gray-500">
+                        <p>No item in cart.</p>
                     </div>
-                </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center subtotal">
-                    RM99.00
-                </div>                
-                <div class="col-span-1 flex justify-center">
-                    <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
-                        <i class="fa-solid fa-trash" onclick="showDeleteModal(this)"></i>
-                    </div>
-                </div>
-              </div>
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="199.00">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
-                            </div>
-                            
-                            <p class="text-sm font-normal">RM99.00</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center subtotal">
-                    RM99.00
-                </div>                
-                <div class="col-span-1 flex justify-center">
-                    <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
-                        <i class="fa-solid fa-trash" onclick="showDeleteModal(this)"></i>
-                    </div>
-                </div>
-              </div>
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="199.00">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="https://placehold.co/100x100/png" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-medium text-md lineClamp-2">Product 1</p>
-                                <p class="text-sm font-normal">Variation: </p>
-                            </div>
-                            
-                            <p class="text-sm font-normal">RM99.00</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
-                        <span class="text-lg font-medium qty">1</span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
-                    </div>
-                </div>
-                <div class="col-span-2 text-center subtotal">
-                    RM99.00
-                </div>                
-                <div class="col-span-1 flex justify-center">
-                    <div class="w-fit hover:text-red-500 cursor-pointer transition-all duration-200 ease-in-out">
-                        <i class="fa-solid fa-trash" onclick="showDeleteModal(this)"></i>
-                    </div>
-                </div>
-              </div>
+                <% 
+                }
+                %>
+              
             </div>
           
             <!-- RIGHT: Cart Totals -->
@@ -460,10 +303,36 @@
 
     //Update product quantity, cart subtotals/total
     function changeQty(btn, delta) {
-        const qtyEl = btn.parentElement.querySelector('.qty');
-        let qty = parseInt(qtyEl.textContent);
-        qty = Math.max(1, qty + delta);
-        qtyEl.textContent = qty;
+        const row = btn.closest('.product-row');
+        const qtyEl = row.querySelector('.qty');
+        const cartId = parseInt(row.dataset.cartId);
+        const productId = parseInt(row.dataset.productId);
+        console.log("cartId", cartId);
+        console.log("productId", productId);
+
+        $.ajax({
+            url: '<%= request.getContextPath() %>/Cart/updateQuantity',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                cartId: cartId,
+                productId: productId,
+                delta: delta
+            }),
+            success: function(response) {
+                console.log('Quantity updated successfully:', response);
+                console.log("qtyEl found?", qtyEl);
+                const parsedJson = JSON.parse(response.data);
+                console.log("New quantity:", parsedJson.quantity);
+                qtyEl.textContent = parsedJson.quantity; // Update displayed quantity
+
+            },
+            error: function(xhr, status, error) {
+                qtyEl.textContent = oldQty; // Revert to old quantity on error
+                console.error('Error updating quantity:', error);
+            }
+        }); 
+        
 
         updateCartSummary();
     }

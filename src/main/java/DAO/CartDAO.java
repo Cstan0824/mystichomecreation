@@ -50,6 +50,20 @@ public class CartDAO {
         return cart;
     }
 
+    // Read a cart by id
+    public Cart getCartById(int cartId) {
+        Cart cart = null;
+        TypedQuery<Cart> query = db.createQuery(
+            "SELECT c FROM Cart c WHERE c.id = :cartId", Cart.class
+        ).setParameter("cartId", cartId);
+
+        try {
+            cart = cache.getOrCreate("cart-" + cartId, Cart.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            cart = query.getSingleResult(); // fallback if cache fails
+        }
+        return cart;
+    }
     // #endregion CART
 
     // #region CART ITEM
@@ -175,35 +189,30 @@ public class CartDAO {
     }
 
 
-    // increase quantity of cartItem
-    public boolean increaseCartItemQuantity(CartItem cartItem) {
+    public boolean updateCartItemQuantity(CartItem cartItem, int delta) {
         try {
-            db.getTransaction().begin();
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
-            db.merge(cartItem);
-            db.getTransaction().commit();
-            return true;
-        } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
-            e.printStackTrace();
-            return false;
-        }
-    }
+            int newQuantity = cartItem.getQuantity() + delta;
+            System.out.println("New quantity: " + newQuantity);
+            // if (newQuantity == 0) {
+            //     // Optional: prevent negative quantity
+            //     System.out.println("Trying to delete cartItem with ID: " + cartItem.getProduct().getId() + " from cart with ID: " + cartItem.getCart().getId());
+            //     return deleteCartItem(cartItem);
+            // }
 
-    // decrease quantity of cartItem
-    public boolean decreaseCartItemQuantity(CartItem cartItem) {
-        try {
             db.getTransaction().begin();
-            cartItem.setQuantity(cartItem.getQuantity() - 1);
+            cartItem.setQuantity(newQuantity);
+            System.out.println("before merge --------------------------------------------------------");
             db.merge(cartItem);
             db.getTransaction().commit();
             return true;
         } catch (Exception e) {
+            System.out.println("Error updating cart item quantity:-------------------------------------------------------- " + e.getMessage() + "--------------------------------------------------------");
             if (db.getTransaction().isActive()) db.getTransaction().rollback();
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
+    
+
 }
 
 
