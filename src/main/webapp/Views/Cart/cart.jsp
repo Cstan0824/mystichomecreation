@@ -289,14 +289,32 @@
     document.getElementById('confirmDelete').addEventListener('click', () => {
         if (itemToDelete) {
             removeProduct(itemToDelete);
-            closeModal();
+            closeDeleteModal();
         }
     });
 
     function removeProduct(icon) {
         const row = icon.closest('.product-row');
+        const cartId = parseInt(row.dataset.cartId);
+        const productId = parseInt(row.dataset.productId);
         if (row) {
-            row.remove();
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Cart/removeCartItemById',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    cartId: cartId,
+                    productId: productId
+                }),
+                success: function (response) {
+                    console.log('Item deleted successfully:', response);
+                    // Optionally, refresh the cart items after deletion
+                    row.remove();
+                },
+                error: function (error) {
+                    console.error('Error deleting item:', error);
+                }
+            });
             updateCartSummary();
         }
     }
@@ -326,6 +344,8 @@
                 console.log("New quantity:", parsedJson.quantity);
                 qtyEl.textContent = parsedJson.quantity; // Update displayed quantity
 
+                updateCartSummary();
+
             },
             error: function(xhr, status, error) {
                 qtyEl.textContent = oldQty; // Revert to old quantity on error
@@ -334,7 +354,7 @@
         }); 
         
 
-        updateCartSummary();
+        
     }
   
     function updateCartSummary() {
