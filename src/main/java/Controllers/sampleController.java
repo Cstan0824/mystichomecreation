@@ -10,11 +10,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import DAO.devDA;
 import Models.dev;
 import jakarta.servlet.annotation.WebServlet;
-import mvc.ControllerBase;
-import mvc.Result;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
+import mvc.ControllerBase;
 import mvc.Http.HttpMethod;
+import mvc.Result;
 
 @WebServlet("/sample/*")
 public class sampleController extends ControllerBase {
@@ -27,59 +27,59 @@ public class sampleController extends ControllerBase {
 
     /*@Test Data
     {
-    "name": "test1",
-    "email": "test@gmail.com",
-    "age": 3,
-    "test" :{
-        "id":3,
-        "username":"test2",
-        "password":"password123",
-        "email":"test@gmail.com",
-        "created_date":"2025-03-03"
-    },
-    "password": "password123",
-    "devs":[
+        "name": "test1",
+        "email": "test@gmail.com",
+        "age": 3,
+        "test" :{
+            "id":3,
+            "username":"test2",
+            "password":"password123",
+            "email":"test@gmail.com",
+            "created_date":"2025-03-03"
+        },
+        "password": "password123",
+        "devs":[
+            {
+            "id":1,
+            "username":"test-1",
+            "password":"password123",
+            "email":"test@gmail.com",
+            "created_date":"2025-03-03"
+        }
+        ,
         {
-        "id":1,
-        "username":"test-1",
-        "password":"password123",
-        "email":"test@gmail.com",
-        "created_date":"2025-03-03"
-    }
-    ,
-    {
-        "id":2,
-        "username":"test-2",
-        "password":"password123",
-        "email":"test@gmail.com",
-        "created_date":"2025-03-03"
-    },{
-        "id":3,
-        "username":"test-3",
-        "password":"password123",
-        "email":"test@gmail.com",
-        "created_date":"2025-03-03"
-    }
-    ],
-    "devsArr":[
+            "id":2,
+            "username":"test-2",
+            "password":"password123",
+            "email":"test@gmail.com",
+            "created_date":"2025-03-03"
+        },{
+            "id":3,
+            "username":"test-3",
+            "password":"password123",
+            "email":"test@gmail.com",
+            "created_date":"2025-03-03"
+        }
+        ],
+        "devsArr":[
+            {
+            "id":1,
+            "created_date":"2025-03-03"
+        }
+        ,
         {
-        "id":1,
-        "created_date":"2025-03-03"
-    }
-    ,
-    {
-        "id":2,
-        "username":"test-21",
-        "password":"password123",
-        "created_date":"2025-03-03"
-    },{
-        "id":3,
-        "username":"test-31",
-        "password":"password123",
-        "email":"test@gmail.com",
-        "created_date":"2025-03-03"
-    }
-    ]
+            "id":2,
+            "username":"test-21",
+            "password":"password123",
+            "created_date":"2025-03-03"
+        },{
+            "id":3,
+            "username":"test-31",
+            "password":"password123",
+            "email":"test@gmail.com",
+            "created_date":"2025-03-03"
+        }
+        ]
     }
     */
 
