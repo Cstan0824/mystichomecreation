@@ -3,7 +3,9 @@ package Controllers;
 import mvc.ControllerBase;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.HttpRequest;
 import mvc.Helpers.JsonConverter;
+import mvc.Http.HttpMethod;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +56,17 @@ public class productController extends ControllerBase {
         int id = Integer.parseInt(request.getParameter("id"));
         product p = productDAO.searchProducts(id);
         System.out.println("✅ Product found: " + p);
+        System.out.println("📦 Product ID: " + p.getId());
+        System.out.println("📦 Product Title: " + p.getTitle());
+        System.out.println("📦 Product Price: " + p.getPrice());
+        System.out.println("📦 Product Stock: " + p.getStock());
+        System.out.println("📦 Product Type: " + p.getTypeId().gettype());
+        System.out.println("📦 Product Description: " + p.getDescription());
+        System.out.println("📦 Product Retail Info: " + p.getRetailInfo());
+        System.out.println("📦 Product Created Date: " + p.getCreatedDate());
+        System.out.println("📦 Product Image URL: " + p.getImageUrl());
+        System.out.println("📦 Product Featured: " + p.getFeatured());
+       
     
         productVariationOptions options = null;
     
@@ -88,6 +101,9 @@ public class productController extends ControllerBase {
             System.out.println("⭐ Feedback: " + fb.getRating() + " - " + fb.getComment());
         }
     
+        List<productType> types = productDAO.getAllProductTypes();
+        request.setAttribute("productTypes", types);
+        
         request.setAttribute("product", p);
         request.setAttribute("variationOptions", options); 
         request.setAttribute("feedbackList", feedbackList);
@@ -149,10 +165,178 @@ public class productController extends ControllerBase {
     }
     
 
+    // This is to add product
+    @ActionAttribute(urlPattern = "productCatalog/addProduct")
+    @HttpRequest(HttpMethod.POST)
+    public Result addProduct() throws Exception {
+        // image , featured and variation are not in here yet  
+        
+
+        //read the parameter 
+        String title       = request.getParameter("title");
+        String desc        = request.getParameter("description");
+        String priceRaw    = request.getParameter("price");
+        String stockRaw    = request.getParameter("stock");
+        String typeIdRaw   = request.getParameter("typeId");
+        String retailInfo  = request.getParameter("retailInfo");
+        String imageUrl    = request.getParameter("imageUrl");
+        String slug =  request.getParameter("slug");
+        boolean featured = request.getParameter("featured")!= null; // this is a checkbox so if it is checked it will be true
+        String variationsJson = request.getParameter("variations");
+        System.out.println("🧩 Raw variations JSON: " + variationsJson); 
+
+        System.out.println("📩 title       = " + title);
+        System.out.println("📩 description = " + desc);
+        System.out.println("📩 priceRaw    = " + priceRaw);
+        System.out.println("📩 stockRaw    = " + stockRaw);
+        System.out.println("📩 typeIdRaw   = " + typeIdRaw);
+        System.out.println("📩 retailInfo  = " + retailInfo);
+        System.out.println("📩 imageUrl    = " + imageUrl);
+        System.out.println("📩 slug        = " + slug);
+        System.out.println("📩 featured    = " + featured);
+
+        double price = Double.parseDouble(priceRaw);
+        int stock    = Integer.parseInt(stockRaw);
+        int typeId   = Integer.parseInt(typeIdRaw);
+
+        productType type = productDAO.findTypeById(typeId);
+        if (type == null) {
+            System.out.println("❌ invalid typeId: " + typeId);
+            return error("Invalid category");
+        }
+        System.out.println("✅ found category: " + type.gettype());
+
+        product newProduct = new product();
+        newProduct.setTitle(title);
+        newProduct.setDescription(desc);
+        newProduct.setPrice(price);
+        newProduct.setStock(stock);
+        newProduct.setTypeId(type);
+        newProduct.setRetailInfo(retailInfo);
+        newProduct.setCreatedDate(new java.sql.Date(System.currentTimeMillis()));
+        newProduct.setVariations(variationsJson);
+        newProduct.setSlug(slug);
+        newProduct.setImageUrl(imageUrl);
+        newProduct.setFeatured(featured ? 1 : 0); 
+        
+
+       
+        try {
+
+            if(productDAO.isProductNameExists(title)  == true){ 
+                System.out.println("❌ Product name already exists: " + title);
+                return error("Product name already exists");
+            }else{
+                productDAO.addProduct(newProduct);
+                System.out.println("✅ product persisted, id=" + newProduct.getId());
+            }
+           
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return error("Error saving product");
+        }
+
+         // 7. redirect to catalog
+         response.sendRedirect(request.getContextPath() + "/product/productCatalog");
+         return null;
 
 
+
+
+
+
+
+
+
+    }
+
+    @ActionAttribute(urlPattern = "deleteProduct")
+    @HttpRequest(HttpMethod.POST)
+    public Result deleteProduct () throws Exception {
+        int id = Integer.parseInt(request.getParameter("productId"));
+        System.out.println("🗑️ Deleting product with ID: " + id);
+        productDAO.deleteProduct(id);
+        return success("Product deleted successfully");
+    }
+
+    @ActionAttribute(urlPattern = "updateProduct")
+    @HttpRequest(HttpMethod.POST)
+    public Result updateProduct() throws Exception {
+        int id =  Integer.parseInt(request.getParameter("productId"));
+        System.out.println("Update ID : " + id);
+
+        String title       = request.getParameter("title");
+        String desc        = request.getParameter("description");
+        String priceRaw    = request.getParameter("price");
+        String stockRaw    = request.getParameter("stock");
+        String typeIdRaw   = request.getParameter("typeId");
+        String retailInfo  = request.getParameter("retailInfo");
+        String imageUrl    = request.getParameter("imageUrl");
+        String slug =  request.getParameter("slug");
+        boolean featured = request.getParameter("featured")!= null; // this is a checkbox so if it is checked it will be true
+        String variationsJson = request.getParameter("variations");
+        System.out.println("🧩 Raw variations JSON: " + variationsJson); 
+
+        if(variationsJson == null || variationsJson.isEmpty()){
+            variationsJson = "{}"; // set to empty json if it is null or empty
+        }
+
+        System.out.println("📩 title       = " + title);
+        System.out.println("📩 description = " + desc);
+        System.out.println("📩 priceRaw    = " + priceRaw);
+        System.out.println("📩 stockRaw    = " + stockRaw);
+        System.out.println("📩 typeIdRaw   = " + typeIdRaw);
+        System.out.println("📩 retailInfo  = " + retailInfo);
+        System.out.println("📩 imageUrl    = " + imageUrl);
+        System.out.println("📩 slug        = " + slug);
+        System.out.println("📩 featured    = " + featured);
+        System.out.println("📩 variationsJson = " + variationsJson);
+
+        double price = Double.parseDouble(priceRaw);
+        int stock    = Integer.parseInt(stockRaw);
+        int typeId   = Integer.parseInt(typeIdRaw);
+
+
+        productType type = productDAO.findTypeById(typeId);
+        if (type == null) {
+            System.out.println("❌ invalid typeId: " + typeId);
+            return error("Invalid category");
+        }
+        System.out.println("✅ found category: " + type.gettype());
+
+
+        product newProduct = new product();
+        newProduct.setId(id); // set the id of the product to be updated
+        newProduct.setTitle(title);
+        newProduct.setDescription(desc);
+        newProduct.setPrice(price);
+        newProduct.setStock(stock);
+        newProduct.setTypeId(type);
+        newProduct.setRetailInfo(retailInfo);
+        newProduct.setCreatedDate(new java.sql.Date(System.currentTimeMillis()));
+        newProduct.setVariations(variationsJson);
+        newProduct.setSlug(slug);
+        newProduct.setImageUrl(imageUrl);
+        newProduct.setFeatured(featured ? 1 : 0); 
+
+      
+        try{
+            productDAO.updateProduct(newProduct);
+            System.out.println("✅ product updated, id=" + newProduct.getId());
+            
+           
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return error("Error saving product");
+        }
+
+         // 7. redirect to catalog
+         return success("Product updated successfully");
+
+
+
+    }
     
-
 
 
 
