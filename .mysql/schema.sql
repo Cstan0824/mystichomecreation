@@ -196,13 +196,25 @@ CREATE TABLE IF NOT EXISTS `Order_Transaction` (
 
 CREATE TABLE IF NOT EXISTS `Audit_Trail` (
   `id` INT AUTO_INCREMENT,
-  `user_id` INT NULL, -- could be NULL for system actions
   `source` VARCHAR(50) NOT NULL,
   `description` TEXT NULL,
   `type` VARCHAR(20) NOT NULL,
   `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY(`id`),
-  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)
+  PRIMARY KEY(`id`)
+);
+
+CREATE TABLE IF NOT EXISTS `Notifications` (
+    `id` INT AUTO_INCREMENT,
+    `user_id` INT NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `content` TEXT,
+    `is_read` TINYINT(1) DEFAULT 1,
+    `url` VARCHAR(255),
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `read_at` DATETIME,
+    INDEX (`user_id`),
+    PRIMARY KEY(`id`),
+    FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`) ON DELETE CASCADE
 );
 
 

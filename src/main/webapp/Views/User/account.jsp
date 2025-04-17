@@ -81,6 +81,11 @@
 									class="sidebar-link hover:bold hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative text-gray-700"
 									onclick="return loadPage('vouchers');">My Vouchers</a>
 							</div>
+							<div class="font-bold text-sm text-gray-700 pt-2">
+								<a href="#notifications" data-item="notifications"
+									class="sidebar-link hover:bold hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative text-gray-700"
+									onclick="return loadPage('notifications');">Notifications</a>
+							</div>
 						</div>
 					</nav>
 				</aside>
@@ -321,7 +326,8 @@
 			'addresses': '<%= request.getContextPath() %>/User/account/addresses',
 			'vouchers': '<%= request.getContextPath() %>/User/account/vouchers',
 			'transactions': '<%= request.getContextPath() %>/User/account/transactions',
-			'password': '<%= request.getContextPath() %>/User/account/password'
+			'password': '<%= request.getContextPath() %>/User/account/password',
+			'notifications': '<%= request.getContextPath() %>/User/account/notifications'
 		};
 		let $previousSubSidebarLink = null;
 

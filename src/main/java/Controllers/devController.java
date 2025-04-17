@@ -1,5 +1,6 @@
 package Controllers;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,8 +14,14 @@ import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
+import mvc.Helpers.Helpers;
 import mvc.Helpers.SessionHelper;
+import mvc.Helpers.Mail.MailService;
+import mvc.Helpers.Mail.MailType;
+import mvc.Helpers.pdf.PdfService;
+import mvc.Helpers.pdf.PdfType;
 import mvc.ControllerBase;
+import mvc.FileType;
 import mvc.Http.HttpMethod;
 import mvc.Http.HttpStatusCode;
 import mvc.Result;
@@ -87,4 +94,81 @@ public class devController extends ControllerBase {
         session.setPermissions("addDev");
         return success();
     }
+
+    public Result hashFunction(String password) throws Exception {
+        String myPassword = "admin1234";
+        boolean response = Helpers.verifyPassword(password, Helpers.hashPassword(myPassword));
+        if (response) {
+            return success("Password is correct");
+        }
+        return error();
+    }
+
+    public Result mailService() throws Exception {
+        try {
+            MailService mailService = new MailService();
+
+            mailService
+                    .configure().build()
+                    .setRecipient("tancs8803@gmail.com")
+                    .setMailType(MailType.WELCOME)
+                    .setSubject("Welcome To MysticHome Creation")
+                    .send();
+            System.out.println("Mail sent successfully");
+            return success();
+        } catch (Exception e) {
+            return error(e.getMessage());
+        }
+    }
+
+    public Result pdfService() throws Exception {
+        PdfService pdfService = new PdfService(PdfType.RECEIPT);
+
+        File file = pdfService.convert();
+        if (file == null) {
+            return error("PDF conversion failed");
+        }
+        System.out.println("PDF File Path: " + file.getAbsolutePath());
+        return success();
+    }
+
+    public Result mailServiceAttachment() throws Exception {
+        try {
+            MailService mailService = new MailService();
+            PdfService pdfService = new PdfService(PdfType.RECEIPT);
+            File file = pdfService.convert();
+
+            mailService
+                    .configure().build()
+                    .setRecipient("")
+                    .setMailType(MailType.WELCOME)
+                    .setSubject("Welcome To MysticHome Creation")
+                    .attach(file)
+                    .send();
+            System.out.println("Mail sent successfully with attachment");
+        } catch (Exception e) {
+            return error(e.getMessage());
+        }
+        return success();
+    }
+
+    public Result test() throws Exception {
+        return page();
+    }
+
+    // Return file from server, client downloads it via browser
+    public Result returnFile() throws Exception {
+        PdfService pdfService = new PdfService(PdfType.RECEIPT);
+
+        byte[] bytes = pdfService.toByte();
+        return file(bytes, "myreciept", FileType.PDF);
+    }
+
+    // Handle multiple files and return single file
+    // Refer to localhost:8080/web/dev/test page
+    @HttpRequest(HttpMethod.POST)
+    public Result getFromAttachFile(byte[][] file) throws Exception {
+        return file(file[0], "test-file", FileType.PDF);
+    }
+
 }

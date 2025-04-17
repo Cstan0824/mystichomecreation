@@ -440,3 +440,10 @@ INSERT INTO User_Payment_Card (user_id, bank_type_id, card_name, card_no, expiry
 (3, 4, 'Alex Johnson', '6011000990139424', '2026-01-31', TRUE),
 (3, 5, 'Alex Johnson - Business', '3530111333300000', '2028-07-31', FALSE);
 
+INSERT INTO `Notifications` (`user_id`, `title`, `content`, `is_read`, `url`, `created_at`, `read_at`) VALUES
+(1, 'Order Shipped', 'Your order #A1234 has been shipped and is on its way.', 0, '/orders/A1234', '2025-04-17 09:15:00', NULL),
+(2, 'Password Changed', 'You successfully updated your password.', 1, '/profile/security', '2025-04-16 14:30:00', '2025-04-16 15:00:00'),
+(3, 'Voucher Redeemed', 'You used a RM10 voucher on your recent purchase.', 1, '/vouchers/history', '2025-04-15 11:45:00', '2025-04-15 12:00:00'),
+(1, 'Payment Method Updated', 'Your saved credit card has been updated.', 0, '/profile/payment-methods', '2025-04-17 10:10:00', NULL),
+(4, 'New Message from Seller', 'The seller has responded to your inquiry.', 0, '/messages/5678', '2025-04-14 16:20:00', NULL),
+(2, 'Subscription Renewed', 'Your premium subscription has been renewed for another month.', 1, '/account/subscription', '2025-04-13 08:00:00', '2025-04-13 08:10:00');

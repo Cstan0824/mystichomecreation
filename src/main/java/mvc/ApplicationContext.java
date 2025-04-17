@@ -9,17 +9,15 @@ import mvc.Annotations.AuthorizationHandler;
 import mvc.Annotations.SyncCacheHandler;
 import mvc.App.Application;
 import mvc.Cache.Redis;
-import mvc.Helpers.AuditTrail;
-import mvc.Helpers.AuditTrail.AuditType;
-import mvc.Helpers.AuditTrail.LogTarget;
+import mvc.Helpers.Audits.AuditService;
+import mvc.Helpers.Audits.AuditService.AuditType;
+import mvc.Helpers.Audits.AuditService.LogTarget;
 import mvc.Http.HttpBase;
 import java.util.Map;
 
 public class ApplicationContext implements Application {
 
     private static Application application = new ApplicationContext();
-
-    private static AuditTrail logger = new AuditTrail();
 
     public static Application getInstance() {
         return application;
@@ -43,27 +41,41 @@ public class ApplicationContext implements Application {
     @Override
     public void onError(ServletRequest request, ServletResponse response, FilterChain chain, Throwable t) {
         // log error to file
+        AuditService audit = new AuditService();
         HttpServletRequest httpRequest = (HttpServletRequest) request;
 
-        logger.setSource(httpRequest.getPathInfo());
-        logger.setMessage(t.getMessage());
-        logger.setType(AuditType.ERROR);
-        logger.setTarget(LogTarget.FILE);
+        String uri = httpRequest.getRequestURI();
 
-        logger.log();
+        // Skip static resources (css, js, images, video, etc.)
+        if (uri.matches(".*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|avif)$")) {
+            return; // Don't log static files
+        }
+
+        audit.setSource(uri);
+        audit.setMessage(t.getMessage());
+        audit.setType(AuditType.ERROR);
+        audit.setTarget(LogTarget.FILE);
+        audit.log();
     }
 
     @Override
     public void onHttpRequest(ServletRequest request, ServletResponse response, FilterChain chain) {
         // Log to Database to replace Watcher
+        AuditService audit = new AuditService();
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String uri = httpRequest.getRequestURI();
 
-        logger.setSource(httpRequest.getPathInfo());
-        logger.setMessage("API Request");
-        logger.setType(AuditType.INFO);
-        logger.setTarget(LogTarget.DATABASE);
+        // Skip static resources (css, js, images, video, etc.)
+        if (uri.matches(".*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|avif)$") || uri
+                .startsWith("/web/path_to_") || uri.startsWith("/web/Content/assets/")) {
+            return; // Don't log static files
+        }
 
-        logger.log();
+        audit.setSource(uri);
+        audit.setMessage("API Request");
+        audit.setType(AuditType.INFO);
+        audit.setTarget(LogTarget.DATABASE);
+        audit.log();
     }
 
     @Override

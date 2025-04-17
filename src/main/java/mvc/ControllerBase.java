@@ -2,7 +2,6 @@ package mvc;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Blob;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -110,24 +109,32 @@ public class ControllerBase extends HttpBase {
         return content(data, contentType, HttpStatusCode.OK);
     }
 
-    protected Result file(Blob blob) throws Exception {
+    protected Result file(byte[] bytes) throws Exception {
         String uuid = UUID.randomUUID().toString();
-        return file(blob, uuid);
+        return file(bytes, uuid);
     }
 
-    protected Result file(Blob blob, String fileName) throws Exception {
-        return file(blob, fileName, FileType.UNKNOWN);
+    protected Result file(byte[] bytes, String fileName) throws Exception {
+        return file(bytes, fileName, FileType.UNKNOWN);
     }
 
-    protected Result file(Blob blob, String fileName, FileType fileType) throws Exception {
+    protected Result file(byte[] bytes, String fileName, FileType fileType) throws Exception {
         Result result = new Result();
         result.setContentType(fileType.getMimeType());
         result.setHeader("Content-Disposition",
                 "attachment; filename=\"" + fileName + "." + fileType.getExtension() + "\"");
-        response.setContentLength((int) blob.length());
+        response.setContentLength(bytes.length);
 
-        result.setData(blob);
+        result.setData(bytes);
 
+        return result;
+    }
+
+    // Caution: only support source attribute at image tag
+    protected Result source(byte[] bytes, String fileName, FileType fileType) throws Exception {
+        Result result = new Result();
+        result.setContentType(fileType.getMimeType());
+        result.setData(bytes);
         return result;
     }
 

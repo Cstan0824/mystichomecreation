@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import Models.Users.User;
 import jakarta.servlet.http.HttpSession;
+import mvc.Helpers.Audits.AuditService;
 
 public class SessionHelper {
     // Core session properties
@@ -23,7 +24,7 @@ public class SessionHelper {
     private static final String USER_OBJECT_KEY = "USER_OBJECT";
 
     private HttpSession session;
-    private Logger logger = AuditTrail.getLogger();
+    private Logger logger = AuditService.getLogger();
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public SessionHelper() {

@@ -12,8 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import mvc.DataAccess;
-import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.Audits.AuditService;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
@@ -25,7 +25,7 @@ public class SignalHub {
     private final Map<String, Set<String>> channelKeys = new ConcurrentHashMap<>();
 
     private final JedisPool pool;
-    private static Logger logger = AuditTrail.getLogger();
+    private static Logger logger = AuditService.getLogger();
 
     public SignalHub(JedisPool pool) {
         this.pool = pool;
@@ -263,13 +263,14 @@ public class SignalHub {
                 // Execute query with parameters
                 switch (metadata.getType()) {
                     case SINGLE -> {
+                        if (query.getResultList().isEmpty()) {
+                            return;
+                        }
                         Object result = query.getResultList().get(0);
-                        System.out.println("Result: " + result);
                         Redis.cacheResult(threadJedis, key, metadata.getLevel(), result);
                     }
                     case LIST -> {
                         List<Object> results = query.getResultList();
-                        System.out.println("Results: " + results);
                         Redis.cacheResult(threadJedis, key, metadata.getLevel(), results);
                     }
                 }

@@ -7,6 +7,7 @@ import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Helpers.Helpers;
 import mvc.Helpers.SessionHelper;
+import mvc.Helpers.Notify.Notification;
 import mvc.Http.HttpMethod;
 
 import java.util.List;
@@ -292,6 +293,8 @@ public class UserController extends ControllerBase {
         return error("Failed to delete payment card");
     }
 
+    // TODO: Implement the authorization properly( user should able to review the
+    // vouchers only, and not add/edit/delete them)
     // @Authorization(permissions = "User/account/vouchers")
     @ActionAttribute(urlPattern = "account/vouchers")
     public Result vouchers() throws Exception {
@@ -322,6 +325,29 @@ public class UserController extends ControllerBase {
             return error("Failed to update voucher to " + (status ? "active" : "inactive"));
         }
         return success();
+    }
+
+    // @Authorization (permissions = "User/account/notifications")
+    @ActionAttribute(urlPattern = "account/notifications")
+    public Result notifications() throws Exception {
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        List<Notification> notifications = accountDA.getNotifications(userId);
+        request.setAttribute("notifications", notifications);
+        return page();
+    }
+
+    // @Authorization (permissions = "User/account/notification/redirect")
+    @ActionAttribute(urlPattern = "account/notification/redirect")
+    @SyncCache(channel = "Notification")
+    @HttpRequest(HttpMethod.POST)
+    public Result notificationRedirectUrl(int id) throws Exception {
+        String url = accountDA.triggerReadNotification(id);
+        // extract action and controller from url
+        if ("".equals(url)) {
+            return error("Failed to redirect to the notification URL");
+        }
+        return json(url);
     }
 
     public Result demoSession() throws Exception {
