@@ -255,6 +255,7 @@ public class CartController extends ControllerBase{
         try {
             System.out.println("here #4 updateCartItemQuantity");
             if (cartDAO.updateCartItemQuantity(cartItem, delta)) {
+                
                 ((ObjectNode) jsonResponse).put("success", true);
                 ((ObjectNode) jsonResponse).put("quantity", cartItem.getQuantity());
                 ((ObjectNode) jsonResponse).put("selected_variation", cartItem.getSelectedVariation());
