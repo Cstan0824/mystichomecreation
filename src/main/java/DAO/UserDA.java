@@ -16,6 +16,19 @@ public class UserDA {
     public UserDA() {
     }
 
+    public String getUserPasswordById(int id) {
+        String password = null;
+        TypedQuery<String> query = db.createQuery("SELECT u.password FROM User u WHERE id=:id",
+                String.class)
+                .setParameter("id", id);
+        try {
+            password = cache.getOrCreate("user-password-" + id, String.class, query, CacheLevel.LOW);
+        } catch (Exception e) {
+            password = query.getResultList().get(0);
+        }
+        return password;
+    }
+
     public List<User> getUsers() {
         List<User> users = null;
         TypedQuery<User> query = db.createQuery("SELECT u FROM User u", User.class);

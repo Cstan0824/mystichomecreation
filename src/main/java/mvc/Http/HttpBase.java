@@ -2,7 +2,6 @@ package mvc.Http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -13,7 +12,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,8 +34,8 @@ import mvc.Annotations.HttpRequest;
 import mvc.Annotations.Middleware;
 import mvc.Exceptions.InvalidActionResultException;
 import mvc.Exceptions.PageNotFoundException;
-import mvc.Helpers.AuditTrail;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.Audits.AuditService;
 import mvc.FileType;
 import mvc.Result;
 
@@ -58,7 +56,7 @@ public abstract class HttpBase extends HttpServlet {
     protected HttpContext context = new HttpContext();
     protected HttpServletRequest request;
     protected HttpServletResponse response;
-    protected Logger logger = AuditTrail.getLogger();
+    protected Logger logger = AuditService.getLogger();
     private static List<Middleware> middlewares;
     private static final String DEFAULT_CONTROLLER = "LandingController";
     private static final String DEFAULT_ACTION = "index";
@@ -78,11 +76,11 @@ public abstract class HttpBase extends HttpServlet {
 
     protected abstract Result content(Object data, String contentType, HttpStatusCode status) throws Exception;
 
-    protected abstract Result file(Blob blob) throws Exception;
+    protected abstract Result file(byte[] bytes) throws Exception;
 
-    protected abstract Result file(Blob blob, String fileName) throws Exception;
+    protected abstract Result file(byte[] bytes, String fileName) throws Exception;
 
-    protected abstract Result file(Blob blob, String fileName, FileType fileType) throws Exception;
+    protected abstract Result file(byte[] bytes, String fileName, FileType fileType) throws Exception;
 
     protected abstract Result success() throws Exception;
 
@@ -269,8 +267,9 @@ public abstract class HttpBase extends HttpServlet {
                 default -> {
                     if (FileType.contains(actionResult.getContentType())) {
                         streamFileContent(actionResult.getData());
+                    } else {
+                        context.getResponse().getWriter().write((actionResult.getData().toString()));
                     }
-                    context.getResponse().getWriter().write((actionResult.getData().toString()));
                 }
             }
 
@@ -337,17 +336,13 @@ public abstract class HttpBase extends HttpServlet {
     }
 
     private void streamFileContent(Object data) throws Exception {
-        if (data instanceof Blob blob) {
-            // Read and Write Stream
-            try (InputStream input = blob.getBinaryStream();
-                    OutputStream output = response.getOutputStream()) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = input.read(buffer)) != -1) {
-                    output.write(buffer, 0, bytesRead);
-                }
-                output.flush();
+        try (OutputStream output = response.getOutputStream()) {
+            if (data instanceof byte[] bytes) {
+                output.write(bytes);
             }
+            output.flush();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
         }
     }
 
@@ -420,7 +415,6 @@ public abstract class HttpBase extends HttpServlet {
             }
             formData[count++] = convertedValue;
         }
-
         return formData;
     }
 

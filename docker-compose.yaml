@@ -34,7 +34,7 @@ services:
             # - ./src/main/webapp/Content:${FILE_UPLOAD_PATH}/../webapp/Content:rw
 
             # # LOAD SERVER FILE DYNAMICALLY
-            - ./target/classes:${DEPLOY_FILE_PATH}:rw
+            # - ./target/classes:${DEPLOY_FILE_PATH}:rw
         build: .
         image: mystichome
         ports:
@@ -59,6 +59,22 @@ services:
             LOG_PATH: ${LOG_PATH}
             UNAUTHORIZED_PAGE: ${UNAUTHORIZED_PAGE}
             CLIENT_FILE_PATH: ${CLIENT_FILE_PATH}
+
+            MAIL_HOST: ${MAIL_HOST}
+            MAIL_PORT: ${MAIL_PORT}
+            MAIL_AUTH: ${MAIL_AUTH}
+            MAIL_STARTTLS: ${MAIL_STARTTLS}
+            MAIL_SENDER: ${MAIL_SENDER}
+            MAIL_PASSWORD: ${MAIL_PASSWORD}
+            MAIL_TEMPLATE_PATH: ${MAIL_TEMPLATE_PATH}
+            
+            PDF_TEMPLATE_PATH: ${PDF_TEMPLATE_PATH}
+            PDF_OUTPUT_PATH: ${PDF_OUTPUT_PATH}
+            
+            HASH_ALGORITHM: ${HASH_ALGORITHM}
+            HASH_ITERATION: ${HASH_ITERATION}
+            HASH_KEY_LENGTH: ${HASH_KEY_LENGTH}
+            HASH_SECRET_KEY: ${HASH_SECRET_KEY}
         depends_on:
             - ${MYSQL_CONTAINER_NAME}
 
