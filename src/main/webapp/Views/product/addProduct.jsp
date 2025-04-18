@@ -6,7 +6,7 @@
 <%@ page import="Models.Products.productDTO" %>
 
 <!-- addProduct.jsp -->
-<div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto hidden">
+<div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[600] overflow-y-auto hidden">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
     
         <!-- Close Button -->

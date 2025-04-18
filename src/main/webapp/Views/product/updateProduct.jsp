@@ -5,8 +5,8 @@
 <%@ page import="Models.Products.productType" %>
 <%@ page import="Models.Products.productDTO" %>
 
-<div id="editProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto hidden">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
+    <div id="editProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[600] overflow-y-auto hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
     
         <!-- Close Button -->
         <button onclick="closeeditModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl">
@@ -57,25 +57,24 @@
                 <label class="block mb-1 font-semibold">Product Variations</label>
                 <div id="variationContainer" class="space-y-4">
                     <%
-                        productVariationOptions optsBean = (productVariationOptions) request.getAttribute("variationOptions");
 
-                        if (optsBean != null && optsBean.getOptions() != null) {
-                            for (Map.Entry<String, List<String>> ent : optsBean.getOptions().entrySet()) {
-                                String vTitle = ent.getKey();
+                        if (options != null && options.getOptions() != null) {
+                           for (Map.Entry<String, List<String>> entry : options.getOptions().entrySet()) {
+                                
                     %>
                     <div class="variation-block bg-gray-50 p-4 mb-4 rounded border">
                         <div class="flex gap-4 mb-2">
                             <div class="flex-1">
                                 <label class="block mb-1 font-semibold">Variation Title</label>
-                                <input type="text" name="variation-title" class="w-full border px-3 py-2 rounded" value="<%=vTitle%>" />
+                                <input type="text" name="variation-title" class="w-full border px-3 py-2 rounded" value="<%= entry.getKey() %>" />
                             </div>
 
                             <div class="flex-1">
                                 <label class="block mb-1 font-semibold">Options</label>
                                 <div class="option-list space-y-2 mb-2">
-                                    <% for (String val : ent.getValue()) { %>
+                                    <% for (String value : entry.getValue()) { %>                                    
                                     <div class="flex items-center gap-2">
-                                        <input type="text" name="variation-option" class="flex-1 border px-3 py-2 rounded" value="<%=val%>" />
+                                        <input type="text" name="variation-option" class="flex-1 border px-3 py-2 rounded" value="<%= value %>" />
                                         <button type="button" class="text-red-500" onclick="removeOptionField(this)">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>

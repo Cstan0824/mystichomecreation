@@ -185,6 +185,11 @@ public class productController extends ControllerBase {
         String variationsJson = request.getParameter("variations");
         System.out.println("🧩 Raw variations JSON: " + variationsJson); 
 
+        
+        if(variationsJson == null || variationsJson.isEmpty()){
+            variationsJson = "{}"; // set to empty json if it is null or empty
+        }
+
         System.out.println("📩 title       = " + title);
         System.out.println("📩 description = " + desc);
         System.out.println("📩 priceRaw    = " + priceRaw);
@@ -239,14 +244,6 @@ public class productController extends ControllerBase {
          // 7. redirect to catalog
          response.sendRedirect(request.getContextPath() + "/product/productCatalog");
          return null;
-
-
-
-
-
-
-
-
 
     }
 
@@ -338,7 +335,7 @@ public class productController extends ControllerBase {
     }
     
 
-
+    
 
 
 

@@ -43,7 +43,7 @@
             <div class="w-full md:w-64 mr-6 bg-white rounded-lg shadow-lg p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-bold text-lg">Filter</h2>
-                    <button class="text-yellow-500 text-sm">Clear All</button>
+                    <button onclick="clearAllFilters()" class="text-yellow-500 text-sm">Clear All</button>
                 </div>
 
                <form id="filterForm" oninput="filterByCategory()">
@@ -146,38 +146,15 @@
         <!-- JavaScript for toggling the mobile filter modal -->
     </div>
     <script>
-        function toggleFilterModal() {
-            const modal = document.getElementById('mobileFilterModal');
-            modal.classList.toggle('hidden');
-        }
-
         function clearAllFilters() {
-            alert("Clear all filters");
-            // Implement your clear logic here.
-        }
-
-        function toggleFilterSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            section.classList.toggle('hidden');
-            const icon = document.getElementById('icon-' + sectionId.replace('Section', ''));
-            if (icon) {
-                icon.classList.toggle('rotate-180');
-            }
-        }
-
-        function clearAllFilters() {
+            // Reset the form to its initial state
             document.getElementById('filterForm').reset();
-            const sections = ['priceSection', 'sortSection', 'categorySection'];
-            sections.forEach(id => {
-                const el = document.getElementById(id);
-                if (el && !el.classList.contains('hidden')) {
-                    el.classList.add('hidden');
-                }
-                const icon = document.getElementById('icon-' + id.replace('Section', ''));
-                if (icon && icon.classList.contains('rotate-180')) {
-                    icon.classList.remove('rotate-180');
-                }
-            });
+
+            // Clear the search input field
+            document.getElementById('searchInput').value = '';
+
+            // Trigger the filter function to refresh the product list
+            filterByCategory();
         }
 
         function filterByCategory() {
