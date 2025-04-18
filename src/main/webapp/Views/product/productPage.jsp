@@ -81,7 +81,7 @@
             <%
                 productVariationOptions options = (productVariationOptions) request.getAttribute("variationOptions");
             %>
-            <div class="order-2 md:col-span-3 md:sticky md:top-[30px] h-fit md:z-10">
+            <div class="order-2 md:col-span-3 md:sticky md:top-[30px] h-fit ">
                 <div class="p-4 lg:p-6 rounded-lg shadow-md">
                     <h1 class="text-2xl font-bold text-left mb-4"><%= product.getTitle() %></h1>
 
@@ -142,6 +142,7 @@
                             for (productFeedback fb : feedbackList) {
                                 totalRating += fb.getRating();
                             }
+                            // total rating / how many feedback form
                             float averageRating = (float) totalRating / feedbackList.size();
                     %>
                         <h2 class="text-xl font-semibold mb-6">
@@ -168,6 +169,37 @@
                                 </div>
                             <% } %>
                         </div>
+                    
+                        <!-- Add Reply comment -->
+                        <% if (fb.getReply() != null && !fb.getReply().isEmpty()) { %>
+                            <div class="reply-text mb-1"><%= fb.getReply() %></div>
+                            <div class="reply-date text-xs text-gray-500"><%= fb.getReplyDate() %></div>    
+                        <% }else{ %>
+                            <i class="fa fa-reply cursor-pointer text-blue-600" name="Reply" onclick="toggleReplyForm(this)"></i>
+
+                            <form class="reply-form hidden mt-2" action="<%=request.getContextPath()%>/product/feedback/reply" method="post">
+                                <input type="hidden" name="feedbackId" value="<%=fb.getId()%>"/>     
+                                <label class="block text-sm font-semibold mb-1">
+                                    Your reply:
+                                </label>
+
+                                <textarea  name="reply" class="w-full border px-2 py-1 rounded mb-1" rows="2" placeholder="Your Reply" ></textarea>
+
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">
+                                    Send
+                                </button>
+                            </form>
+
+
+
+                        <% } %>
+
+                        
+                        
+
+
+
+
                     <% }  %>
                         
                 </div>
@@ -231,6 +263,30 @@
             m.classList.add("hidden");
             document.body.classList.remove("overflow-hidden");
         }
+
+        function toggleReplyForm(icon) {
+            // Find the sibling form and toggle its visibility
+            const cell = icon.closest('.reply-cell');
+            const form = cell.querySelector('.inline-reply-form');
+            form.classList.toggle('hidden');
+
+            if (!form.classList.contains('hidden')) {
+                form.querySelector('textarea').focus();
+            }
+        }
+
+         function toggleReplyForm(icon) {
+            // the next sibling is your form
+            const form = getElementById("reply-form");
+
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) {
+            form.querySelector('textarea').focus();
+            }
+        }
+
+
+
     </script>
 </body>
 
