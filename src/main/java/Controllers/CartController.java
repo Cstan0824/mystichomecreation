@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import DAO.AccountDA;
 import DAO.CartDAO;
 import DAO.UserDA;
 import DAO.productDAO;
+import Models.Accounts.ShippingInformation;
 import Models.Products.product;
 import Models.Users.Cart;
 import Models.Users.CartItem;
@@ -28,6 +30,7 @@ public class CartController extends ControllerBase{
     private CartDAO cartDAO = new CartDAO();
     private UserDA userDA = new UserDA();
     private productDAO productDAO = new productDAO();
+    private AccountDA accountDA = new AccountDA();
 
     @SyncCache(channel = "CartItem", message ="from cart/index")
     public Result cart() throws Exception {
@@ -36,8 +39,17 @@ public class CartController extends ControllerBase{
         if (user == null) {
             return json("User not found");
         }
+        List<ShippingInformation> shippingAddresses = accountDA.getShippingInformation(1);
+        if (shippingAddresses != null) {
+            for (ShippingInformation address : shippingAddresses) {
+                System.out.println("Address: " + address.getLabel() + ", " + address.getReceiverName() + ", " + address.getPhoneNumber() + ", " + address.getState() + ", " + address.getPostCode() + ", " + address.getAddressLine1() + ", " + address.getAddressLine2());
+            }
+        }
+        System.out.println("Shipping Addresses: " + shippingAddresses.size());
         List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
         request.setAttribute("cartItems", cartItems);
+        request.setAttribute("shippingAddresses", shippingAddresses);
+        
 
         return page();
     }

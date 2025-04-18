@@ -65,12 +65,12 @@ CREATE TABLE IF NOT EXISTS `Payment` (
 );
 
 
-CREATE TABLE  IF NOT EXISTS `Order` (
+CREATE TABLE  IF NOT EXISTS `Orders` (
   `order_id` int NOT NULL,
   `user_id` int NOT NULL,
   `payment_id` int NOT NULL,
   `status_id` int NOT NULL,
-  `shipping_information` varchar(255) DEFAULT NULL,
+  `shipping_information` varchar(500) DEFAULT NULL,
   `order_date` date NOT NULL,
   `pack_date` date DEFAULT NULL,
   `ship_date` date DEFAULT NULL,

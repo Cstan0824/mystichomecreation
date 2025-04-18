@@ -2,10 +2,12 @@ package DAO;
 
 import java.util.List;
 
+import Models.Accounts.Voucher;
+import Models.Orders.Order;
 import Models.Payment;
 import Models.PaymentMethod;
-import Models.Accounts.Voucher;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import mvc.Cache.Redis;
 import mvc.DataAccess;
@@ -36,10 +38,47 @@ public class PaymentDAO {
     // Read specific payment by ID from the database
     public Payment getPaymentById(int id) {
         Payment payment = null;
+    
         try {
-            payment = db.find(Payment.class, id);
+            System.out.println("getPaymentById: " + id);
+    
+            TypedQuery<Payment> query = db.createQuery(
+                "SELECT p FROM Payment p WHERE p.id = :id", Payment.class
+            ).setParameter("id", id);
+    
+            payment = cache.getOrCreate("payment-" + id, Payment.class, query, Redis.CacheLevel.LOW);
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
+            try {
+                // Fallback to direct fetch
+                payment = db.find(Payment.class, id);
+            } catch (Exception inner) {
+                inner.printStackTrace(System.err);
+            }
+        }
+    
+        return payment;
+    }
+    
+
+    // Read specific payments by order from the database
+    public Payment getPaymentByOrder(Order order) {
+        int paymentId = order.getPayment().getId();
+        Payment payment = null;
+        TypedQuery<Payment> query = db.createQuery(
+            "SELECT p FROM Payment p WHERE p.id = :paymentId", Payment.class
+        ).setParameter("paymentId", paymentId);
+
+        try {
+            payment = cache.getOrCreate("payment-" + paymentId, Payment.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            try {
+                payment = query.getSingleResult();
+            } catch (NoResultException nre) {
+                // Handle the case where no result is found
+                System.out.println("Payment not found for order: " + order.getId());
+                payment = null;
+            } // fallback if cache fails
         }
         return payment;
     }

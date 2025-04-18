@@ -398,11 +398,11 @@ INSERT INTO `Order_Status` (`status_description`) VALUES ('Cancelled');
 INSERT INTO `Payment_Method` (`method_description`) VALUES ('Credit Card');
 INSERT INTO `Payment_Method` (`method_description`) VALUES ('Online Banking');
 
-INSERT INTO `Voucher` (`voucher_type`, `vouchar_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '65.28', '247.99', '35.62', '5', 'She', 'Study oil process tend land.', '1');
-INSERT INTO `Voucher` (`voucher_type`, `vouchar_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '88.48', '378.77', '26.06', '3', 'Member', 'Forward several help usually thank wonder.', '1');
-INSERT INTO `Voucher` (`voucher_type`, `vouchar_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '118.03', '234.37', '44.82', '3', 'Edge', 'Him task improve fish list tree high.', '1');
-INSERT INTO `Voucher` (`voucher_type`, `vouchar_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Fixed', '61.16', '330.43', '25.42', '3', 'Record', 'Manager already maybe opportunity.', '1');
-INSERT INTO `Voucher` (`voucher_type`, `vouchar_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '100.77', '231.92', '33.14', '5', '1', 'Them key moment lead.', '1');
+INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '65.28', '247.99', '35.62', '5', 'She', 'Study oil process tend land.', '1');
+INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '88.48', '378.77', '26.06', '3', 'Member', 'Forward several help usually thank wonder.', '1');
+INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '118.03', '234.37', '44.82', '3', 'Edge', 'Him task improve fish list tree high.', '1');
+INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Fixed', '61.16', '330.43', '25.42', '3', 'Record', 'Manager already maybe opportunity.', '1');
+INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '100.77', '231.92', '33.14', '5', '1', 'Them key moment lead.', '1');
 
 -- INSERT INTO `Order` (`user_id`, `payment_id`, `status_id`, `shipping_information`, `order_date`, `order_ref_no`) VALUES ('10', '4', '2', '217 Morgan Square Suite 158
 -- Finleyfort, ND 05206', '2025-01-14', 'ebc2026f-af34-4f65-a193-c4b23c19e71d');

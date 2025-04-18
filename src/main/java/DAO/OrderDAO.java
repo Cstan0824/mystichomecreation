@@ -39,13 +39,9 @@ public class OrderDAO {
     // Read an order by ID from the database
     public Order getOrderById(int id) {
         Order order = null;
-        System.out.println("Before TypedQuery");
         TypedQuery<Order> query = db.createQuery("SELECT o FROM Order o WHERE id=:id", Order.class)
                 .setParameter("id", id);
-        System.out.println("After TypedQuery");
-
         try {
-            System.out.println("getOrderById: " + id);
             order = cache.getOrCreate("order-" + id, Order.class, query, Redis.CacheLevel.LOW);
         } catch (Exception e) {
             e.printStackTrace(System.err);
