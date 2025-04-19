@@ -19,6 +19,7 @@ import DAO.productDAO;
 import Models.Products.product;
 import Models.Products.productDTO;
 import Models.Products.productFeedback;
+import Models.Products.productFeedbackKey;
 import Models.Products.productType;
 import Models.Products.productVariationOptions;
 import jakarta.servlet.annotation.WebServlet;
@@ -241,9 +242,11 @@ public class productController extends ControllerBase {
             return error("Error saving product");
         }
 
-         // 7. redirect to catalog
-         response.sendRedirect(request.getContextPath() + "/product/productCatalog");
-         return null;
+        
+        
+        // 7. redirect to catalog
+        response.sendRedirect(request.getContextPath() + "/product/productCatalog");
+        return null;
 
     }
 
@@ -334,8 +337,25 @@ public class productController extends ControllerBase {
 
     }
     
+    @ActionAttribute(urlPattern = "feedback/reply")
+    @HttpRequest(HttpMethod.POST)
+    public Result replyFeedback() throws Exception {
+        int productId = Integer.parseInt(request.getParameter("productId"));
+        int orderId   = Integer.parseInt(request.getParameter("orderId"));
+        String reply  = request.getParameter("reply").trim();
 
+        productFeedbackKey key = new productFeedbackKey(productId, orderId);
+        productFeedback fb = productDAO.findById(key);
+        if (fb == null) {
+            return error("Feedback not found");
+        }
+        fb.setReply(reply);
+        fb.setReplyDate(new java.sql.Date(System.currentTimeMillis()));
+        productDAO.replyToFeedback(fb);
+
+        return success("Reply sent successfully");
     
+    }
 
 
 
