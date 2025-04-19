@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import DAO.OrderDAO;
 import DAO.PaymentDAO;
+import Models.Accounts.ShippingInformation;
 import Models.Orders.Order;
 import Models.Orders.OrderTransaction;
 import Models.Payment;
@@ -15,19 +16,54 @@ import Models.Products.product;
 import Models.Products.productType;
 import Models.Users.User;
 import jakarta.servlet.annotation.WebServlet;
+import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.ControllerBase;
+import mvc.Helpers.JsonConverter;
 import mvc.Http.HttpMethod;
 import mvc.Result;
 
 
 
-@WebServlet("/payment/*")
+@WebServlet("/Order/*")
 public class OrderController extends ControllerBase {
     
     private PaymentDAO paymentDAO = new PaymentDAO();
     private OrderDAO orderDAO = new OrderDAO();
+
+    // #region ORDER INFO PAGE
+    @ActionAttribute(urlPattern= "orderInfo")
+    @HttpRequest(HttpMethod.GET)
+    public Result orderInfo(int orderId) throws Exception{
+        
+        System.out.println("Order Info Page");
+        Order order = orderDAO.getOrderById(orderId);
+        if (order == null) {
+            System.out.println("Order not found");
+        }
+
+        ShippingInformation shippingInfo = null;
+        String shippingJson = order.getShippingInfo();
+        try {
+            shippingInfo = JsonConverter.deserialize(shippingJson, ShippingInformation.class).get(0);
+        } catch (Exception e) {
+            System.out.println("Error deserializing shipping information: " + e.getMessage());
+        }
+
+        List<OrderTransaction> orderTransactions = orderDAO.getAllOrderTransactionByOrder(order);
+
+        
+        request.setAttribute("order", order);
+        request.setAttribute("shippingInfo", shippingInfo);
+        request.setAttribute("orderTransactions", orderTransactions);
+
+        
+        return page();
+    }
+
+    // #endregion ORDER INFO PAGE
+
 
     // #region PAYMENT
     @SyncCache(channel = "user", message = "from order/addPayment")
@@ -65,33 +101,24 @@ public class OrderController extends ControllerBase {
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentByOrder(Order order) throws Exception{
 
+        
         System.out.println("Get Payment By Order");
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonResponse = mapper.createObjectNode();
-        Order orderInfo = order;
-        
-        try {
-           orderInfo = orderDAO.getOrderById(orderInfo.getId());
-            if (orderInfo != null) {
-                Payment payment = orderInfo.getPayment();
-                payment = paymentDAO.getPaymentById(payment.getId());
-                if (payment != null) {
-                    ((ObjectNode) jsonResponse).put("success", true);
-                    ((ObjectNode) jsonResponse).put("payment_id", payment.getId());
-                    ((ObjectNode) jsonResponse).put("method_id", payment.getMethod().getId());
-                    ((ObjectNode) jsonResponse).put("paymentInfo", payment.getPaymentInfo());
-                    ((ObjectNode) jsonResponse).put("totalPaid", payment.getTotalPaid());
 
-                } else {
-                    ((ObjectNode) jsonResponse).put("success", false);
-                    ((ObjectNode) jsonResponse).put("error msg", "Payment not found");
-                }
+        try {
+            Payment payment = paymentDAO.getPaymentByOrder(order);
+            if (payment != null) {
+                ((ObjectNode) jsonResponse).put("success", true);
+                ((ObjectNode) jsonResponse).put("payment_id", payment.getId());
+                ((ObjectNode) jsonResponse).put("method_id", payment.getMethod().getId());
+                ((ObjectNode) jsonResponse).put("paymentInfo", payment.getPaymentInfo());
+                ((ObjectNode) jsonResponse).put("totalPaid", payment.getTotalPaid());
+
             } else {
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order not found");
+                ((ObjectNode) jsonResponse).put("error msg", "Payment not found");
             }
-
-            
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
             ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
@@ -101,6 +128,35 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
 
 
+    }
+
+    @SyncCache(channel = "user", message = "from order/getPaymentsById")
+    @HttpRequest(HttpMethod.POST)
+    public Result getPaymentById(int id) throws Exception{
+
+        System.out.println("Get Payment By Id");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonResponse = mapper.createObjectNode();
+
+        try {
+            Payment payment = paymentDAO.getPaymentById(id);
+            if (payment != null) {
+                ((ObjectNode) jsonResponse).put("success", true);
+                ((ObjectNode) jsonResponse).put("payment_id", payment.getId());
+                ((ObjectNode) jsonResponse).put("method_id", payment.getMethod().getId());
+                ((ObjectNode) jsonResponse).put("paymentInfo", payment.getPaymentInfo());
+                ((ObjectNode) jsonResponse).put("totalPaid", payment.getTotalPaid());
+
+            } else {
+                ((ObjectNode) jsonResponse).put("success", false);
+                ((ObjectNode) jsonResponse).put("error msg", "Payment not found");
+            }
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+        
+        }
+        return json(jsonResponse);
 
     }
 
@@ -121,7 +177,7 @@ public class OrderController extends ControllerBase {
                     "orderDate": "2025-04-15",
                     "orderRefNo": "12345678"
                 }
-            }
+            }   
         */
 
 
@@ -225,7 +281,7 @@ public class OrderController extends ControllerBase {
     // #endregion ORDER
 
     // #region ORDER TRANSACTION
-    @SyncCache(channel = "user", message = "from order/addOrderTransaction")
+    @SyncCache(channel = "OrderTransaction", message = "from order/addOrderTransaction")
     @HttpRequest(HttpMethod.POST)
     public Result addOrderTransaction(OrderTransaction orderTransaction) throws Exception{
 
