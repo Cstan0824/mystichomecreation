@@ -66,7 +66,6 @@ public class OrderController extends ControllerBase {
 
 
     // #region PAYMENT
-    @SyncCache(channel = "user", message = "from order/addPayment")
     @HttpRequest(HttpMethod.POST)
     public Result addPayment(Payment payment) throws Exception {
 
@@ -97,7 +96,6 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    @SyncCache(channel = "user", message = "from order/getPayment")
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentByOrder(Order order) throws Exception{
 
@@ -130,7 +128,6 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @SyncCache(channel = "user", message = "from order/getPaymentsById")
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentById(int id) throws Exception{
 
