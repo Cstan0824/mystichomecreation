@@ -36,16 +36,17 @@ public class CartController extends ControllerBase{
     public Result cart() throws Exception {
         System.out.println("Cart Index Page");
         User user = userDA.getUserById(1);
+        System.out.println("Cart Index Page after user");
         if (user == null) {
             return json("User not found");
         }
         List<ShippingInformation> shippingAddresses = accountDA.getShippingInformation(1);
+        System.out.println("Cart Index Page after shippingAddresses");
         if (shippingAddresses != null) {
             for (ShippingInformation address : shippingAddresses) {
                 System.out.println("Address: " + address.getLabel() + ", " + address.getReceiverName() + ", " + address.getPhoneNumber() + ", " + address.getState() + ", " + address.getPostCode() + ", " + address.getAddressLine1() + ", " + address.getAddressLine2());
             }
         }
-        System.out.println("Shipping Addresses: " + shippingAddresses.size());
         List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("shippingAddresses", shippingAddresses);
@@ -53,6 +54,35 @@ public class CartController extends ControllerBase{
 
         return page();
     }
+
+    
+    @SyncCache(channel = "CartItem", message ="from cart/cartCheckout")
+    @HttpRequest(HttpMethod.POST)
+    public Result checkout(String label, String receiverName, String phoneNumber, String state, String postCode, String addressLine1, String addressLine2, boolean isDefault) throws Exception {
+
+        System.out.println("Cart Checkout Page");
+        User user = userDA.getUserById(1);
+        if (user == null) {
+            return json("User not found");
+        }
+        
+        ShippingInformation shippingAddress = new ShippingInformation();
+        shippingAddress.setLabel(label);
+        shippingAddress.setReceiverName(receiverName);
+        shippingAddress.setPhoneNumber(phoneNumber);
+        shippingAddress.setState(state);
+        shippingAddress.setPostCode(postCode);
+        shippingAddress.setAddressLine1(addressLine1);
+        shippingAddress.setAddressLine2(addressLine2);
+        shippingAddress.setDefault(isDefault);
+
+        List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
+        request.setAttribute("cartItems", cartItems);
+        request.setAttribute("shippingAddress", shippingAddress);
+        
+        return page();
+    }
+
 
     // Add New Cart to New User
     // This method is called when a new user is created and a cart is created for them.

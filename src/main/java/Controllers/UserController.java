@@ -1,15 +1,5 @@
 package Controllers;
 
-import mvc.ControllerBase;
-import mvc.Result;
-import mvc.Annotations.ActionAttribute;
-import mvc.Annotations.HttpRequest;
-import mvc.Annotations.SyncCache;
-import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
-import mvc.Helpers.Notify.Notification;
-import mvc.Http.HttpMethod;
-
 import java.util.List;
 
 import DAO.AccountDA;
@@ -20,6 +10,15 @@ import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
 import Models.Users.User;
 import jakarta.servlet.annotation.WebServlet;
+import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.HttpRequest;
+import mvc.Annotations.SyncCache;
+import mvc.ControllerBase;
+import mvc.Helpers.Helpers;
+import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.SessionHelper;
+import mvc.Http.HttpMethod;
+import mvc.Result;
 
 @WebServlet("/User/*")
 public class UserController extends ControllerBase {
@@ -351,6 +350,7 @@ public class UserController extends ControllerBase {
     }
 
     public Result demoSession() throws Exception {
+        System.out.println("Demo session called");
         SessionHelper session = getSessionHelper(); // function from ControllerBase
 
         User user = userDA.getUserById(1);
