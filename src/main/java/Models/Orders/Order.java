@@ -1,5 +1,7 @@
 package Models.Orders;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,6 +88,25 @@ public class Order {
         this.shipDate = shipDate;
         this.receiveDate = receiveDate;
         this.orderRefNo = orderRefNo;
+    }
+
+    public Order(User user, Payment payment, OrderStatus status, String shippingInfo) {
+        this.user = user;
+        this.payment = payment;
+        this.status = status;
+        this.shippingInfo = shippingInfo;
+
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter refNoFormatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        
+        this.orderDate = now.format(formatter);
+
+        this.packDate = null;
+        this.shipDate = null;
+        this.receiveDate = null;
+        int userId = user.getId();
+        this.orderRefNo = "ORD#" + now.format(refNoFormatter) + String.format("%d", userId);
     }
 
     // Getters and Setters

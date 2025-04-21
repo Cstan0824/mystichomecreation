@@ -9,12 +9,16 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>Cart</title>
 </head>
+
 <%@ page import="java.util.List" %>
 <%@ page import="Models.Users.CartItem" %>
 <%@ page import="Models.Accounts.ShippingInformation" %>
 <%@ page import="mvc.Helpers.Helpers" %>
+
+
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
+
     <div class="content-wrapper">
 
         <h1 class="font-poppins font-bold text-3xl my-8">Cart</h1>

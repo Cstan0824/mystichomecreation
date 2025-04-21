@@ -126,7 +126,7 @@
                 <div class="flex basis-2/3 flex-col w-full items-start justify-between">
                     <p class="font-poppins font-semibold text-lg mb-4">Order #<%= order.getOrderRefNo() %></p>
                     
-                    <% if (order.getReceiveDate() != null) { 
+                    <% if (order.getReceiveDate() != null && !order.getReceiveDate().isEmpty()) { 
                         String input = order.getReceiveDate();
                         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                         LocalDateTime dateTime = LocalDateTime.parse(input, inputFormatter);
@@ -142,7 +142,7 @@
                         </div>
                     </div>
                     <% } %>
-                    <% if (order.getShipDate() != null) { 
+                    <% if (order.getShipDate() != null && !order.getShipDate().isEmpty()) { 
                         String input = order.getShipDate();
                         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                         LocalDateTime dateTime = LocalDateTime.parse(input, inputFormatter);
@@ -158,7 +158,7 @@
                         </div>
                     </div>
                     <% } %>
-                    <% if (order.getPackDate() != null) { 
+                    <% if (order.getPackDate() != null && !order.getPackDate().isEmpty()) { 
                         String input = order.getPackDate();
                         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                         LocalDateTime dateTime = LocalDateTime.parse(input, inputFormatter);
@@ -174,7 +174,7 @@
                         </div>
                     </div>
                     <% } %>
-                    <% if (order.getOrderDate() != null) { 
+                    <% if (order.getOrderDate() != null && !order.getOrderDate().isEmpty()) { 
                         
                         String input = order.getOrderDate();
                         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
