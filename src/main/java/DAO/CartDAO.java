@@ -163,6 +163,31 @@ public class CartDAO {
     }
 
     // remove cartItem
+    public boolean deleteCartItem(Cart cart, product product) {
+        try {
+            db.getTransaction().begin();
+
+            CartItem itemToRemove = db.find(CartItem.class, new CartItemId(
+                cart,
+                product
+            ));
+
+            if (itemToRemove != null) {
+                db.remove(itemToRemove);
+                db.getTransaction().commit();
+                return true;
+            } else {
+                db.getTransaction().rollback();
+                return false;
+            }
+
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean deleteCartItem(CartItem cartItem) {
         try {
             db.getTransaction().begin();

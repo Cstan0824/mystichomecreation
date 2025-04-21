@@ -36,6 +36,32 @@ public class OrderDAO {
         }
     }
 
+    public Order createOrder(int userId, int statusId, int paymentId, String shippingInfo){
+
+        try {
+            db.getTransaction().begin();
+            // get user object
+            User user = db.find(User.class, userId);
+            // get status object
+            OrderStatus status = db.find(OrderStatus.class, statusId);
+            // get payment object
+            Payment payment = db.find(Payment.class, paymentId);
+            // create order object
+            Order order = new Order(user, payment, status, shippingInfo);
+
+            db.persist(order);
+            db.getTransaction().commit();
+
+            return order;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return null;
+        }
+
+
+    }
+
     // Read an order by ID from the database
     public Order getOrderById(int id) {
         Order order = null;

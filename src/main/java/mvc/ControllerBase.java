@@ -47,6 +47,7 @@ public class ControllerBase extends HttpBase {
         return page(action, controller, null);
     }
 
+
     protected Result page(String action, String controller, JsonNode params) throws Exception {
 
         String path = "/" + controller.replace("Controller", "") + "/" + action + ".jsp";

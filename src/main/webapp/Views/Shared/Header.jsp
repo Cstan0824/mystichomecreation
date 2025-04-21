@@ -180,6 +180,9 @@
                         });
                         // Update the cart container with the generated HTML
                         cartContainer.innerHTML = html;
+                        // ✅ Trigger event for cart page sync
+                        const event = new CustomEvent('cart:changed');
+                        window.dispatchEvent(event);
                     } else {
                         console.warn('cart_items is not defined or not an array:', innerData.cart_items);
                     }
@@ -192,8 +195,6 @@
 
         function updateQty(btn, cartId, productId, delta) {
             const row = btn.closest('.prod-row');
-            const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
-            const cartRowQtyEl = cartRow.closest('.qty');
             const qtyEl = row.querySelector('.quantity');
             const oldQty = parseInt(qtyEl.textContent);
 
@@ -212,8 +213,15 @@
                     const parsedJson = JSON.parse(response.data);
                     console.log("New quantity:", parsedJson.quantity);
                     qtyEl.textContent = parsedJson.quantity; // Update displayed quantity
-                    cartRowQtyEl.textContent = parsedJson.quantity; // Update cart row quantity
-
+                    if ($('.product-row').length) {
+                        const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
+                        if (cartRow.length > 0) {
+                            cartRow.find('.qty').text(parsedJson.quantity);
+                        }
+                        const event = new CustomEvent('cart:changed');
+                        window.dispatchEvent(event);
+                    }
+                    
                 },
                 error: function(xhr, status, error) {
                     qtyEl.textContent = oldQty; // Revert to old quantity on error
@@ -238,8 +246,15 @@
                 success: function (response) {
                     console.log('Item deleted successfully:', response);
                     // Optionally, refresh the cart items after deletion
-                    setTimeout(fetchCartItems(), 1000);
-                    $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]').remove();
+                    setTimeout(fetchCartItems, 300);
+                    if ($('.product-row').length) {
+                        const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
+                        if (cartRow.length > 0) {
+                            cartRow.remove();
+                            const event = new CustomEvent('cart:changed');
+                            window.dispatchEvent(event);
+                        }
+                    }
                 },
                 error: function (error) {
                     console.error('Error deleting item:', error);
@@ -285,6 +300,7 @@
                                 ease: 'power2.out'
                             }
                         );
+                        fetchCartItems(); // Fetch cart items when the popup is shown
                     }, 100); // Delay the popup display by 100ms
                     
                     isCartPopupVisible = true;
@@ -303,31 +319,12 @@
                 }
             });
 
-            // Fetch cart items when the cart button is clicked
-            $cartButton.on('click', function (e) {
-                e.stopPropagation(); // Prevent the event from bubbling up to the document
-                fetchCartItems();
-            });
-
             $cartRefresh.on('click', function (e) {
                 e.stopPropagation(); // Prevent the event from bubbling up to the document
                 fetchCartItems();
             });
 
-            // Hide when clicking outside the cart popup
-            $(document).on('click', function (e) {
-                if (isCartPopupVisible && !$cartPopup.is(e.target) && $cartPopup.has(e.target).length === 0 && !$cartButton.is(e.target) && $cartButton.has(e.target).length === 0) {
-                    gsap.to($cartPopup, {
-                        duration: 0.2,
-                        autoAlpha: 0,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $cartPopup.addClass('hidden');
-                            isCartPopupVisible = false;
-                        }
-                    });
-                }
-            });
+
 
             const $userButton = $('#user-button');
             const $userMenu = $('#user-menu');
@@ -376,8 +373,19 @@
                 }
             });
 
-            // Close user menu on outside click
+            // Hide when clicking outside
             $(document).on('click', function (e) {
+                if (isCartPopupVisible && !$cartPopup.is(e.target) && $cartPopup.has(e.target).length === 0 && !$cartButton.is(e.target) && $cartButton.has(e.target).length === 0) {
+                    gsap.to($cartPopup, {
+                        duration: 0.2,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $cartPopup.addClass('hidden');
+                            isCartPopupVisible = false;
+                        }
+                    });
+                }
                 if (isUserMenuVisible &&
                     !$userMenu.is(e.target) &&
                     $userMenu.has(e.target).length === 0 &&
@@ -395,7 +403,6 @@
                     });
                 }
             });
-
     });
     </script>
 </body>

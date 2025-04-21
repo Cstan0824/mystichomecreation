@@ -1,17 +1,20 @@
 package DAO;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import Models.Accounts.BankType;
 import Models.Accounts.PaymentCard;
 import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
+import Models.Accounts.VoucherInfoDTO;
 import Models.Users.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import mvc.DataAccess;
 import mvc.Cache.Redis;
 import mvc.Cache.Redis.CacheLevel;
+import mvc.DataAccess;
 import mvc.Helpers.Helpers;
 import mvc.Helpers.JsonConverter;
 import mvc.Helpers.Notify.Notification;
@@ -399,6 +402,80 @@ public class AccountDA {
         db.merge(voucher);
         db.getTransaction().commit();
         return !db.getTransaction().getRollbackOnly();
+    }
+
+    public List<Voucher> getAvailableVouchers(User user, double cartTotal) {
+        List<Voucher> eligibleVouchers = null;
+
+        String queryStr = """
+            SELECT v FROM Voucher v
+            WHERE v.status = 1
+            AND :cartTotal >= v.minSpent
+            AND (
+                SELECT COUNT(o) FROM Order o
+                WHERE o.user.id = :userId
+                AND o.payment.voucher.id = v.id
+                AND o.orderDate >= :thirtyDaysAgo
+            ) < v.usagePerMonth
+        """;
+
+        // Format 30 days ago as string: "yyyy-MM-dd HH:mm:ss"
+        LocalDateTime nowMinus30 = LocalDateTime.now().minusDays(30);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String thirtyDaysAgo = nowMinus30.format(formatter);
+
+        TypedQuery<Voucher> query = db.createQuery(queryStr, Voucher.class)
+            .setParameter("userId", user.getId())
+            .setParameter("cartTotal", cartTotal)
+            .setParameter("thirtyDaysAgo", thirtyDaysAgo);
+
+        try {
+            eligibleVouchers = cache.getOrCreateList(
+                "eligible-vouchers-user-" + user.getId() + "-cart-" + cartTotal,
+                Voucher.class, query, Redis.CacheLevel.LOW
+            );
+        } catch (Exception e) {
+            eligibleVouchers = query.getResultList(); // fallback
+        }
+
+        return eligibleVouchers;
+    }
+
+    public VoucherInfoDTO getVoucherInfo(int voucherId, User user) {
+        Voucher voucher = getVoucher(voucherId);
+        if (voucher == null || user == null) {
+            return null;
+        }
+    
+        try {
+            String queryStr = """
+                SELECT COUNT(o) FROM Order o
+                WHERE o.user.id = :userId
+                AND o.payment.voucher.id = :voucherId
+                AND o.orderDate >= :thirtyDaysAgo
+            """;
+    
+            String thirtyDaysAgo = LocalDateTime.now()
+                .minusDays(30)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    
+            TypedQuery<Long> query = db.createQuery(queryStr, Long.class)
+                .setParameter("userId", user.getId())
+                .setParameter("voucherId", voucherId)
+                .setParameter("thirtyDaysAgo", thirtyDaysAgo);
+    
+            Long usedThisMonth = query.getSingleResult();
+            
+            VoucherInfoDTO voucherInfo = new VoucherInfoDTO(voucher, usedThisMonth.intValue());
+            voucherInfo.setDeduction(0);
+            voucherInfo.setTotalAfterDeduction(0);
+
+            return voucherInfo;
+    
+        } catch (Exception e) {
+            e.printStackTrace(); // or use a proper logger if available
+            return null;
+        }
     }
 
     public List<Notification> getNotifications(int id) {
