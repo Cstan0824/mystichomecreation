@@ -1,10 +1,16 @@
 package Models.Products;
 
-import Models.Orders.Order;
-import jakarta.persistence.*;
-
 import java.io.Serializable;
 import java.sql.Date;
+
+import Models.Orders.Order;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Product_Feedback")
@@ -12,13 +18,12 @@ import java.sql.Date;
 public class productFeedback implements Serializable {
 
     @Id
-    @Column(name = "product_id")
+    @Column(name = "product_id", insertable = false, updatable = false)
     private int productId;
 
     @Id
-    @Column(name = "order_id")
+    @Column(name = "order_id", insertable = false, updatable = false)
     private int orderId;
-    
 
     @ManyToOne
     @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
@@ -43,13 +48,10 @@ public class productFeedback implements Serializable {
     @Column(name = "reply_date")
     private Date replyDate;
 
-    @Column(name = "review", length = 255)
-    private String review;
 
     public productFeedback() {}
 
     // Getters and Setters
-
     public int getProductId() { return productId; }
     public void setProductId(int productId) { this.productId = productId; }
 
@@ -77,6 +79,4 @@ public class productFeedback implements Serializable {
     public Date getReplyDate() { return replyDate; }
     public void setReplyDate(Date replyDate) { this.replyDate = replyDate; }
 
-    public String getReview() { return review; }
-    public void setReview(String review) { this.review = review; }
 }

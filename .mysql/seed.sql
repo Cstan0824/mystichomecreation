@@ -401,6 +401,7 @@ INSERT INTO `Order_Status` (`status_description`) VALUES ('Received');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Cancelled');
 INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Credit Card');
 INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Online Banking');
+INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Cash on Delivery');
 
 INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '65.28', '247.99', '35.62', '5', 'She', 'Study oil process tend land.', '1');
 INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '88.48', '378.77', '26.06', '3', 'Member', 'Forward several help usually thank wonder.', '1');

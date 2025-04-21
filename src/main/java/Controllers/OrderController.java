@@ -1,6 +1,10 @@
 package Controllers;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,12 +15,14 @@ import DAO.CartDAO;
 import DAO.OrderDAO;
 import DAO.PaymentDAO;
 import DAO.UserDA;
+import DAO.productDAO;
 import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
 import Models.Orders.Order;
 import Models.Orders.OrderTransaction;
 import Models.Payment;
 import Models.Products.product;
+import Models.Products.productFeedback;
 import Models.Products.productType;
 import Models.Users.CartItem;
 import Models.Users.User;
@@ -39,8 +45,10 @@ public class OrderController extends ControllerBase {
     private CartDAO cartDAO = new CartDAO();
     private UserDA userDA = new UserDA();
     private AccountDA accountDA = new AccountDA();
+    private productDAO productDAO = new productDAO();
 
     // #region ORDER INFO PAGE
+    @SyncCache(channel = "Order", message = "from order/orderInfo")
     @ActionAttribute(urlPattern= "orderInfo")
     @HttpRequest(HttpMethod.GET)
     public Result orderInfo(int orderId) throws Exception{
@@ -61,10 +69,15 @@ public class OrderController extends ControllerBase {
 
         List<OrderTransaction> orderTransactions = orderDAO.getAllOrderTransactionByOrder(order);
 
+        Map<Integer, Boolean> feedbackMap = new HashMap<>();
+        if (order.getStatus().getId() == 4) {
+            feedbackMap = productDAO.getFeedbackMapByOrderId(order.getId());
+        }
         
         request.setAttribute("order", order);
         request.setAttribute("shippingInfo", shippingInfo);
         request.setAttribute("orderTransactions", orderTransactions);
+        request.setAttribute("feedbackMap", feedbackMap);
 
         
         return page();
@@ -72,8 +85,7 @@ public class OrderController extends ControllerBase {
 
     // #endregion ORDER INFO PAGE
 
-
-    // #region PAYMENT
+    // #region CHECKOUT PAGE
 
     // Process payment
     @HttpRequest(HttpMethod.POST)
@@ -215,6 +227,9 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
     
+    // #endregion CHECKOUT PAGE
+
+    // #region PAYMENT
     @HttpRequest(HttpMethod.POST)
     public Result addPayment(Payment payment) throws Exception {
 
@@ -527,4 +542,58 @@ public class OrderController extends ControllerBase {
     }
 
     // #endregion ORDER TRANSACTION
+
+    // #region ORDER FEEDBACK
+
+    @SyncCache(channel = "ProductFeedback", message = "from order/addOrderFeedback")
+    @HttpRequest(HttpMethod.POST)
+    public Result addOrderFeedback(int orderId, int productId, String comment, int rating) throws Exception {
+
+        System.out.println("Add Order Feedback");
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonResponse = mapper.createObjectNode();
+
+        Order order = orderDAO.getOrderById(orderId);
+        product product = productDAO.searchProducts(productId);
+
+        productFeedback orderFeedback = new productFeedback();
+
+        Date feedbackDate = Date.valueOf(LocalDate.now());
+        orderFeedback.setFeedbackDate(feedbackDate);
+        orderFeedback.setOrder(order);
+        orderFeedback.setProduct(product);
+        orderFeedback.setComment(comment);
+        orderFeedback.setRating(rating);
+        orderFeedback.setOrderId(orderId);
+        orderFeedback.setProductId(productId);
+
+
+        // Only allow feedback if order is completed
+        if (order.getStatus() == null || order.getStatus().getId() != 4) {
+            jsonResponse.put("success", false);
+            jsonResponse.put("error_msg", "Order not completed yet");
+            return json(jsonResponse);
+        }
+
+        try {
+            boolean isAdded = productDAO.addProductFeedback(orderFeedback);
+            if (isAdded) {
+                jsonResponse.put("success", true);
+                jsonResponse.put("orderFeedback_info", orderFeedback.getOrder().getId() + " " + orderFeedback.getProduct().getTitle());
+            } else {
+                jsonResponse.put("success", false);
+                jsonResponse.put("error_msg", "Failed to add feedback.");
+            }
+        } catch (Exception e) {
+            jsonResponse.put("success", false);
+            jsonResponse.put("error_msg", e.getMessage());
+        }
+
+        return json(jsonResponse); // ✅ Add final return
+    }
+
+
+
+    // #endregion ORDER FEEDBACK
 }
