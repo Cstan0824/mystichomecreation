@@ -35,14 +35,14 @@
 
 </head>
 
-<body class="bg-white text-gray-800 selection:bg-yellow-400 selection:text-white">
-
+<body class="bg-gray-50 text-gray-800 selection:bg-yellow-400 selection:text-white">
+    <%@ include file="/Views/Shared/Header.jsp" %>
 	<div class="">
 		<div class="mx-20 my-16">
 			<div class="flex w-full gap-6">
 
 				<!-- Container A: Sidebar (20%) -->
-				<aside class="basis-[20%] bg-white border p-6 rounded shadow">
+				<aside class="basis-[20%] bg-white border p-6 rounded mhc-box-shadow ">
 					<div class="mb-8">
 						<p class="text-xl font-semibold text-gray-800">Tan Choon Shen</p>
 						<a href="#profile"
@@ -93,7 +93,7 @@
 				<!-- Container B: Main content (80%) -->
 				<main class="basis-[80%] bg-white rounded shadow">
 					<iframe id="contentFrame" src="<%= request.getContextPath() %>/User/account/profile"
-						style="width: 100%; height: 580px; border: none;">
+						style="width: 100%; height: 580px; border: none;" class="mhc-box-shadow ">
 					</iframe>
 				</main>
 			</div>
@@ -318,6 +318,8 @@
 			</div>
 		</div>
 	</div>
+    <%@ include file="/Views/Shared/Footer.jsp" %>
+
 	<script>
 		const PAGE_MAP = {
 			'': '<%= request.getContextPath() %>/User/account/profile',

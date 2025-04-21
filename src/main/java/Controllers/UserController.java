@@ -3,22 +3,27 @@ package Controllers;
 import mvc.ControllerBase;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Helpers.Helpers;
 import mvc.Helpers.SessionHelper;
 import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.otps.OTPHelper;
 import mvc.Http.HttpMethod;
 
 import java.util.List;
 
 import DAO.AccountDA;
 import DAO.UserDA;
+import DTO.UserCredentials;
+import DTO.UserSession;
 import Models.Accounts.BankType;
 import Models.Accounts.PaymentCard;
 import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
 import Models.Users.User;
+import Models.Users.UserImage;
 import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/User/*")
@@ -38,7 +43,18 @@ public class UserController extends ControllerBase {
     @ActionAttribute(urlPattern = "account/profile")
     public Result profile() throws Exception {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
-        request.setAttribute("profile", session.getUser());
+        if (session.getId() == 0) {
+            return error("User not found.");
+        }
+        User user = userDA.getUserById(session.getId());
+        if (user == null) {
+            return error("User not found.");
+        }
+        request.setAttribute("profile", session.getUserSession());
+        if (session.getUserSession().getImageId() != null) {
+            request.setAttribute("imageUrl", "File/Content/user/retrieve?id=" + session.getUserSession().getImageId());
+        }
+        request.setAttribute("birthDate", user.getBirthdate());
         return page();
     }
 
@@ -73,7 +89,9 @@ public class UserController extends ControllerBase {
         boolean response = userDA.updateUser(existingUser);
 
         if (response) {
-            session.setUser(existingUser); // Update session with the new data
+            // session.setUser(existingUser); // Update session with the new data
+            session.setEmail(user.getEmail());
+            session.setUsername(user.getUsername());
             return success("Profile updated successfully");
         }
 
@@ -100,7 +118,12 @@ public class UserController extends ControllerBase {
     public Result password() throws Exception {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
         String passwordChangeState = session.get("passwordChangeState");
-        request.setAttribute("passwordChageState", passwordChangeState);
+        if (null == passwordChangeState || "".equals(passwordChangeState)) {
+            passwordChangeState = "step#1";
+        }
+        passwordChangeState = passwordChangeState.split("#")[1];
+        request.setAttribute("passwordChangeState", passwordChangeState);
+        request.setAttribute("email", session.getEmail());
         return page();
     }
 
@@ -112,12 +135,32 @@ public class UserController extends ControllerBase {
         int userId = session.getId();
 
         boolean response = accountDA.verifyPassword(userId, password);
-        if (response) {
-            session.set("passwordChangeState", "step#1");
-            return success();
+        if (!response) {
+            return error("Incorrect password");
+        }
+        session.set("passwordChangeState", "step#2");
+        // generate otp and send to user
+        sendOTP();
+
+        return success();
+    }
+
+    @ActionAttribute(urlPattern = "account/password/otp/send")
+    @HttpRequest(HttpMethod.POST)
+    public Result sendOTP() throws Exception {
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        String passwordChangeState = session.get("passwordChangeState");
+
+        if (!"step#2".equals(passwordChangeState)) {
+            return error("Invalid state for OTP generation");
         }
 
-        return error("Incorrect password");
+        boolean response = OTPHelper.sendOTP(userId);
+        if (response) {
+            return success("OTP sent successfully");
+        }
+        return error("Failed to send OTP");
     }
 
     // @Authorization(permissions = "User/account/password/otp")
@@ -127,13 +170,13 @@ public class UserController extends ControllerBase {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
         String passwordChangeState = session.get("passwordChangeState");
 
-        if (!"step#1".equals(passwordChangeState)) {
+        if (!"step#2".equals(passwordChangeState)) {
             return error("Invalid state for OTP verification");
         }
 
-        boolean response = Helpers.verifyOTP(otp);
+        boolean response = OTPHelper.verifyOTP(session.getId(), otp);
         if (response) {
-            session.set("passwordChangeState", "step#2");
+            session.set("passwordChangeState", "step#3");
             return success();
         }
         return error("Invalid OTP");
@@ -148,7 +191,7 @@ public class UserController extends ControllerBase {
         int userId = session.getId();
         String passwordChangeState = session.get("passwordChangeState");
 
-        if (!"step#2".equals(passwordChangeState)) {
+        if (!"step#3".equals(passwordChangeState)) {
             return error("Invalid state for password change");
         }
 
@@ -293,9 +336,7 @@ public class UserController extends ControllerBase {
         return error("Failed to delete payment card");
     }
 
-    // TODO: Implement the authorization properly( user should able to review the
-    // vouchers only, and not add/edit/delete them)
-    // @Authorization(permissions = "User/account/vouchers")
+    @Authorization(accessUrls = "User/account/vouchers")
     @ActionAttribute(urlPattern = "account/vouchers")
     public Result vouchers() throws Exception {
         List<Voucher> vouchers = accountDA.getVouchers();
@@ -303,7 +344,7 @@ public class UserController extends ControllerBase {
         return page();
     }
 
-    // @Authorization(permissions = "User/account/vouchers/add")
+    @Authorization(accessUrls = "User/account/vouchers/add")
     @ActionAttribute(urlPattern = "account/voucher/add")
     @SyncCache(channel = "Voucher", message = "addVoucher")
     @HttpRequest(HttpMethod.POST)
@@ -315,7 +356,7 @@ public class UserController extends ControllerBase {
         return error("Failed to add voucher");
     }
 
-    // @Authorization(permissions = "User/account/vouchers/status")
+    @Authorization(accessUrls = "User/account/vouchers/status")
     @ActionAttribute(urlPattern = "account/voucher/status")
     @SyncCache(channel = "Voucher", message = "updateVoucherStatus")
     @HttpRequest(HttpMethod.POST)
@@ -350,16 +391,38 @@ public class UserController extends ControllerBase {
         return json(url);
     }
 
-    public Result demoSession() throws Exception {
-        SessionHelper session = getSessionHelper(); // function from ControllerBase
+    public Result demoSession(String username, String password) throws Exception {
+        UserCredentials userCredential = new UserCredentials();
+        userCredential.setUsername(username);
+        userCredential.setPassword(password);
+        User user = userDA.getUserByUsername(userCredential.getUsername());
+        SessionHelper session = getSessionHelper();
+        UserSession userSession = new UserSession();
+        if (user == null) {
+            return error("Invalid username or password.");
+        }
+        String passwords = userDA.getUserPasswordById(user.getId());
+        if (!Helpers.verifyPassword(userCredential.getPassword(), passwords)) {
+            return error("Invalid username or password.");
+        }
+        List<String> accessUrls = userDA.getUrlAccesses(user.getRole().getId());
+        if (accessUrls == null) {
+            return error("User does not have any access permissions.");
+        }
+        UserImage userImage = userDA.getUserImageByUserId(user.getId());
+        if (userImage != null) {
+            userSession.setImageId(userImage.getId());
+        }
+        userSession.setId(user.getId());
+        userSession.setUsername(user.getUsername());
+        userSession.setEmail(user.getEmail());
+        userSession.setRole(user.getRole().getDescription());
+        userSession.setAuthenticated(true);
+        userSession.setAccessUrls(accessUrls);
 
-        User user = userDA.getUserById(1);
-        // Store user object in session
-        session.setUser(user);
-
-        // Add indication of successful login to request attributes
-        request.setAttribute("currentUser", user);
-
+        session.setUserSession(userSession);
+        SessionHelper demo = getSessionHelper();
+        System.out.println(demo.getUserSession().getUsername());
         return success();
     }
     // #endregion

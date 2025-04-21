@@ -1,26 +1,32 @@
 package Controllers;
 
 import java.io.File;
+import java.sql.Blob;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.sql.rowset.serial.SerialBlob;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import DAO.UserDA;
 import DAO.devDA;
+import Models.TestImage;
 import Models.dev;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
 import mvc.Helpers.Mail.MailService;
 import mvc.Helpers.Mail.MailType;
 import mvc.Helpers.pdf.PdfService;
 import mvc.Helpers.pdf.PdfType;
 import mvc.ControllerBase;
+import mvc.DataAccess;
 import mvc.FileType;
 import mvc.Http.HttpMethod;
 import mvc.Http.HttpStatusCode;
@@ -29,6 +35,7 @@ import mvc.Result;
 @WebServlet("/dev/*")
 public class devController extends ControllerBase {
     private devDA devDA = new devDA();
+    private UserDA userDA = new UserDA();
 
     // @Authorization(permissions = "viewDev")
     public Result index() throws Exception {
@@ -72,7 +79,7 @@ public class devController extends ControllerBase {
         return json(json, HttpStatusCode.UNAUTHORIZED, "Login failed");
     }
 
-    @Authorization(permissions = "addDev")
+    @Authorization(accessUrls = "addDev")
     @HttpRequest(HttpMethod.POST)
     @SyncCache(channel = "dev", message = "from dev/addDev")
     public Result addDev(dev user) throws Exception {
@@ -87,17 +94,23 @@ public class devController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    public Result setSession() throws Exception {
-        System.out.println("Sessions");
-        SessionHelper session = new SessionHelper(context.getRequest().getSession());
-        session.setAuthenticated(true);
-        session.setPermissions("addDev");
-        return success();
+    public Result hashFunction(String password) throws Exception {
+        String myPassword = userDA.getUserPasswordById(1);
+        boolean response = Helpers.verifyPassword(password, Helpers.hashPassword(myPassword));
+        System.out.println("Hashed Password: " + Helpers.hashPassword(password));
+        System.out.println("Password: " + password);
+        System.out.println("Hashed myPassword: " + Helpers.hashPassword(myPassword));
+        if (response) {
+            return success("Password is correct");
+        }
+        return error();
     }
 
-    public Result hashFunction(String password) throws Exception {
-        String myPassword = "admin1234";
-        boolean response = Helpers.verifyPassword(password, Helpers.hashPassword(myPassword));
+    public Result verifyHash(String ori, String hash) throws Exception {
+        boolean response = Helpers.verifyPassword(ori, hash);
+        System.out.println("Hashed Password: " + Helpers.hashPassword(ori));
+        System.out.println("Password: " + hash);
+        System.out.println("Hashed Original Password: " + ori);
         if (response) {
             return success("Password is correct");
         }
@@ -164,11 +177,22 @@ public class devController extends ControllerBase {
         return file(bytes, "myreciept", FileType.PDF);
     }
 
-    // Handle multiple files and return single file
+    // Handle single/multiple files and return single file
     // Refer to localhost:8080/web/dev/test page
     @HttpRequest(HttpMethod.POST)
     public Result getFromAttachFile(byte[][] file) throws Exception {
-        return file(file[0], "test-file", FileType.PDF);
+        FileType contentType = Helpers.getFileTypeFromBytes(file[0]);
+
+        EntityManager em = DataAccess.getEntityManager();
+        Blob blob = new SerialBlob(file[0]);
+        TestImage image = new TestImage();
+
+        em.getTransaction().begin();
+        image.setImage(blob);
+        em.persist(image);
+        em.getTransaction().commit();
+
+        return file(file[0], "test-file", contentType);
     }
 
 }
