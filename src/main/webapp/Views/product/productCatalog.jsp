@@ -244,6 +244,16 @@
             document.body.classList.remove("overflow-hidden");
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('created') === '1') {
+                alert('✅ Product created successfully!');
+                params.delete('created');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+        });
+
+
 
     </script>
 </body>

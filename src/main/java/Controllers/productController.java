@@ -13,15 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DAO.productDAO;
 import Models.Products.product;
 import Models.Products.productDTO;
 import Models.Products.productFeedback;
+import Models.Products.productFeedbackKey;
 import Models.Products.productType;
 import Models.Products.productVariationOptions;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Part;
 
 
 
@@ -95,7 +98,7 @@ public class productController extends ControllerBase {
             throw new Exception("❌ Failed to parse variations JSON", e);
         }
 
-        List<productFeedback> feedbackList = productDAO.getFeedbackForProduct(id);
+        List<productFeedback> feedbackList = productDAO.getFeedbackWithUserAndProduct(id);
         System.out.println("📝 Feedback count: " + (feedbackList != null ? feedbackList.size() : 0));
         for (productFeedback fb : feedbackList) {
             System.out.println("⭐ Feedback: " + fb.getRating() + " - " + fb.getComment());
@@ -169,26 +172,36 @@ public class productController extends ControllerBase {
     @ActionAttribute(urlPattern = "productCatalog/addProduct")
     @HttpRequest(HttpMethod.POST)
     public Result addProduct() throws Exception {
-        // image , featured and variation are not in here yet  
-        
-
-        //read the parameter 
+        // image
+        String imageFile = request.getParameter("imageFile");
         String title       = request.getParameter("title");
         String desc        = request.getParameter("description");
         String priceRaw    = request.getParameter("price");
         String stockRaw    = request.getParameter("stock");
         String typeIdRaw   = request.getParameter("typeId");
         String retailInfo  = request.getParameter("retailInfo");
-        String imageUrl    = request.getParameter("imageUrl");
         String slug =  request.getParameter("slug");
         boolean featured = request.getParameter("featured")!= null; // this is a checkbox so if it is checked it will be true
         String variationsJson = request.getParameter("variations");
-        System.out.println("🧩 Raw variations JSON: " + variationsJson); 
-
         
         if(variationsJson == null || variationsJson.isEmpty()){
             variationsJson = "{}"; // set to empty json if it is null or empty
         }
+
+        // Part imagePart = request.getPart("imageFile");
+        
+        // if(imagePart != null && imagePart.getSize() > 0){
+
+        //     // read the image file as bytes 
+        //     byte[] bytes = imagePart.getInputStream().readAllBytes();
+
+        //     //
+        //     FileController fileController = new FileController();
+        //     Result uploadResult = fileController.uploadProduct(new byte[][]{bytes}); //Wraps single image in a 2D array
+        //     JsonNode json =  (JsonNode) uploadResult.getData();
+        //     String fileName = json.get("fileName").asText();
+        // }
+
 
         System.out.println("📩 title       = " + title);
         System.out.println("📩 description = " + desc);
@@ -196,9 +209,11 @@ public class productController extends ControllerBase {
         System.out.println("📩 stockRaw    = " + stockRaw);
         System.out.println("📩 typeIdRaw   = " + typeIdRaw);
         System.out.println("📩 retailInfo  = " + retailInfo);
-        System.out.println("📩 imageUrl    = " + imageUrl);
         System.out.println("📩 slug        = " + slug);
         System.out.println("📩 featured    = " + featured);
+        System.out.println("🧩 Raw variations JSON: " + variationsJson); 
+        System.out.println("📩 imageFile    = " + imageFile);
+
 
         double price = Double.parseDouble(priceRaw);
         int stock    = Integer.parseInt(stockRaw);
@@ -221,7 +236,6 @@ public class productController extends ControllerBase {
         newProduct.setCreatedDate(new java.sql.Date(System.currentTimeMillis()));
         newProduct.setVariations(variationsJson);
         newProduct.setSlug(slug);
-        newProduct.setImageUrl(imageUrl);
         newProduct.setFeatured(featured ? 1 : 0); 
         
 
@@ -241,9 +255,11 @@ public class productController extends ControllerBase {
             return error("Error saving product");
         }
 
-         // 7. redirect to catalog
-         response.sendRedirect(request.getContextPath() + "/product/productCatalog");
-         return null;
+        
+        
+        // 7. redirect to catalog
+        response.sendRedirect(request.getContextPath() + "/product/productCatalog?created=1");
+        return null;
 
     }
 
@@ -253,7 +269,8 @@ public class productController extends ControllerBase {
         int id = Integer.parseInt(request.getParameter("productId"));
         System.out.println("🗑️ Deleting product with ID: " + id);
         productDAO.deleteProduct(id);
-        return success("Product deleted successfully");
+        response.sendRedirect(request.getContextPath() + "/product/productCatalog?deleted=1");
+        return null;
     }
 
     @ActionAttribute(urlPattern = "updateProduct")
@@ -328,14 +345,31 @@ public class productController extends ControllerBase {
         }
 
          // 7. redirect to catalog
-         return success("Product updated successfully");
-
+        response.sendRedirect(request.getContextPath() + "/product/productCatalog?updated=1");
+        return null;
 
 
     }
     
+    @ActionAttribute(urlPattern = "feedback/reply")
+    @HttpRequest(HttpMethod.POST)
+    public Result replyFeedback() throws Exception {
+        int productId = Integer.parseInt(request.getParameter("productId"));
+        int orderId   = Integer.parseInt(request.getParameter("orderId"));
+        String reply  = request.getParameter("reply").trim();
 
+        productFeedbackKey key = new productFeedbackKey(productId, orderId);
+        productFeedback fb = productDAO.findById(key);
+        if (fb == null) {
+            return error("Feedback not found");
+        }
+        fb.setReply(reply);
+        fb.setReplyDate(new java.sql.Date(System.currentTimeMillis()));
+        productDAO.replyToFeedback(fb);
+
+        return success("Reply sent successfully");
     
+    }
 
 
 

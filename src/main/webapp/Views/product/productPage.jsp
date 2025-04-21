@@ -131,6 +131,7 @@
                     <p class="mb-4 text-lg"><%= product.getDescription() %></p>
                     <hr class="mb-4">
                 </div>
+                
 
                 <!-- Reviews -->
                 <div class="pt-6">
@@ -144,55 +145,80 @@
                             }
                             // total rating / how many feedback form
                             float averageRating = (float) totalRating / feedbackList.size();
+
                     %>
                         <h2 class="text-xl font-semibold mb-6">
                             Overall Rating:
                             <span class="text-yellow-400">
                                 <% for (int i = 1; i <= 5; i++) { %>
-                                    <%= (i <= Math.floor(averageRating)) ? "★" : "☆" %>
+                                    <%= (i <= Math.floor(averageRating)) ? "<i class='fa-solid fa-star'></i>" : "<i class='fa-regular fa-star'></i>" %>
                                 <% } %>
                             </span>
                             <%= String.format("%.1f", averageRating) %> (<%= feedbackList.size() %>)
                         </h2>
 
-                        <div class="bg-white rounded-lg space-y-6">
-                            <% for (productFeedback feedback : feedbackList) { %>
-                                <div class="border-b pb-4">
-                                    <h3 class="font-bold">User name</h3>
-                                    <p class="text-yellow-400">
-                                        <% for (int i = 1; i <= 5; i++) { %>
-                                            <%= (i <= feedback.getRating()) ? "★" : "☆" %>
-                                        <% } %>
-                                    </p>
-                                    <p><%= feedback.getComment() %></p>
-                                    <p class="text-sm text-gray-600"><%= feedback.getFeedbackDate() %></p>
+                      <div class="bg-white rounded-lg space-y-6">
+                        <% for (productFeedback feedback : feedbackList) { %>
+                            <!-- Entire comment + reply lives inside one bordered box -->
+                            <div class="border-b pb-4">
+                            <!-- 1) Original user feedback -->
+                            <h3 class="font-bold">
+                                <%= feedback.getOrder().getUser().getUsername() %>
+                            </h3>                            
+                            <p class="text-yellow-400">
+                                <% for (int i = 1; i <= 5; i++) { %>
+                                <%= (i <= feedback.getRating()) ? "<i class='fa-solid fa-star'></i>" : "<i class='fa-regular fa-star'></i>" %>
+                                <% } %>
+                            </p>
+                            <p><%= feedback.getComment() %></p>
+                            <p class="text-sm text-gray-600"><%= feedback.getFeedbackDate() %></p>
+
+                            
+                            <% if (feedback.getReply() != null && !feedback.getReply().isEmpty()) { %>
+                                <!-- Already replied: show reply + date -->
+                                <div class="mt-2">
+                                    Reply : 
+                                    <div class="reply-text mb-1"><%= feedback.getReply() %></div>
+                                    <div class="reply-date text-xs text-gray-500"><%= feedback.getReplyDate() %></div>
+                                </div>
+                            <% } else { %>
+                                <!-- No reply yet: show reply icon + inline form -->
+                                <div class="mt-2">
+                                <i
+                                    class="fa-solid fa-reply cursor-pointer text-black-300"
+                                    onclick="toggleReplyForm(this)"
+                                    title="Reply to this comment"
+                                ></i>
+
+                                <form
+                                    action="<%=request.getContextPath()%>/product/feedback/reply"
+                                    method="post"
+                                    class="inline-reply-form hidden mt-2 space-y-2"
+                                >
+                                    <input type="hidden" name="productId" value="<%= feedback.getProductId() %>"/>
+                                    <input type="hidden" name="orderId"   value="<%= feedback.getOrderId()   %>"/>
+
+                                    <label class="block text-sm font-semibold">Your reply:</label>
+                                    <textarea
+                                    name="reply"
+                                    rows="2"
+                                    placeholder="Type your reply…"
+                                    class="w-full border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    required
+                                    ></textarea>
+
+                                    <button
+                                    type="submit"
+                                    class="bg-yellow-400 hover:bg-green-600 text-white px-4 py-1 rounded text-sm transition-colors"
+                                    >
+                                    Send
+                                    </button>
+                                </form>
                                 </div>
                             <% } %>
-                        </div>
-                    
-                        <!-- Add Reply comment -->
-                        <% if (fb.getReply() != null && !fb.getReply().isEmpty()) { %>
-                            <div class="reply-text mb-1"><%= fb.getReply() %></div>
-                            <div class="reply-date text-xs text-gray-500"><%= fb.getReplyDate() %></div>    
-                        <% }else{ %>
-                            <i class="fa fa-reply cursor-pointer text-blue-600" name="Reply" onclick="toggleReplyForm(this)"></i>
-
-                            <form class="reply-form hidden mt-2" action="<%=request.getContextPath()%>/product/feedback/reply" method="post">
-                                <input type="hidden" name="feedbackId" value="<%=fb.getId()%>"/>     
-                                <label class="block text-sm font-semibold mb-1">
-                                    Your reply:
-                                </label>
-
-                                <textarea  name="reply" class="w-full border px-2 py-1 rounded mb-1" rows="2" placeholder="Your Reply" ></textarea>
-
-                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">
-                                    Send
-                                </button>
-                            </form>
-
-
-
+                            </div>
                         <% } %>
+                        </div>
 
                         
                         
@@ -253,7 +279,7 @@
             },
         });
 
-         function openeditModal() {
+        function openeditModal() {
             const m = document.getElementById("editProductModal");
             m.classList.remove("hidden");
             document.body.classList.add("overflow-hidden");
@@ -264,26 +290,33 @@
             document.body.classList.remove("overflow-hidden");
         }
 
+    
+
         function toggleReplyForm(icon) {
-            // Find the sibling form and toggle its visibility
-            const cell = icon.closest('.reply-cell');
-            const form = cell.querySelector('.inline-reply-form');
-            form.classList.toggle('hidden');
-
-            if (!form.classList.contains('hidden')) {
-                form.querySelector('textarea').focus();
-            }
-        }
-
-         function toggleReplyForm(icon) {
-            // the next sibling is your form
-            const form = getElementById("reply-form");
-
+            // Assumes the <form> is the very next sibling
+            const form = icon.nextElementSibling;
             form.classList.toggle('hidden');
             if (!form.classList.contains('hidden')) {
             form.querySelector('textarea').focus();
             }
         }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('updated') === '1') {
+                alert('✅ Product updated successfully!');
+                params.delete('updated');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+            if (params.get('deleted') === '1') {
+                alert('❌ Product deleted successfully!');
+                params.delete('deleted');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+        });
+
+
+    
 
 
 

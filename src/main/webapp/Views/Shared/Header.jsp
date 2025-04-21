@@ -52,7 +52,7 @@
                                             <i class="fa-solid fa-arrows-rotate"></i>
                                         </div>
                                     </div>
-                                    <a href="#" class="text-sm font-semibold text-darkYellow underline">View All</a>
+                                    <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
 
                                 <div class="flex flex-col max-h-[550px] overflow-y-auto" id="cart-items">
@@ -124,7 +124,7 @@
                             
                                 `
                                 
-                                <div id="cart-item" class="px-6 py-4 flex gap-2">
+                                <div id="cart-item" class="px-6 py-4 flex gap-2 prod-row">
                                         <div class="w-full h-full max-w-[26px] max-h-[26px] lg:max-w-[30px] lg:max-h-[30px]">
                                             <img src="`+ item.product_img + `" alt="product-img" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] rounded-[6px] object-cover border border-grey2 box-border"/>
                                         </div>
@@ -145,7 +145,9 @@
             
                                                 <div class="flex items-center h-[26px] bg-white">
                                                     <!-- Decrease Button -->
-                                                    <button id="decrease-btn" type="button" 
+                                                    <button 
+                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, -1)"
+                                                        id="decrease-btn" type="button" 
                                                         class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200 px-2">
                                                         <span>-</span>
                                                     </button>
@@ -153,11 +155,13 @@
                                                     <!-- Value Display -->
                                                     <div id="quantity-value" 
                                                         class="min-w-[33px] h-full flex items-center justify-center border-y-2 border-gray2 border-gray2 text-lg text-center px-2">
-                                                        <span>`+ item.quantity +`</span>
+                                                        <span class="quantity">`+ item.quantity +`</span>
                                                     </div>
                                             
                                                     <!-- Increase Button -->
-                                                    <button id="increase-btn" type="button" 
+                                                    <button 
+                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, +1)"
+                                                        id="increase-btn" type="button" 
                                                         class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200 px-2">
                                                         <span>+</span>
                                                     </button>
@@ -176,6 +180,9 @@
                         });
                         // Update the cart container with the generated HTML
                         cartContainer.innerHTML = html;
+                        // ✅ Trigger event for cart page sync
+                        const event = new CustomEvent('cart:changed');
+                        window.dispatchEvent(event);
                     } else {
                         console.warn('cart_items is not defined or not an array:', innerData.cart_items);
                     }
@@ -184,6 +191,46 @@
                     console.error('Error fetching cart items:', error);
                 }
             });
+        }
+
+        function updateQty(btn, cartId, productId, delta) {
+            const row = btn.closest('.prod-row');
+            const qtyEl = row.querySelector('.quantity');
+            const oldQty = parseInt(qtyEl.textContent);
+
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Cart/updateQuantity',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    cartId: cartId,
+                    productId: productId,
+                    delta: delta
+                }),
+                success: function(response) {
+                    console.log('Quantity updated successfully:', response);
+                    console.log("qtyEl found?", qtyEl);
+                    const parsedJson = JSON.parse(response.data);
+                    console.log("New quantity:", parsedJson.quantity);
+                    qtyEl.textContent = parsedJson.quantity; // Update displayed quantity
+                    if ($('.product-row').length) {
+                        const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
+                        if (cartRow.length > 0) {
+                            cartRow.find('.qty').text(parsedJson.quantity);
+                        }
+                        const event = new CustomEvent('cart:changed');
+                        window.dispatchEvent(event);
+                    }
+                    
+                },
+                error: function(xhr, status, error) {
+                    qtyEl.textContent = oldQty; // Revert to old quantity on error
+                    console.error('Error updating quantity:', error);
+                }
+            }); 
+            
+
+            
         }
 
         // Function to delete cart item
@@ -199,7 +246,15 @@
                 success: function (response) {
                     console.log('Item deleted successfully:', response);
                     // Optionally, refresh the cart items after deletion
-                    setTimeout(fetchCartItems(), 1000);
+                    setTimeout(fetchCartItems, 300);
+                    if ($('.product-row').length) {
+                        const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
+                        if (cartRow.length > 0) {
+                            cartRow.remove();
+                            const event = new CustomEvent('cart:changed');
+                            window.dispatchEvent(event);
+                        }
+                    }
                 },
                 error: function (error) {
                     console.error('Error deleting item:', error);
@@ -210,33 +265,91 @@
         $(document).ready(function() {
           
 
-        const $cartButton = $('#cart-button');
-        const $cartPopup = $('#cart-popup');
-        const $cartRefresh = $('#cart-refresh');
+            const $cartButton = $('#cart-button');
+            const $cartPopup = $('#cart-popup');
+            const $cartRefresh = $('#cart-refresh');
 
-        let isCartPopupVisible = false;
+            let isCartPopupVisible = false;
 
-        $cartButton.on('click', function (e) {
-            e.stopPropagation(); // Prevent the event from bubbling up to the document
-            
-            // Close user menu if it's open
-            if (isUserMenuVisible) {
-                gsap.to($userMenu, {
-                    duration: 0.2,
-                    y: 10,
-                    autoAlpha: 0,
-                    ease: 'power2.in',
-                    onComplete: function () {
-                        $userMenu.addClass('hidden');
-                        isUserMenuVisible = false;
-                    }
-                });
-            }
+            $cartButton.on('click', function (e) {
+                e.stopPropagation(); // Prevent the event from bubbling up to the document
+                
+                // Close user menu if it's open
+                if (isUserMenuVisible) {
+                    gsap.to($userMenu, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $userMenu.addClass('hidden');
+                            isUserMenuVisible = false;
+                        }
+                    });
+                }
 
-            if (!isCartPopupVisible) {
-                setTimeout(function() {
-                    $cartPopup.removeClass('hidden');
-                    gsap.fromTo($cartPopup[0],
+                if (!isCartPopupVisible) {
+                    setTimeout(function() {
+                        $cartPopup.removeClass('hidden');
+                        gsap.fromTo($cartPopup[0],
+                            { y: 10, autoAlpha: 0 },
+                            {
+                                y: 0,
+                                autoAlpha: 1,
+                                duration: 0.2,
+                                ease: 'power2.out'
+                            }
+                        );
+                        fetchCartItems(); // Fetch cart items when the popup is shown
+                    }, 100); // Delay the popup display by 100ms
+                    
+                    isCartPopupVisible = true;
+                } else {
+                    gsap.to($cartPopup[0], {
+                        y: 10,
+                        autoAlpha: 0,
+                        duration: 0.2,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $cartPopup.addClass('hidden');
+                            isCartPopupVisible = false;
+                        }
+                    });
+                    isCartPopupVisible = false;
+                }
+            });
+
+            $cartRefresh.on('click', function (e) {
+                e.stopPropagation(); // Prevent the event from bubbling up to the document
+                fetchCartItems();
+            });
+
+
+
+            const $userButton = $('#user-button');
+            const $userMenu = $('#user-menu');
+            let isUserMenuVisible = false;
+
+            $userButton.on('click', function (e) {
+                e.stopPropagation();
+
+                // Close cart popup if it's open
+                if (isCartPopupVisible) {
+                    gsap.to($cartPopup, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $cartPopup.addClass('hidden');
+                            isCartPopupVisible = false;
+                        }
+                    });
+                }
+
+                if (!isUserMenuVisible) {
+                    $userMenu.removeClass('hidden');
+                    gsap.fromTo($userMenu[0],
                         { y: 10, autoAlpha: 0 },
                         {
                             y: 0,
@@ -245,118 +358,52 @@
                             ease: 'power2.out'
                         }
                     );
-                }, 100); // Delay the popup display by 100ms
-                
-                isCartPopupVisible = true;
-            } else {
-                gsap.to($cartPopup[0], {
-                    y: 10,
-                    autoAlpha: 0,
-                    duration: 0.2,
-                    ease: 'power2.in',
-                    onComplete: function () {
-                        $cartPopup.addClass('hidden');
-                        isCartPopupVisible = false;
-                    }
-                });
-                isCartPopupVisible = false;
-            }
-        });
-
-        // Fetch cart items when the cart button is clicked
-        $cartButton.on('click', function (e) {
-            e.stopPropagation(); // Prevent the event from bubbling up to the document
-            fetchCartItems();
-        });
-
-        $cartRefresh.on('click', function (e) {
-            e.stopPropagation(); // Prevent the event from bubbling up to the document
-            fetchCartItems();
-        });
-
-        // Hide when clicking outside the cart popup
-        $(document).on('click', function (e) {
-            if (isCartPopupVisible && !$cartPopup.is(e.target) && $cartPopup.has(e.target).length === 0 && !$cartButton.is(e.target) && $cartButton.has(e.target).length === 0) {
-                gsap.to($cartPopup, {
-                    duration: 0.2,
-                    autoAlpha: 0,
-                    ease: 'power2.in',
-                    onComplete: function () {
-                        $cartPopup.addClass('hidden');
-                        isCartPopupVisible = false;
-                    }
-                });
-            }
-        });
-
-        const $userButton = $('#user-button');
-        const $userMenu = $('#user-menu');
-        let isUserMenuVisible = false;
-
-        $userButton.on('click', function (e) {
-            e.stopPropagation();
-
-            // Close cart popup if it's open
-            if (isCartPopupVisible) {
-                gsap.to($cartPopup, {
-                    duration: 0.2,
-                    y: 10,
-                    autoAlpha: 0,
-                    ease: 'power2.in',
-                    onComplete: function () {
-                        $cartPopup.addClass('hidden');
-                        isCartPopupVisible = false;
-                    }
-                });
-            }
-
-            if (!isUserMenuVisible) {
-                $userMenu.removeClass('hidden');
-                gsap.fromTo($userMenu[0],
-                    { y: 10, autoAlpha: 0 },
-                    {
-                        y: 0,
-                        autoAlpha: 1,
+                    isUserMenuVisible = true;
+                } else {
+                    gsap.to($userMenu[0], {
+                        y: 10,
+                        autoAlpha: 0,
                         duration: 0.2,
-                        ease: 'power2.out'
-                    }
-                );
-                isUserMenuVisible = true;
-            } else {
-                gsap.to($userMenu[0], {
-                    y: 10,
-                    autoAlpha: 0,
-                    duration: 0.2,
-                    ease: 'power2.in',
-                    onComplete: function () {
-                        $userMenu.addClass('hidden');
-                        isUserMenuVisible = false;
-                    }
-                });
-            }
-        });
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $userMenu.addClass('hidden');
+                            isUserMenuVisible = false;
+                        }
+                    });
+                }
+            });
 
-        // Close user menu on outside click
-        $(document).on('click', function (e) {
-            if (isUserMenuVisible &&
-                !$userMenu.is(e.target) &&
-                $userMenu.has(e.target).length === 0 &&
-                !$userButton.is(e.target) &&
-                $userButton.has(e.target).length === 0) {
-                
-                gsap.to($userMenu, {
-                    duration: 0.2,
-                    autoAlpha: 0,
-                    ease: 'power2.in',
-                    onComplete: function () {
-                        $userMenu.addClass('hidden');
-                        isUserMenuVisible = false;
-                    }
-                });
-            }
-        });
-
-});
+            // Hide when clicking outside
+            $(document).on('click', function (e) {
+                if (isCartPopupVisible && !$cartPopup.is(e.target) && $cartPopup.has(e.target).length === 0 && !$cartButton.is(e.target) && $cartButton.has(e.target).length === 0) {
+                    gsap.to($cartPopup, {
+                        duration: 0.2,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $cartPopup.addClass('hidden');
+                            isCartPopupVisible = false;
+                        }
+                    });
+                }
+                if (isUserMenuVisible &&
+                    !$userMenu.is(e.target) &&
+                    $userMenu.has(e.target).length === 0 &&
+                    !$userButton.is(e.target) &&
+                    $userButton.has(e.target).length === 0) {
+                    
+                    gsap.to($userMenu, {
+                        duration: 0.2,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $userMenu.addClass('hidden');
+                            isUserMenuVisible = false;
+                        }
+                    });
+                }
+            });
+    });
     </script>
 </body>
 </html>

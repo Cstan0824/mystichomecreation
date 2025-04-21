@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 @Table(name = "Payment")
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     @Column(name = "payment_id")
     private int id;
 
@@ -40,10 +40,16 @@ public class Payment {
     public Payment() {
     }
 
-    public Payment(PaymentMethod method, Voucher voucher, double totalPaid) {
+    public Payment(PaymentMethod method, Voucher voucher, double totalPaid, String paymentInfo) {
         this.method = method;
         this.voucher = voucher;
         this.totalPaid = totalPaid;
+        this.paymentInfo = paymentInfo;
+    }
+    public Payment(PaymentMethod method, double totalPaid, String paymentInfo) {
+        this.method = method;
+        this.totalPaid = totalPaid;
+        this.paymentInfo = paymentInfo;
     }
 
     public int getId() {

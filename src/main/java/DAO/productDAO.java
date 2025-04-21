@@ -8,6 +8,7 @@ import java.util.List;
 import Models.dev;
 import Models.Products.product;
 import Models.Products.productFeedback;
+import Models.Products.productFeedbackKey;
 import Models.Products.productType;
 import Models.Products.productVariationOptions;
 import jakarta.ejb.Stateless;
@@ -33,19 +34,20 @@ public class productDAO implements Serializable{
         return null;
     }
 
-    public List<productFeedback> getFeedbackForProduct(int productId) {
-        try {
-            TypedQuery<productFeedback> query = db.createQuery(
-                "SELECT pf FROM productFeedback pf WHERE pf.productId = :productId",
-                productFeedback.class
-            );
-            query.setParameter("productId", productId);
-            return query.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<productFeedback> getFeedbackWithUserAndProduct(int productId) {
+        String jpql =
+            "SELECT DISTINCT pf " +
+            "FROM productFeedback pf " +
+            "  JOIN FETCH pf.order o " +
+            "  JOIN FETCH o.user u   " +
+            "  JOIN FETCH pf.product p " +
+            "WHERE pf.productId = :productId";
+    
+        TypedQuery<productFeedback> query = db.createQuery(jpql, productFeedback.class);
+        query.setParameter("productId", productId);
+        return query.getResultList();
     }
+    
 
     //never try before 
     public void addFeedback(productFeedback feedback) {
@@ -230,6 +232,30 @@ public class productDAO implements Serializable{
             e.printStackTrace();
             System.out.println("❌ DAO error on addProductType: " + e.getMessage());
         }
+    }
+
+    public void replyToFeedback(productFeedback fb) {
+        try {
+           
+            if (fb != null) {
+                db.getTransaction().begin();
+                db.merge(fb);
+                db.getTransaction().commit();
+                System.out.println("🗃️ DAO: Feedback replied to successfully");
+            } else {
+                System.out.println("❌ DAO: Feedback not found for reply");
+            }
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            System.out.println("❌ DAO error on replyToFeedback: " + e.getMessage());
+        }
+
+    }
+
+
+    public productFeedback findById(productFeedbackKey key) {
+    return db.find(productFeedback.class, key);
     }
 
 }

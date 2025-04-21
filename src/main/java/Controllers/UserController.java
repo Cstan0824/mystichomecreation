@@ -1,5 +1,6 @@
 package Controllers;
 
+
 import mvc.ControllerBase;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
@@ -25,6 +26,15 @@ import Models.Accounts.Voucher;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.servlet.annotation.WebServlet;
+import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.HttpRequest;
+import mvc.Annotations.SyncCache;
+import mvc.ControllerBase;
+import mvc.Helpers.Helpers;
+import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.SessionHelper;
+import mvc.Http.HttpMethod;
+import mvc.Result;
 
 @WebServlet("/User/*")
 public class UserController extends ControllerBase {
@@ -423,6 +433,7 @@ public class UserController extends ControllerBase {
         session.setUserSession(userSession);
         SessionHelper demo = getSessionHelper();
         System.out.println(demo.getUserSession().getUsername());
+
         return success();
     }
     // #endregion
