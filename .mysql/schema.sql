@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS `Product_Feedback` (
   `feedback_date` DATE NOT NULL,
   `reply_date` DATE,
   PRIMARY KEY (`product_id`, `order_id`) ,
-  FOREIGN KEY (`order_id`) REFERENCES `Order`(`order_id`),
+  FOREIGN KEY (`order_id`) REFERENCES `Orders`(`order_id`),
   FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
 );
 
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `Order_Transaction` (
   `ordered_product_price` DECIMAL NOT NULL,
   `selected_variations` JSON,
   PRIMARY KEY(`order_id`, `product_id`),
-  FOREIGN KEY (`order_id`) REFERENCES `Order`(`order_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`order_id`) REFERENCES `Orders`(`order_id`) ON DELETE CASCADE,
   FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
 );
 

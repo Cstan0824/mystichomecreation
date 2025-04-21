@@ -34,19 +34,20 @@ public class productDAO implements Serializable{
         return null;
     }
 
-    public List<productFeedback> getFeedbackForProduct(int productId) {
-        try {
-            TypedQuery<productFeedback> query = db.createQuery(
-                "SELECT pf FROM productFeedback pf WHERE pf.productId = :productId",
-                productFeedback.class
-            );
-            query.setParameter("productId", productId);
-            return query.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<productFeedback> getFeedbackWithUserAndProduct(int productId) {
+        String jpql =
+            "SELECT DISTINCT pf " +
+            "FROM productFeedback pf " +
+            "  JOIN FETCH pf.order o " +
+            "  JOIN FETCH o.user u   " +
+            "  JOIN FETCH pf.product p " +
+            "WHERE pf.productId = :productId";
+    
+        TypedQuery<productFeedback> query = db.createQuery(jpql, productFeedback.class);
+        query.setParameter("productId", productId);
+        return query.getResultList();
     }
+    
 
     //never try before 
     public void addFeedback(productFeedback feedback) {
