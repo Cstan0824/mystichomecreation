@@ -1,4 +1,5 @@
 package Controllers;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,7 +11,10 @@ import DAO.AccountDA;
 import DAO.CartDAO;
 import DAO.UserDA;
 import DAO.productDAO;
+import Models.Accounts.PaymentCard;
 import Models.Accounts.ShippingInformation;
+import Models.Accounts.Voucher;
+import Models.Accounts.VoucherInfoDTO;
 import Models.Products.product;
 import Models.Users.Cart;
 import Models.Users.CartItem;
@@ -61,6 +65,7 @@ public class CartController extends ControllerBase{
     public Result checkout(String label, String receiverName, String phoneNumber, String state, String postCode, String addressLine1, String addressLine2, boolean isDefault) throws Exception {
 
         System.out.println("Cart Checkout Page");
+        ObjectMapper mapper = new ObjectMapper();
         User user = userDA.getUserById(1);
         if (user == null) {
             return json("User not found");
@@ -77,12 +82,119 @@ public class CartController extends ControllerBase{
         shippingAddress.setDefault(isDefault);
 
         List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
+        int totalItems = 0;
+        double subtotal = 0.0;
+        double shippingFee = 25.0;
+        for (CartItem item : cartItems) {
+            subtotal += item.getProduct().getPrice() * item.getQuantity();
+            totalItems += item.getQuantity();
+        }
+        if (subtotal > 1000) {
+            shippingFee = 0.0;
+        }
+
+
+        List<Voucher> vouchers = accountDA.getAvailableVouchers(user, subtotal);
+        List<VoucherInfoDTO> voucherArray = new ArrayList<>();
+        
+        if (vouchers != null && !vouchers.isEmpty()) {
+            for (Voucher voucher : vouchers) {
+                double total = subtotal + shippingFee;
+                double deduction = 0;
+                VoucherInfoDTO voucherInfo = accountDA.getVoucherInfo(voucher.getId(), user);
+                voucherInfo.setDeduction(deduction);
+                voucherInfo.setTotalAfterDeduction(total);
+
+                //Calculate total after voucher deduction
+                if (voucher.getType().equals("Percent")){
+
+                    deduction = (subtotal * voucher.getAmount()) / 100;
+                    if (deduction > voucher.getMaxCoverage()){
+                        deduction = voucher.getMaxCoverage();
+                    }
+                    total = subtotal + shippingFee - deduction;
+
+                } else if (voucher.getType().equals("Fixed")){
+
+                    deduction = voucher.getAmount();
+                    total = subtotal + shippingFee - deduction;
+                    
+                }
+
+                voucherInfo.setDeduction(deduction);
+                voucherInfo.setTotalAfterDeduction(total);
+
+                voucherArray.add(voucherInfo);
+
+            }
+        }
+
+        List<PaymentCard> paymentCards = accountDA.getPaymentCards(1);
+
+
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("shippingAddress", shippingAddress);
+        request.setAttribute("voucherArray", voucherArray);
+        request.setAttribute("subtotal", subtotal);
+        request.setAttribute("shippingFee", shippingFee);
+        request.setAttribute("totalItems", totalItems);
+        request.setAttribute("paymentCards", paymentCards);
+
+
         
         return page();
     }
 
+    @SyncCache(channel = "Order", message = "from cart/getAvailableVouchers")
+    @HttpRequest(HttpMethod.POST)
+    public Result getAvailableVouchers(int userId, double subtotal) throws Exception {
+        System.out.println("Get Available Vouchers");
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonResponse = mapper.createObjectNode();
+    
+        try {
+            User user = userDA.getUserById(userId);
+            if (user != null) {
+                List<Voucher> vouchers = accountDA.getAvailableVouchers(user, subtotal);
+    
+                if (vouchers != null && !vouchers.isEmpty()) {
+                    ArrayNode voucherArray = mapper.createArrayNode();
+    
+                    for (Voucher voucher : vouchers) {
+                        VoucherInfoDTO voucherInfo = accountDA.getVoucherInfo(voucher.getId(), user);
+    
+                        ObjectNode voucherNode = mapper.createObjectNode();
+                        voucherNode.put("voucher_id", voucher.getId());
+                        voucherNode.put("voucher_name", voucher.getName());
+                        voucherNode.put("voucher_desc", voucher.getDescription());
+                        voucherNode.put("voucher_type", voucher.getType());
+                        voucherNode.put("voucher_amount", voucher.getAmount());
+                        voucherNode.put("voucher_max_coverage", voucher.getMaxCoverage());
+                        voucherNode.put("voucher_minimum_spend", voucher.getMinSpent());
+                        voucherNode.put("voucher_usage_left", voucherInfo.getUsageLeft());
+                        voucherNode.put("voucher_usage_limit", voucher.getUsagePerMonth());
+    
+                        voucherArray.add(voucherNode);
+                    }
+    
+                    jsonResponse.put("success", true);
+                    jsonResponse.set("available_vouchers", voucherArray);
+                } else {
+                    jsonResponse.put("success", false);
+                    jsonResponse.put("error_msg", "No vouchers available for current subtotal.");
+                }
+            } else {
+                jsonResponse.put("success", false);
+                jsonResponse.put("error_msg", "User not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonResponse.put("success", false);
+            jsonResponse.put("error_msg", e.getMessage());
+        }
+    
+        return json(jsonResponse);
+    }
 
     // Add New Cart to New User
     // This method is called when a new user is created and a cart is created for them.

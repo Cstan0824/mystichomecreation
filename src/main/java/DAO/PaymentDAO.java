@@ -35,6 +35,44 @@ public class PaymentDAO {
         }
     }
 
+    public Payment createPayment(int methodId, int voucherId, double totalPaid, String paymentInfo){
+        try {
+            db.getTransaction().begin();
+
+            // get method object
+            PaymentMethod method = db.find(PaymentMethod.class, methodId);
+            // get voucher object
+            Voucher voucher = null;
+            Payment payment = null;
+            
+            
+            if (voucherId != 0) {
+                // voucherId is not 0, so we need to get the voucher object
+                voucher = db.find(Voucher.class, voucherId);
+                payment = new Payment(method, voucher, totalPaid, paymentInfo);
+                db.persist(payment);
+                db.getTransaction().commit();
+
+            } else {
+                // voucherId is 0, so we don't need to get the voucher object
+                payment = new Payment(method, totalPaid, paymentInfo);
+                db.persist(payment);
+                db.getTransaction().commit();
+                
+            }
+            
+
+            
+
+            return payment;
+        } catch (Exception e) {
+            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
     // Read specific payment by ID from the database
     public Payment getPaymentById(int id) {
         Payment payment = null;
