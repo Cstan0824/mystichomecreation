@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,6 +28,7 @@ public class SignalHub {
 
     private final JedisPool pool;
     private static Logger logger = AuditService.getLogger();
+    private final ExecutorService executor = Executors.newFixedThreadPool(32);
 
     public SignalHub(JedisPool pool) {
         this.pool = pool;
@@ -144,8 +147,8 @@ public class SignalHub {
                         logger.info(
                                 "Found " + keysToSync.size() + " keys to sync for channel [" + receivedChannel + "]");
                         for (String keyToSync : keysToSync) {
-                            // Use a separate thread for each sync to avoid blocking pubsub
-                            new Thread(() -> syncCache(keyToSync)).start();
+                            // Use Thread Pool to prevent resource exhaustion
+                            executor.submit(() -> syncCache(keyToSync));
                             logger.fine("Dispatched sync task for key [" + keyToSync + "] on channel ["
                                     + receivedChannel + "]");
                         }
@@ -353,7 +356,7 @@ public class SignalHub {
                     // Create subscription
                     String channel = metadata.getControllerName() != null && !metadata.getControllerName().isEmpty()
                             ? metadata.getControllerName()
-                            : "global";
+                            : "*";
 
                     // Build the subscriber
                     buildSubscriber(channel, actualKey, metadata);

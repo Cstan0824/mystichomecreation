@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.lang.reflect.Array;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,6 +69,8 @@ public abstract class HttpBase extends HttpServlet {
 
     protected abstract Result page(String action, String controller) throws Exception;
 
+    protected abstract Result page(String action, String controller, JsonNode params) throws Exception;
+
     protected abstract Result json(Object data) throws Exception;
 
     protected abstract Result json(Object data, HttpStatusCode status, String message) throws Exception;
@@ -81,6 +84,8 @@ public abstract class HttpBase extends HttpServlet {
     protected abstract Result file(byte[] bytes, String fileName) throws Exception;
 
     protected abstract Result file(byte[] bytes, String fileName, FileType fileType) throws Exception;
+
+    protected abstract Result source(byte[] bytes, String fileName, FileType fileType) throws Exception;
 
     protected abstract Result success() throws Exception;
 
@@ -171,7 +176,9 @@ public abstract class HttpBase extends HttpServlet {
         // Retrieve current Controller's actions
         Method[] methods = this.getClass().getDeclaredMethods();
         if (methods.length == 0) {
-            throw new PageNotFoundException("Invalid URL, Page Not Found");
+            // show user requested url
+            throw new PageNotFoundException(
+                    "No action found for the requested URL: " + context.getRequest().getRequestURI());
         }
 
         // Loop for the Controller Class Actions until the action is found
@@ -205,7 +212,8 @@ public abstract class HttpBase extends HttpServlet {
             return method;
         }
         // Action Not Found
-        throw new PageNotFoundException("Invalid URL, Page Not Found");
+        throw new PageNotFoundException(
+                "No action found for the requested URL: " + context.getRequest().getRequestURI());
     }
 
     private void invokeMethod(Method action)
@@ -276,6 +284,7 @@ public abstract class HttpBase extends HttpServlet {
         } else {
             throw new InvalidActionResultException("Invalid Request");
             // TODO: Redirect to error page, define the url in web.xml
+
         }
         // #endregion
 
@@ -396,7 +405,9 @@ public abstract class HttpBase extends HttpServlet {
                         Object[] convertedArray = (Object[]) java.lang.reflect.Array.newInstance(componentType,
                                 paramValues.length);
                         for (int i = 0; i < paramValues.length; i++) {
-                            convertedArray[i] = convertType(paramValues[i], componentType);
+                            Object value = (paramValues[i] != null) ? convertType(paramValues[i], componentType)
+                                    : getDefaultValue(componentType);
+                            convertedArray[i] = value;
                         }
                         convertedValue = convertedArray;
                     }
@@ -528,8 +539,12 @@ public abstract class HttpBase extends HttpServlet {
     }
 
     private Object convertType(String value, Class<?> targetType) {
-        if (targetType == String.class)
+
+        if (targetType == String.class) {
+            if (value.equalsIgnoreCase("null"))
+                return null;
             return value;
+        }
         if (targetType == int.class || targetType == Integer.class)
             return Integer.valueOf(value);
         if (targetType == double.class || targetType == Double.class)
@@ -544,9 +559,11 @@ public abstract class HttpBase extends HttpServlet {
     }
 
     private Object convertArrayType(String[] values, Class<?> componentType) throws Exception {
-        Object array = java.lang.reflect.Array.newInstance(componentType, values.length);
+        Object array = Array.newInstance(componentType, values.length);
         for (int i = 0; i < values.length; i++) {
-            java.lang.reflect.Array.set(array, i, convertType(values[i], componentType));
+            Object value = (values[i] != null) ? convertType(values[i], componentType)
+                    : getDefaultValue(componentType);
+            Array.set(array, i, value);
         }
         return array;
     }

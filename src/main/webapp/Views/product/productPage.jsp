@@ -162,7 +162,9 @@
                             <!-- Entire comment + reply lives inside one bordered box -->
                             <div class="border-b pb-4">
                             <!-- 1) Original user feedback -->
-                            <h3 class="font-bold">User name</h3>
+                            <h3 class="font-bold">
+                                <%= feedback.getOrder().getUser().getUsername() %>
+                            </h3>                            
                             <p class="text-yellow-400">
                                 <% for (int i = 1; i <= 5; i++) { %>
                                 <%= (i <= feedback.getRating()) ? "<i class='fa-solid fa-star'></i>" : "<i class='fa-regular fa-star'></i>" %>
@@ -298,8 +300,22 @@
             form.querySelector('textarea').focus();
             }
         }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('updated') === '1') {
+                alert('✅ Product updated successfully!');
+                params.delete('updated');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+            if (params.get('deleted') === '1') {
+                alert('❌ Product deleted successfully!');
+                params.delete('deleted');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+        });
 
-        // ajax to update the comment 
+
     
 
 

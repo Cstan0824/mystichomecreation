@@ -8,11 +8,6 @@ CREATE TABLE IF NOT EXISTS `Role` (
   PRIMARY KEY (`role_id`)
 );
 
-CREATE TABLE IF NOT EXISTS `User_Image` (
-  `image_id` INT AUTO_INCREMENT,
-  `image_data` BLOB NOT NULL,
-  PRIMARY KEY (`image_id`)
-);
 
 CREATE TABLE IF NOT EXISTS `Users` (
   `user_id` INT AUTO_INCREMENT,
@@ -20,14 +15,21 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `user_name` VARCHAR(255) NOT NULL,
   `user_password` VARCHAR(255) NOT NULL,
   `user_email` VARCHAR(50) NOT NULL,
-  `user_image_id` INT,
   `user_birthdate` DATE,
   `shipping_information` JSON,
   INDEX (`role_id`),
   PRIMARY KEY (`user_id`),
-  FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`),
-  FOREIGN KEY (`user_image_id`) REFERENCES `User_Image`(`image_id`)
+  FOREIGN KEY (`role_id`) REFERENCES `Role`(`role_id`)
 );
+
+CREATE TABLE IF NOT EXISTS `User_Image` (
+  `image_id` INT AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `image_data` MEDIUMBLOB NOT NULL,
+  PRIMARY KEY (`image_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`)
+);
+
 
 
 CREATE TABLE IF NOT EXISTS `Order_Status` (
@@ -94,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `Product_Type` (
 
  CREATE TABLE IF NOT EXISTS `Product_Image` (
    `image_id` INT AUTO_INCREMENT,
-   `image_data` BLOB NOT NULL,
+   `image_data` MEDIUMBLOB NOT NULL,
     PRIMARY KEY (`image_id`)
 );
 
@@ -138,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `Product_Feedback` (
   `feedback_date` DATE NOT NULL,
   `reply_date` DATE,
   PRIMARY KEY (`product_id`, `order_id`) ,
-  FOREIGN KEY (`order_id`) REFERENCES `Order`(`order_id`),
+  FOREIGN KEY (`order_id`) REFERENCES `Orders`(`order_id`),
   FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
 );
 
@@ -190,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `Order_Transaction` (
   `ordered_product_price` DECIMAL NOT NULL,
   `selected_variations` JSON,
   PRIMARY KEY(`order_id`, `product_id`),
-  FOREIGN KEY (`order_id`) REFERENCES `Order`(`order_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`order_id`) REFERENCES `Orders`(`order_id`) ON DELETE CASCADE,
   FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
 );
 

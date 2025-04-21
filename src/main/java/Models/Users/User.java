@@ -5,11 +5,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import Models.Accounts.PaymentCard;
-import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,8 +35,6 @@ public class User {
     @Column(name = "user_name")
     private String username;
 
-    @Basic(fetch = FetchType.LAZY)
-    @JsonIgnore
     @Column(name = "user_password")
     private String password;
 
@@ -55,13 +50,12 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentCard> paymentCards = new ArrayList<>();
 
-    @JsonProperty(access = Access.READ_ONLY)
     @ManyToOne
     @JoinColumn(name = "role_id", referencedColumnName = "role_id", insertable = false, updatable = false)
     private Role role;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserImage userImage;
 
     // Constructors
@@ -128,6 +122,14 @@ public class User {
         this.role_id = role_id;
     }
 
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
     public String getBirthdate() {
         return birthdate;
     }
@@ -136,13 +138,17 @@ public class User {
         this.birthdate = birthdate;
     }
 
-    @JsonIgnore
-    public int getImageId() {
+    public Integer getImageId() {
+        if (this.userImage == null) {
+            return null;
+        }
         return this.userImage.getId();
     }
 
-    @JsonIgnore
-    public void setImageId(int imageId) {
+    public void setImageId(Integer imageId) {
+        if (this.userImage == null) {
+            return;
+        }
         this.userImage.setId(imageId);
     }
 

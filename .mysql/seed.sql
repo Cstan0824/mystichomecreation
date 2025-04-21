@@ -1,7 +1,7 @@
 INSERT INTO `Role` (`role_description`) VALUES ('Admin');
 INSERT INTO `Role` (`role_description`) VALUES ('Customer');
 INSERT INTO `Role` (`role_description`) VALUES ('Staff');
-INSERT INTO `Users` (`role_id`, `user_name`, `user_password`, `user_email`,  `user_birthdate`, `shipping_information`) VALUES ('3', 'johnsonjoshua', 'cs&2#4Xd$a','admin@yahoo.com', '1978-12-05',
+INSERT INTO `Users` (`role_id`, `user_name`, `user_password`, `user_email`,  `user_birthdate`, `shipping_information`) VALUES ('3', 'adminroot', 'a+7TSnIP3BgFmrbCf/ZYgQ==:O2TFFmRY7ICLLij0xS5uUSn9pfDu2PoRm4+obMQ0xLg=','admin@yahoo.com', '1978-12-05',
 '[
   {
     "id": 1,
@@ -399,8 +399,8 @@ INSERT INTO `Order_Status` (`status_description`) VALUES ('Packing');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Shipping');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Received');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Cancelled');
-INSERT INTO `Payment_Method` (`method_description`) VALUES ('Credit Card');
-INSERT INTO `Payment_Method` (`method_description`) VALUES ('Online Banking');
+INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Credit Card');
+INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Online Banking');
 
 INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '65.28', '247.99', '35.62', '5', 'She', 'Study oil process tend land.', '1');
 INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '88.48', '378.77', '26.06', '3', 'Member', 'Forward several help usually thank wonder.', '1');
@@ -451,3 +451,45 @@ INSERT INTO `Notifications` (`user_id`, `title`, `content`, `is_read`, `url`, `c
 (1, 'Payment Method Updated', 'Your saved credit card has been updated.', 0, '/profile/payment-methods', '2025-04-17 10:10:00', NULL),
 (4, 'New Message from Seller', 'The seller has responded to your inquiry.', 0, '/messages/5678', '2025-04-14 16:20:00', NULL),
 (2, 'Subscription Renewed', 'Your premium subscription has been renewed for another month.', 1, '/account/subscription', '2025-04-13 08:00:00', '2025-04-13 08:10:00');
+
+
+-- Permissions for Admin (full access)
+INSERT INTO `Permission` (`role_id`, `permission_url`, `permission_description`) VALUES
+(1, 'User/account', 'Access account dashboard'),
+(1, 'User/account/profile', 'View profile'),
+(1, 'User/account/profile/edit', 'Edit profile'),
+(1, 'User/account/password', 'Access password page'),
+(1, 'User/account/password/verify', 'Verify current password'),
+(1, 'User/account/password/otp', 'OTP verification'),
+(1, 'User/account/password/new', 'Change password'),
+(1, 'User/account/addresses', 'Manage addresses'),
+(1, 'User/account/addresses/add', 'Add address'),
+(1, 'User/account/addresses/edit', 'Edit address'),
+(1, 'User/account/addresses/delete', 'Delete address'),
+(1, 'User/account/payments', 'View payment cards'),
+(1, 'User/account/payment/add', 'Add payment card'),
+(1, 'User/account/payment/edit', 'Edit payment card'),
+(1, 'User/account/payment/delete', 'Delete payment card'),
+(1, 'User/account/vouchers', 'View vouchers'),
+(1, 'User/account/notifications', 'View notifications'),
+(1, 'User/account/notification/redirect', 'Redirect via notification');
+
+-- Permissions for Customer (limited access)
+INSERT INTO `Permission` (`role_id`, `permission_url`, `permission_description`) VALUES
+(2, 'User/account', 'Access account dashboard'),
+(2, 'User/account/profile', 'View profile'),
+(2, 'User/account/profile/edit', 'Edit profile'),
+(2, 'User/account/password', 'Access password page'),
+(2, 'User/account/password/verify', 'Verify current password'),
+(2, 'User/account/password/otp', 'OTP verification'),
+(2, 'User/account/password/new', 'Change password'),
+(2, 'User/account/addresses', 'Manage addresses'),
+(2, 'User/account/addresses/add', 'Add address'),
+(2, 'User/account/addresses/edit', 'Edit address'),
+(2, 'User/account/addresses/delete', 'Delete address'),
+(2, 'User/account/payments', 'View payment cards'),
+(2, 'User/account/payment/add', 'Add payment card');
+
+-- Permissions for Guest (minimal access)
+INSERT INTO `Permission` (`role_id`, `permission_url`, `permission_description`) VALUES
+(3, 'User/account', 'Access account dashboard');
