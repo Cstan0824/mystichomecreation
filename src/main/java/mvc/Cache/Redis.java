@@ -11,13 +11,25 @@ import mvc.Helpers.JsonConverter;
 import mvc.Helpers.Audits.AuditService;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 public class Redis {
     private static final String REDIS_SYNC_CACHE_PREFIX = "SYNC_QUERY";
     private static final String HOST = "redis";
     private static final int PORT = 6379;
-    private static final JedisPool pool = new JedisPool(HOST, PORT);
-    private static final SignalHub signalHub = new SignalHub(pool);
+    private static final JedisPool pool;
+    private static final SignalHub signalHub;
+    static {
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(64);
+        config.setMaxIdle(32);
+        config.setMinIdle(8);
+        config.setBlockWhenExhausted(true);
+        config.setMaxWaitMillis(10000);
+
+        pool = new JedisPool(config, HOST, PORT);
+        signalHub = new SignalHub(pool);
+    }
 
     private static Logger logger = AuditService.getLogger();
 
@@ -46,11 +58,15 @@ public class Redis {
     }
 
     // #region RETRIEVE FROM CACHE
-    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) {
+    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query, CacheLevel level, String controllerName) {
         try (Jedis jedis = pool.getResource()) {
             String result = jedis.get(key);
             if (cacheHit(result)) {
-                if (JsonConverter.deserialize(result, type).size() == 0) {
+                List<T> cachedList = JsonConverter.deserialize(result, type);
+                if (cachedList == null) {
+                    return null;
+                }
+                if (cachedList.size() == 0) {
                     return null;
                 }
                 return JsonConverter.deserialize(result, type).get(0);
@@ -64,7 +80,10 @@ public class Redis {
             T value = resultList.get(0);
 
             // Create metadata with query parameters by passing the entire query
-            QueryMetadata metadata = new QueryMetadata(query, QueryResultType.SINGLE, level, type.getSimpleName());
+            if (controllerName == null) {
+                controllerName = type.getSimpleName();
+            }
+            QueryMetadata metadata = new QueryMetadata(query, QueryResultType.SINGLE, level, controllerName);
 
             // Use metadata with SignalHub
             signalHub.buildSubscriber(type.getSimpleName(), key, metadata);
@@ -82,11 +101,16 @@ public class Redis {
         }
     }
 
+    public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) {
+        return getOrCreate(key, type, query, level, null);
+    }
+
     public <T> T getOrCreate(String key, Class<T> type, TypedQuery<T> query) throws JsonProcessingException {
         return getOrCreate(key, type, query, CacheLevel.HIGH);
     }
 
-    public <T> List<T> getOrCreateList(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) {
+    public <T> List<T> getOrCreateList(String key, Class<T> type, TypedQuery<T> query, CacheLevel level,
+            String controllerName) {
         try (Jedis jedis = pool.getResource()) {
             String result = jedis.get(key);
             if (cacheHit(result)) {
@@ -96,8 +120,15 @@ public class Redis {
             // Cache miss
             List<T> value = query.getResultList();
 
+            if (value.isEmpty()) {
+                return null;
+            }
+
             // Create metadata with query parameters by passing the entire query
-            QueryMetadata metadata = new QueryMetadata(query, QueryResultType.LIST, level, type.getSimpleName());
+            if (controllerName == null) {
+                controllerName = type.getSimpleName();
+            }
+            QueryMetadata metadata = new QueryMetadata(query, QueryResultType.LIST, level, controllerName);
 
             // Use metadata with SignalHub
             signalHub.buildSubscriber(type.getSimpleName(), key, metadata);
@@ -112,6 +143,10 @@ public class Redis {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public <T> List<T> getOrCreateList(String key, Class<T> type, TypedQuery<T> query, CacheLevel level) {
+        return getOrCreateList(key, type, query, level, null);
     }
 
     public <T> List<T> getOrCreateList(String key, Class<T> type, TypedQuery<T> query) throws JsonProcessingException {
@@ -162,6 +197,82 @@ public class Redis {
         }
     }
     // #endregion
+
+    // #region SET VALUE TO CACHE - Value set from here will not trigger SyncCache
+    public void setValue(String key, String value) {
+        setValue(key, value, CacheLevel.LOW);
+    }
+
+    public void setValue(String key, String value, CacheLevel level) {
+        try (Jedis jedis = pool.getResource()) {
+            if (level.get() == CacheLevel.CRITICAL.get()) {
+                jedis.set(key, value);
+            } else {
+                jedis.setex(key, level.get(), value);
+            }
+        } catch (Exception e) {
+            logger.warning("ERROR in setValue: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void setValue(String key, String value, int expiry) {
+        try (Jedis jedis = pool.getResource()) {
+            if (expiry == CacheLevel.CRITICAL.get()) {
+                jedis.set(key, value);
+            } else {
+                jedis.setex(key, expiry, value);
+            }
+        } catch (Exception e) {
+            logger.warning("ERROR in setValue: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public String getValue(String key) {
+        try (Jedis jedis = pool.getResource()) {
+            return jedis.get(key);
+        } catch (Exception e) {
+            logger.warning("ERROR in getValue: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String getAndExpireValue(String key) {
+        try (Jedis jedis = pool.getResource()) {
+            String value = jedis.get(key);
+            if (value != null) {
+                jedis.expire(key, 0); // Set the key to expire immediately
+            }
+            return value;
+        } catch (Exception e) {
+            logger.warning("ERROR in getValueAndExpire: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean removeValue(String key) {
+        try (Jedis jedis = pool.getResource()) {
+            jedis.del(key);
+            return true;
+        } catch (Exception e) {
+            logger.warning("ERROR in removeValue: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    // #endregion
+
+    public Long getTTL(String key) {
+        try (Jedis jedis = pool.getResource()) {
+            return jedis.ttl(key);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            return null;
+        }
+    }
 
     private boolean cacheHit(String result) {
         return !(result == null || result.equals("") || result.equals("nil"));

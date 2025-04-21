@@ -1,5 +1,6 @@
 package mvc.Annotations;
 
+import DTO.UserSession;
 import mvc.Result;
 import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpContext;
@@ -7,7 +8,7 @@ import mvc.Http.HttpStatusCode;
 
 public class AuthorizationHandler implements Middleware {
     private final String UNAUTHORIZED_PAGE = System.getenv("UNAUTHORIZED_PAGE");
-    private String permissions;
+    private String accessUrls;
 
     @Override
     public void onError(HttpContext context, Exception ex) {
@@ -15,15 +16,25 @@ public class AuthorizationHandler implements Middleware {
 
     @Override
     public void executeBeforeAction(HttpContext context) {
-        if ("*".equals(permissions)) {
+        if ("*".equals(accessUrls)) {
             return;
         }
         SessionHelper session = new SessionHelper(context.getRequest().getSession());
-
-        if (session.isAuthenticated() && session.getPermissions() != null
-                && permissions.contains(session.getPermissions())) {
-            return; // User is authenticated and has the required permissions
+        UserSession userSession = session.getUserSession();
+        System.out.println(userSession.getRole());
+        if (userSession.getAccessUrls() != null) {
+            for (String userAccess : userSession.getAccessUrls()) {
+                for (String accessUrl : accessUrls.split(",")) {
+                    System.out.println("Access URL: " + accessUrl);
+                    System.out.println("User Access: " + userAccess);
+                    if (userSession.isAuthenticated() && accessUrl.equals(userAccess)) {
+                        return;
+                    }
+                }
+            }
         }
+
+        // Unauthorized access
         context.setRequestCancelled(true);
         context.setResult(new Result());
         context.getResult().setStatusCode(HttpStatusCode.UNAUTHORIZED);
