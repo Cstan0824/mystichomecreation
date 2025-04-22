@@ -4,16 +4,13 @@ import mvc.ControllerBase;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.HttpRequest;
-import mvc.Helpers.JsonConverter;
 import mvc.Http.HttpMethod;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DAO.productDAO;
@@ -24,7 +21,6 @@ import Models.Products.productFeedbackKey;
 import Models.Products.productType;
 import Models.Products.productVariationOptions;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Part;
 
 
 
