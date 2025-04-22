@@ -131,7 +131,7 @@ public class productController extends ControllerBase {
     public Result getProductsByCategories() throws Exception {
         String[] selectedCategories = request.getParameterValues("categories");
         System.out.println("Selected Categories: " + Arrays.toString(selectedCategories));
-
+        
         // convert the selected categories to a list of integers
         List<Integer> categoryIds = selectedCategories != null ? Arrays.stream(selectedCategories).map(Integer::parseInt).toList() : new ArrayList<>();
 

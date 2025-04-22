@@ -1,6 +1,7 @@
 package DAO;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import Models.Orders.Order;
@@ -76,6 +77,7 @@ public class OrderDAO {
         return order;
     }
 
+
     // Get all orders from the database
     public List<Order> getAllOrders() {
         List<Order> orders = null;
@@ -87,6 +89,57 @@ public class OrderDAO {
         }
         return orders;
     }
+
+    // Filter orders
+    public List<Order> filterOrders(List<Integer> statusIds, String sortBy, String userKeyword){
+        try{
+            // the 1=1 is to make the query always valid cuz 1=1 is always true and this help to reterieve all the products
+            StringBuilder jpql = new StringBuilder("SELECT o FROM Order o WHERE 1=1");
+
+            if (statusIds != null && !statusIds.isEmpty()) {
+                jpql.append(" AND o.status.id IN :ids");
+            }
+            if (userKeyword != null && !userKeyword.isBlank()) {
+                jpql.append(" AND (LOWER(o.user.username) LIKE :kw )");
+            }
+            if (sortBy != null) {
+
+                switch (sortBy) {
+                    case "latest" -> jpql.append(" ORDER BY o.orderDate DESC");
+                    case "oldest" -> jpql.append(" ORDER BY o.orderDate ASC");
+                    case "" -> jpql.append(" ORDER BY o.orderDate DESC"); // default to latest if sortBy is empty
+                    default -> System.out.println("⚠ Unknown sortBy value: " + sortBy);
+                }
+            }
+
+            System.out.println("🛠 Final JPQL: " + jpql);
+
+
+            //So now we have the query and we need to set the params
+            TypedQuery<Order> query = db.createQuery(jpql.toString(), Order.class);
+
+            if (statusIds != null && !statusIds.isEmpty()) {
+                System.out.println("🟡 Binding statusIds: " + statusIds);
+                query.setParameter("ids", statusIds);
+            }
+
+            if (userKeyword != null && !userKeyword.isBlank()) {
+                System.out.println("🟡 Binding keyword: %" + userKeyword.toLowerCase() + "%");
+                query.setParameter("kw", "%" + userKeyword.toLowerCase() + "%");
+            }
+
+            // this is where we get the result
+            List<Order> result = query.getResultList(); // this is where we execute the query 
+            System.out.println("✅ Found orders: " + result.size());
+            return result;
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("❌ Error in filterOrders: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
 
     // Get all orders by user ID from the database
     public List<Order> getOrdersByUser(User user) {
@@ -292,7 +345,7 @@ public class OrderDAO {
         }
         return orderStatus;
     }
-
+    
     // Update an order status in the database
     public boolean updateOrderStatus(OrderStatus orderStatus) {
         try {
