@@ -277,7 +277,7 @@ public class productDAO implements Serializable{
             "SELECT pf.productId FROM productFeedback pf WHERE pf.orderId = :orderId", Integer.class);
         query.setParameter("orderId", orderId);
     
-        List<Integer> productIds = cache.getOrCreateList(key, Integer.class, query, Redis.CacheLevel.LOW);
+        List<Integer> productIds = cache.getOrCreateList(key, Integer.class, query, Redis.CacheLevel.LOW, "Order");
     
         // 🛡️ Safeguard against null list
         if (productIds == null) {
