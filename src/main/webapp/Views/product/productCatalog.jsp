@@ -115,14 +115,17 @@
 
                     <div id="cardView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
                         <%
-                        List<product> products = (List<product>) request.getAttribute("products");
-                        if (products != null && !products.isEmpty()) {
-                            for (product p : products) {
+                            List<product> products = (List<product>) request.getAttribute("products");
+                            if (products != null && !products.isEmpty()) {
+                                for (product p : products) {
                         %>
                             <a href="productPage?id=<%= p.getId() %>" class="block hover:shadow-lg transition-shadow duration-200">
                                 <div class="bg-white rounded-lg overflow-hidden shadow relative">
-                                    <img src="<%= p.getImageUrl() %>" alt="<%= p.getTitle() %>" class="w-full h-40 object-cover">
-                                    <div class="p-3">
+
+                                <img loading="lazy" src="<%=request.getContextPath()%>/File/Content/product/retrieve?id=<%=p.getImage().getId()%>"
+                                     alt="<%=p.getTitle()%>" class="w-full h-40 object-cover rounded-md mb-2"/> 
+
+                                <div class="p-3">
                                         <h3 class="font-medium"><%= p.getTitle() %></h3>
                                         <p class="text-xs text-gray-500"><%= p.getRetailInfo() %></p>
                                         <div class="flex justify-between items-center mt-2">
@@ -198,6 +201,7 @@
         }
 
         function renderProducts(products) {
+            var ctx = '<%= request.getContextPath() %>'
             const container = document.getElementById("cardView");
             container.innerHTML = ""; 
 
@@ -212,10 +216,10 @@
                 let html = ""
                     + "<a href='productPage?id=" + p.id + "' class='block hover:shadow-lg transition-shadow duration-200'>"
                     +     "<div class='bg-white rounded-lg overflow-hidden shadow relative'>"
-                    +         "<img src='" + p.imageUrl + "' alt='" + p.title + "' class='w-full h-40 object-cover'>"
+                    +         "<img src='" + ctx + "/File/Content/product/retrieve?id=" + p.productImageId + "' alt='" + p.title + "' class='w-full h-40 object-cover' >"
                     +         "<div class='p-3'>"
                     +             "<h3 class='font-medium'>" + p.title + "</h3>"
-                    +             "<p class='text-xs text-gray-500'>" + p.retailInfo + "</p>"
+                    +             "<p class='text-xs text-gray-500'>" + p.retailInfo + "</p>    "
                     +             "<div class='flex justify-between items-center mt-2'>"
                     +                 "<span class='font-bold'>RM " + p.price.toFixed(2) + "</span>"
                     +                 "<div class='flex items-center text-xs text-gray-500'>"
@@ -249,6 +253,16 @@
             if (params.get('created') === '1') {
                 alert('✅ Product created successfully!');
                 params.delete('created');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+            if (params.get('updated') === '1') {
+                alert('✅ Product updated successfully!');
+                params.delete('updated');
+                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+            }
+            if (params.get('deleted') === '1') {
+                alert('❌ Product deleted successfully!');
+                params.delete('deleted');
                 history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
             }
         });

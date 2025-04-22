@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,6 +24,10 @@ public class product {
     @ManyToOne 
     @JoinColumn(name = "product_type_id", referencedColumnName = "product_type_id")
     private productType type;
+
+    @OneToOne
+    @JoinColumn(name="product_image_id")
+    private productImage image;
 
     @Column(name = "product_title", length = 50, nullable = false)
     private String title;
@@ -51,15 +56,14 @@ public class product {
     @Column(name = "product_created_date")
     private Date createdDate;
 
-    @Column(name = "product_image_url", length = 255)
-    private String imageUrl;
+    
 
     // Default constructor
     public product() {}
 
     // Parameterized constructor
     public product(productType type, String title, String slug, String description, double price, int stock,
-                   String retailInfo, int featured, String variations, Date createdDate, String imageUrl) {
+                   String retailInfo, int featured, String variations, Date createdDate ) {
         this.type = type;
         this.title = title;
         this.slug = slug;
@@ -70,7 +74,6 @@ public class product {
         this.featured = featured;
         this.variations = variations;
         this.createdDate = createdDate;
-        this.imageUrl = imageUrl;
     }
 
     // === Getters & Setters ===
@@ -162,11 +165,17 @@ public class product {
         this.createdDate = createdDate;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public productImage getImage() {
+        return image;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImage(productImage image) {
+        this.image = image;
     }
+
+    
+    
+
+
+   
 }

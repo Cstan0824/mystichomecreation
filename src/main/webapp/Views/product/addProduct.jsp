@@ -88,7 +88,7 @@
             <!-- Image URL -->
             <div>
                 <label class="block mb-1 font-semibold">Product Image</label>
-                <input type="file" name="imageFile" accept="image/*" class="w-full border px-3 py-2 rounded" />
+                <input type="file" id="imageFile" name="imageFile" accept="image/*" required/>
             </div>
 
             <!-- Featured -->

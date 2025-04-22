@@ -55,27 +55,13 @@
 
             <!-- Image Gallery -->
             <div class="order-1 md:col-span-4">
-                <div class="swiper mySwiper2 w-full h-[300px] sm:h-[600px] md:h-[1000px] rounded-lg" style="--swiper-navigation-color: #fff; --swiper-pagination-color: #fff">
-                    <div class="swiper-wrapper">
-                        <% for (int i = 1; i <= 10; i++) { %>
-                            <div class="swiper-slide">
-                                <img src="/src/cupboard.avif" alt="Nature <%= i %>" class="w-full h-full object-cover" />
-                            </div>
-                        <% } %>
-                    </div>
-                    <div class="swiper-button-next"></div>
-                    <div class="swiper-button-prev"></div>
+                <div class="w-full h-[200px] sm:h-[300px] md:h-[500px] rounded-lg">
+                   
+                        <img loading="lazy" src="<%=request.getContextPath()%>/File/Content/product/retrieve?id=<%=product.getImage().getId()%>"
+                            alt="<%=product.getTitle().replaceAll("'", "&#39;")%>" class="w-full  object-contain mb-4"/>
                 </div>
 
-                <div class="swiper mySwiper w-full h-[80px] sm:h-[100px] md:h-[150px] mt-4" thumbsSlider="">
-                    <div class="swiper-wrapper">
-                        <% for (int i = 1; i <= 10; i++) { %>
-                            <div class="swiper-slide">
-                                <img src="/src/cupboard.avif" alt="Thumbnail <%= i %>" class="w-full h-full object-cover rounded-lg" />
-                            </div>
-                        <% } %>
-                    </div>
-                </div>
+               
             </div>
 
             <!-- Product Details -->
@@ -260,25 +246,7 @@
 
 
     <script>
-        var swiper = new Swiper(".mySwiper", {
-            loop: true,
-            spaceBetween: 10,
-            slidesPerView: 4,
-            freeMode: true,
-            watchSlidesProgress: true,
-        });
-
-        var swiper2 = new Swiper(".mySwiper2", {
-            loop: true,
-            spaceBetween: 10,
-            navigation: {
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
-            },
-            thumbs: {
-                swiper: swiper,
-            },
-        });
+        
 
         function openeditModal() {
             const m = document.getElementById("editProductModal");
@@ -302,20 +270,7 @@
             }
         }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('updated') === '1') {
-                alert('✅ Product updated successfully!');
-                params.delete('updated');
-                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
-            }
-            if (params.get('deleted') === '1') {
-                alert('❌ Product deleted successfully!');
-                params.delete('deleted');
-                history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
-            }
-        });
-
+       
 
     
 

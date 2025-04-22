@@ -2,6 +2,7 @@ package DAO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.sql.Blob;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Map;
 import Models.Products.product;
 import Models.Products.productFeedback;
 import Models.Products.productFeedbackKey;
+import Models.Products.productImage;
 import Models.Products.productType;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -22,17 +24,13 @@ public class productDAO implements Serializable{
     private Redis cache = new Redis(); // Assuming you have a Redis cache implementation
    
     //Get all products with Cache
-    public product searchProducts(int id){
-        try{
-            TypedQuery<product> typedQuery = this.db.createQuery("SELECT p FROM product p WHERE id=:id", product.class).setParameter("id", id);
-            product product = typedQuery.getSingleResult();
-            return product;
-        }catch (Exception e){
-            e.printStackTrace(); // Handle exception
-        }
-        return null;
+    public product searchProducts(int id) {
+        TypedQuery<product> q = db.createQuery(
+            "SELECT p FROM product p JOIN FETCH p.image WHERE p.id = :id",
+            product.class
+        ).setParameter("id", id);
+        return q.getSingleResult();
     }
-
     public List<productFeedback> getFeedbackWithUserAndProduct(int productId) {
         String jpql =
             "SELECT DISTINCT pf " +
@@ -63,7 +61,10 @@ public class productDAO implements Serializable{
     // Catalog use this method to get all products (dont touch this method)
     public List<product> getAllProducts() {
         try {
-            TypedQuery<product> query = db.createQuery("SELECT p FROM product p ORDER BY p.createdDate DESC", product.class);
+            TypedQuery<product> query = db.createQuery(
+                "SELECT p FROM product p JOIN FETCH p.image ORDER BY p.createdDate DESC",
+                product.class
+            );
             return query.getResultList();
         } catch (Exception e) {
             e.printStackTrace(); // Handle exception
@@ -254,7 +255,7 @@ public class productDAO implements Serializable{
 
 
     public productFeedback findById(productFeedbackKey key) {
-    return db.find(productFeedback.class, key);
+        return db.find(productFeedback.class, key);
     }
 
     public boolean addProductFeedback(productFeedback feedback) {
@@ -293,7 +294,16 @@ public class productDAO implements Serializable{
         return feedbackMap;
     }
     
-    
+    public productImage findImageById(int imageId) {
+        return db.find(productImage.class, imageId);
+    }
+
+
+    public void addProductImage(productImage pi) {
+        db.getTransaction().begin();
+        db.persist(pi);
+        db.getTransaction().commit();
+    }
 
 }
     
