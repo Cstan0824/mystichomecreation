@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="DTO.UserSession" %>
 <%@ page import="Models.Users.User" %>
 
 <head>
@@ -19,11 +20,16 @@
 <body class="m-2 pb-24 p-2">
   <%
     // Get the user from request attributes
-    User user = (User)request.getAttribute("profile");
-    String imageUrl = request.getContextPath() + "/Content/images/default-profile.jpg";
+    UserSession user = (UserSession)request.getAttribute("profile");
     String username = user != null ? user.getUsername() : "Guest";
     String email = user != null ? user.getEmail() : "Not logged in";
-    String birthdate = user != null ? user.getBirthdate() : "";
+    String birthdate = user != null ? (String)request.getAttribute("birthDate") : "";
+    String imageUrl = "";
+    if(null == request.getAttribute("imageUrl") || "".equals(request.getAttribute("imageUrl"))) {
+      imageUrl = request.getContextPath() + "/Content/assets/image/default-profile-picture.webp";
+    }else{
+      imageUrl =  request.getContextPath() + "/" + (String)request.getAttribute("imageUrl");
+    }
   %>
 
   <!-- Profile Header -->
@@ -49,12 +55,8 @@
     <!-- Username -->
     <div class="grid grid-cols-10 gap-4 items-center">
       <label class="col-span-3 text-sm font-medium text-gray-700">Username</label>
-      <input
-	  	id="username"
-        type="text"
-        value="<%= username %>"
-        class="col-span-7 border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <input id="username" type="text" value="<%= username %>"
+        class="col-span-7 border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
 
     <!-- Email -->
@@ -69,12 +71,8 @@
     <!-- Birthdate -->
     <div class="grid grid-cols-10 gap-4 items-center">
       <label class="col-span-3 text-sm font-medium text-gray-700">Birthdate</label>
-      <input
-	  	id="user-birthdate"
-        type="date"
-        value="<%= birthdate %>"
-        class="col-span-7 border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+      <input id="user-birthdate" type="date" value="<%= birthdate %>"
+        class="col-span-7 border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
   </div>
 
@@ -84,7 +82,8 @@
   <!-- Fixed Footer Buttons -->
   <div class="fixed bottom-0 left-0 right-0 bg-white flex justify-end items-center p-4 space-x-2">
     <button class="px-4 py-2 text-sm rounded-md border hover:bg-gray-100">Cancel</button>
-    <button id="btnSave" class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save changes</button>
+    <button id="btnSave" class="px-4 py-2 text-sm rounded-md bg-black text-white hover:bg-gray-800">Save
+      changes</button>
   </div>
 
   <!-- jQuery/GSAP Script -->
@@ -94,7 +93,6 @@
       $('#profile-pic').on('click', function() {
         $('#pic-input').click();
       });
-
       // When user picks a file, load/preview it
       $('#pic-input').on('change', function(e) {
         const file = e.target.files[0];
@@ -102,38 +100,63 @@
           const reader = new FileReader();
           reader.onload = function(e) {
             $('#profile-pic').attr('src', e.target.result);
-            gsap.fromTo('#profile-pic',
-              { scale: 0.8, opacity: 0.7 },
-              { scale: 1, opacity: 1, duration: 0.4 }
-            );
+            gsap.fromTo('#profile-pic', {
+              scale: 0.8,
+              opacity: 0.7
+            }, {
+              scale: 1,
+              opacity: 1,
+              duration: 0.4
+            });
+            // Ask for confirmation
+            setTimeout(() => {
+              if (confirm("Do you want to upload this profile picture?")) {
+                const formData = new FormData();
+                formData.append("files", file); // name must match backend
+                $.ajax({
+                  url: '<%= request.getContextPath() %>/File/Content/user/upload',
+                  type: 'POST',
+                  data: formData,
+                  processData: false,
+                  contentType: false,
+                  success: function(response) {
+                    alert("Profile picture updated!");
+                  },
+                  error: function(err) {
+                    alert("Failed to upload image.");
+                  }
+                });
+              }
+            }, 200);
           };
           reader.readAsDataURL(file);
         }
       });
-	  $('#btnSave').on('click', function() {
-		$.ajax({
-			url: '<%= request.getContextPath() %>/User/account/profile/edit',
-			type: 'POST',
-			contentType: 'application/json',
-			dataType:"json",
-			data: JSON.stringify({
-				user: {
-					username: $('#username').val(),
-					email: $('#user-email').val(),
-					birthdate: $('#user-birthdate').val()
-				}
-			}),
-			success: function(response) {
-				if(response.status == 200) {
-					alert(response.message);
-					location.reload();
-				} else {
-					alert('Error: ' + response.message);
-				}
-			}
-		});
-	  });
+      $('#btnSave').on('click', function() {
+        $.ajax({
+          url: '<%= request.getContextPath() %>/User/account/profile/edit',
+          type: 'POST',
+          contentType: 'application/json',
+          dataType: "json",
+          data: JSON.stringify({
+            user: {
+              username: $('#username').val(),
+              email: $('#user-email').val(),
+              birthdate: $('#user-birthdate').val()
+            }
+          }),
+          success: function(response) {
+            if (response.status == 200) {
+              alert(response.message);
+              location.reload();
+            } else {
+              alert('Error: ' + response.message);
+            }
+          }
+        });
+      });
     });
   </script>
 </body>
+
 </html>

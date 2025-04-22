@@ -334,10 +334,9 @@ public class AccountDA {
 
     public boolean verifyPassword(int userId, String entryPassword) {
         String password = userDA.getUserPasswordById(userId);
-        if ("".equals(password)) {
+        if (null == password || "".equals(password)) {
             return false;
         }
-        entryPassword = Helpers.hashPassword(entryPassword);
         if (Helpers.verifyPassword(entryPassword, password)) {
             return true;
         }
@@ -356,7 +355,7 @@ public class AccountDA {
         db.merge(user);
         db.getTransaction().commit();
 
-        return db.getTransaction().getRollbackOnly();
+        return !db.getTransaction().getRollbackOnly();
     }
 
     public List<Voucher> getVouchers() {

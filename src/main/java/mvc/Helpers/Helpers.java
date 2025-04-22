@@ -9,16 +9,18 @@ import java.util.Date;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+
+import org.apache.tika.Tika;
+
 import java.security.SecureRandom;
+import java.sql.Blob;
 import java.util.Base64;
 
 import Models.Accounts.BankType;
+import mvc.FileType;
+
 
 public class Helpers {
-    public static boolean verifyOTP(String otp) {
-        return true;
-    }
-
     // TODO: The escape String logic is not working properly, need to fix it
     public static String escapeString(String str) {
         if (str == null) {
@@ -58,6 +60,20 @@ public class Helpers {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         return formatter.format(date);
+    }
+
+    public static FileType getFileTypeFromBytes(byte[] file) {
+        Tika tika = new Tika();
+        String contentType = tika.detect(file);
+        return FileType.fromContentType(contentType);
+    }
+
+    public static byte[] convertToByte(Blob blob) throws Exception {
+        if (blob == null) {
+            return null;
+        }
+        byte[] bytes = blob.getBytes(1, (int) blob.length());
+        return bytes;
     }
 
     public static String hashPassword(String password) {

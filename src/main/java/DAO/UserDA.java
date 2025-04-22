@@ -1,8 +1,11 @@
 package DAO;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import Models.Users.Permission;
 import Models.Users.User;
+import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import mvc.DataAccess;
@@ -21,10 +24,21 @@ public class UserDA {
         TypedQuery<String> query = db.createQuery("SELECT u.password FROM User u WHERE id=:id",
                 String.class)
                 .setParameter("id", id);
+        // DO NOT STORE SENSITIVE DATA TO CACHE
+        // try {
+        // password = cache.getOrCreate("user-password-" + id, String.class, query,
+        // CacheLevel.LOW, "User");
+        // } catch (Exception e) {
+        // password = query.getResultList().get(0);
+        // }
         try {
-            password = cache.getOrCreate("user-password-" + id, String.class, query, CacheLevel.LOW);
-        } catch (Exception e) {
+            List<String> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
             password = query.getResultList().get(0);
+        } catch (Exception e) {
+            password = null;
         }
         return password;
     }
@@ -60,8 +74,79 @@ public class UserDA {
         return !db.getTransaction().getRollbackOnly();
     }
 
-    public boolean changeUserImage(User user) {
+    public UserImage getUserImageById(int id) {
+        UserImage userImage = null;
+        TypedQuery<UserImage> query = db.createQuery("SELECT u FROM UserImage u WHERE id=:id", UserImage.class)
+                .setParameter("id", id);
+
+        List<UserImage> resultList = query.getResultList();
+        if (resultList.size() == 0) {
+            return null;
+        }
+        userImage = query.getResultList().get(0);
+
+        return userImage;
+    }
+
+    public UserImage getUserImageByUserId(int id) {
+        UserImage userImage = null;
+        TypedQuery<UserImage> query = db.createQuery("SELECT u FROM UserImage u WHERE u.user.id=:id", UserImage.class)
+                .setParameter("id", id);
+        List<UserImage> resultList = query.getResultList();
+        if (resultList.size() == 0) {
+            return null;
+        }
+        userImage = query.getResultList().get(0);
+
+        return userImage;
+    }
+
+    public boolean changeUserImage(UserImage userImage) {
+        db.getTransaction().begin();
+        db.merge(userImage);
+        db.getTransaction().commit();
         return true;
+    }
+
+    public User getUserByUsername(String username) {
+        User user = null;
+        TypedQuery<User> query = db.createQuery("SELECT u FROM User u  WHERE username=:username", User.class)
+                .setParameter("username", username);
+        try {
+            user = cache.getOrCreate("user-" + username, User.class, query, CacheLevel.LOW);
+        } catch (Exception e) {
+            List<User> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
+            user = resultList.get(0);
+        }
+        return user;
+    }
+
+    public List<Permission> getPermissions(int id) {
+        List<Permission> permissions = null;
+        TypedQuery<Permission> query = db.createQuery("SELECT p FROM Permission p WHERE roleId=:id",
+                Permission.class)
+                .setParameter("id", id);
+        try {
+            permissions = cache.getOrCreateList("user-url-accesses-" + id, Permission.class, query);
+        } catch (Exception e) {
+            permissions = query.getResultList();
+        }
+        return permissions;
+    }
+
+    public List<String> getUrlAccesses(int id) {
+        List<Permission> permissions = getPermissions(id);
+        List<String> urlAccesses = new ArrayList();
+        if (permissions == null) {
+            return null;
+        }
+        for (Permission permission : permissions) {
+            urlAccesses.add(permission.getAccessUrl());
+        }
+        return urlAccesses;
     }
 
 }

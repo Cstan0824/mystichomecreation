@@ -18,21 +18,23 @@ public class UserImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "image_id")
-    private int id;
+    private Integer id;
 
-    @Column(name = "image_data", columnDefinition = "BLOB")
+    @Column(name = "image_data", columnDefinition = "MEDIUMBLOB")
     private Blob image;
 
-    // link to user object
+    // One-to-one link to User
     @OneToOne
-    @JoinColumn(name = "image_id", referencedColumnName = "user_image_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-    public int getId() {
+    // Getters and Setters
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -51,5 +53,4 @@ public class UserImage {
     public void setUser(User user) {
         this.user = user;
     }
-
 }
