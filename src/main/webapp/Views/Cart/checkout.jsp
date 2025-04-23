@@ -13,13 +13,13 @@
 <%@ page import="java.util.List" %>
 <%@ page import="Models.Users.CartItem" %>
 <%@ page import="Models.Accounts.ShippingInformation" %>
-<%@ page import="Models.Accounts.VoucherInfoDTO" %>
+<%@ page import="DTO.VoucherInfoDTO" %>
 <%@ page import="Models.Accounts.PaymentCard" %>
 <%@ page import="java.time.LocalDate" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 <%@ page import="java.time.format.DateTimeParseException" %>
 <%@ page import="mvc.Helpers.Helpers" %>
-
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
 
 <body x-data="{ showAddCardModal: false }" class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 
@@ -227,7 +227,23 @@
                                     <!-- Text Content -->
                                     <div class="flex flex-col gap-0.5 overflow-hidden max-w-[70%]">
                                         <h1 class="text-sm font-normal text-black truncate"><%= item.getProduct().getTitle() %></h1>
-                                        <p class="text-xs font-normal text-grey4 italic line-clamp-1 truncate"><%= item.getSelectedVariation() %></p>
+                                        <p class="text-xs font-normal text-grey4 italic line-clamp-1 truncate">
+                                            <% String jsonString = item.getSelectedVariation();
+                                                if (jsonString != null && !jsonString.isEmpty() && !jsonString.equals("null")) {
+                                                %>
+                                                    <script>
+                                                        try {
+                                                            const variation = JSON.parse('<%= StringEscapeUtils.escapeEcmaScript(jsonString) %>');
+                                                            const formatted = Object.entries(variation)
+                                                                .map(([key, value]) => key + ': ' + value)
+                                                                .join(', ');
+                                                            document.write(formatted);
+                                                        } catch (e) {
+                                                            document.write('<%= StringEscapeUtils.escapeHtml4(jsonString) %>');
+                                                        }
+                                                    </script>
+                                            <% } %>
+                                        </p>
                                         <p class="text-xs font-normal text-grey4 italic line-clamp-1 truncate">x <%= item.getQuantity() %></p>
                                     </div>
                                     <!-- Price -->
@@ -249,9 +265,12 @@
                 <hr>
                 <div class="py-4 flex flex-col gap-4">
                   
-                    <div class="flex justify-between text-md font-dmSans">
+                    <div class="flex flex-col text-md font-dmSans">
                         <p class="font-medium">Shipping Fee</p>
-                        <p class="font-normal" id="shipping-total">RM <%= String.format("%.2f", shippingFee) %></p>
+                        <div class="flex items-center justify-between text-md font-dmSans">
+                            <p class="font-normal text-sm">Free Shipping if exceed RM1000</p>
+                            <p class="font-normal" id="shipping-total">RM 0.00</p>
+                        </div>
                     </div>
   
                     <div class="flex flex-col gap-1 text-md font-dmSans w-[70%]">

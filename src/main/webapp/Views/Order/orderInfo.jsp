@@ -20,13 +20,14 @@
 <%@ page import="mvc.Helpers.Helpers" %>
 <%@ page import="java.time.LocalDateTime" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
 <body class="content-wrapper flex flex-col selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
     
     <% 
         Order order = (Order) request.getAttribute("order");
         ShippingInformation shippingInfo = (ShippingInformation) request.getAttribute("shippingInfo");
         List<OrderTransaction> orderTransactions = (List<OrderTransaction>) request.getAttribute("orderTransactions");
-        Map<Integer, Boolean> feedbackMap = (Map<Integer, Boolean>) request.getAttribute("feedbackMap");
+        Map<String, Boolean> feedbackMap = (Map<String, Boolean>) request.getAttribute("feedbackMap");
     %>
 
     <!-- #region ORDER STATUS -->
@@ -223,7 +224,24 @@
                     <div class="flex flex-col w-full justify-between">
                         <div>
                             <p class="font-poppins font-medium text-lg lineClamp-2"><%= item.getProduct().getTitle() %></p>
-                            <p class="font-dmSans text-md">Variation: <%= item.getSelectedVariations() %></p>
+                            <p class="font-dmSans text-md"><%= item.getProduct().getTypeId().gettype() %></p>
+                            <p class="font-dmSans text-md">
+                                <% String jsonString = item.getSelectedVariations();
+                                    if (jsonString != null && !jsonString.isEmpty() && !jsonString.equals("null")) {
+                                    %>
+                                        <script>
+                                            try {
+                                                const variation = JSON.parse('<%= StringEscapeUtils.escapeEcmaScript(jsonString) %>');
+                                                const formatted = Object.entries(variation)
+                                                    .map(([key, value]) => key + ': ' + value)
+                                                    .join(', ');
+                                                document.write(formatted);
+                                            } catch (e) {
+                                                document.write('<%= StringEscapeUtils.escapeHtml4(jsonString) %>');
+                                            }
+                                        </script>
+                                <% } %>
+                            </p>
                         </div>
                         
                         <div class="flex justify-between items-center mt-2">
@@ -233,8 +251,12 @@
                             <%
                                 boolean isOrderReceived = order.getStatus().getId() == 4;
                                 int productId = item.getProduct().getId();
-                                boolean hasFeedback = feedbackMap != null && feedbackMap.getOrDefault(productId, false);
+                                String createdAt = item.getCreatedAt(); // already a String in ISO format
+                                String feedbackKey = productId + "|" + createdAt;
+
+                                boolean hasFeedback = feedbackMap != null && feedbackMap.getOrDefault(feedbackKey, false);
                             %>
+
 
                             <% if (isOrderReceived) { %>
                                 <% if (hasFeedback) { %>
@@ -243,16 +265,18 @@
                                         View Review
                                     </button>
                                 <% } else { %>
+                                <% out.println("<script>console.log('"+ Helpers.escapeJS(item.getSelectedVariations()) +"')</script>");%>
                                     <button 
-                                        class="border-darkYellow border text-md text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300"
-                                        onclick="openFeedbackModal(
-                                                    '<%= item.getOrder().getId() %>', 
-                                                    '<%= item.getProduct().getId() %>', 
-                                                    '<%= item.getProduct().getTitle() %>', 
-                                                    '<%= item.getProduct().getImageUrl() %>', 
-                                                    '<%= item.getOrderedProductPrice() %>')">
+                                        class="review-button border-darkYellow border text-md text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300"
+                                        data-order-id="<%= item.getOrder().getId() %>"
+                                        data-product-id="<%= item.getProduct().getId() %>"
+                                        data-title="<%= Helpers.escapeJS(item.getProduct().getTitle()) %>"
+                                        data-variation="<%= StringEscapeUtils.escapeHtml4(item.getSelectedVariations()) %>"
+                                        data-image-url="<%= Helpers.escapeJS(item.getProduct().getImageUrl()) %>"
+                                        data-price="<%= item.getOrderedProductPrice() %>">
                                         Review Here
                                     </button>
+
                                 <% } %>
                             <% } %>
 
@@ -451,11 +475,12 @@
         5: "Excellent"
     };
 
-    function openFeedbackModal(orderId, productId, productTitle, productImage, productPrice) {
+    function openFeedbackModal(orderId, productId, productTitle, selectedVariation, productImage, productPrice) {
         const modal = document.getElementById('feedbackModal');
         modal.classList.remove('hidden');
         modal.dataset.orderId = orderId;
         modal.dataset.productId = productId;
+        modal.dataset.selectedVariation = selectedVariation;
 
         selectedRating = 0;
         document.getElementById('feedback-comment').value = "";
@@ -505,6 +530,19 @@
         });
     }
 
+    document.querySelectorAll(".review-button").forEach(button => {
+        button.addEventListener("click", function () {
+            openFeedbackModal(
+                this.dataset.orderId,
+                this.dataset.productId,
+                this.dataset.title,
+                this.dataset.variation,
+                this.dataset.imageUrl,
+                this.dataset.price
+            );
+        });
+    });
+
     document.querySelectorAll('#rating-stars i').forEach(star => {
         const index = parseInt(star.dataset.index);
 
@@ -529,12 +567,15 @@
         const modal = document.getElementById('feedbackModal');
         const orderId = modal.dataset.orderId;
         const productId = modal.dataset.productId;
+        const variation = modal.dataset.selectedVariation;
         let comment = document.getElementById('feedback-comment').value.trim();
+
         if (comment.length == 0) {
             comment = null;
         }
 
         if (selectedRating === 0) return alert("Please select a star rating.");
+
 
         $.ajax({
             url: '<%= request.getContextPath() %>/Order/addOrderFeedback',
@@ -543,6 +584,7 @@
             data: JSON.stringify({
                 orderId: parseInt(orderId),
                 productId: parseInt(productId),
+                selectedVariation: variation,
                 rating: selectedRating,
                 comment: comment
             }),
@@ -563,6 +605,7 @@
             }
         });
     }
+
 </script>
     
 </html>

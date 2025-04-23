@@ -1,16 +1,15 @@
 package mvc.Helpers;
 
+import java.security.SecureRandom;
+import java.sql.Blob;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.tika.Tika;
-
-import java.security.SecureRandom;
-import java.sql.Blob;
-import java.util.Base64;
 
 import mvc.FileType;
 
@@ -31,12 +30,25 @@ public class Helpers {
                 .replace("\t", "\\t");
     }
 
-    // public static String generateOrderRefNo(Date date, String userId) {
-    // SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
-    // String formattedDate = formatter.format(date);
+    public static String escapeJS(String str) {
+        if (str == null) return "";
+        return str
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
+    }
+    
+    
 
-    // return "ORD-" + formattedDate + "-" + userId;
-    // }
+    public static String generateOrderRefNo(Date date, String userId) {
+        SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
+        String formattedDate = formatter.format(date);
+
+        return "ORD-" + formattedDate + "-" + userId;
+    }
 
     public static String getCurrentDateTime() {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
