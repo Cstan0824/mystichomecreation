@@ -205,7 +205,7 @@
             </div>
 
             <!-- Cart Items and Totals -->
-            <div class="basis-1/3 p-8 border border-grey3 flex flex-col w-full sticky top-[30px]">
+            <div class="basis-1/3 p-8 border border-grey3 flex flex-col w-full sticky top-[60px]">
                 <p class="font-bold text-lg font-poppins mb-4">Order Totals</p>
 
                 <!-- Cart Items List -->
@@ -244,7 +244,7 @@
                 
                 <div class="flex justify-between text-md font-dmSans py-4">
                     <p class="font-medium">Subtotal</p>
-                    <p class="font-normal" id="subtotal"><%= totalItems %> item, RM <%= String.format("%.2f", subtotal) %></p>
+                    <p class="font-normal" id="subtotal"><%= totalItems %> item<%= totalItems > 1 ? "s" : "" %>, RM <%= String.format("%.2f", subtotal) %></p>
                 </div>
                 <hr>
                 <div class="py-4 flex flex-col gap-4">
@@ -352,6 +352,17 @@
         </div>
     </div>
 
+    <!-- Warning Modal -->
+    <div id="paymentWarningModal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-md w-[90%] max-w-md text-center">
+            <p class="text-lg font-semibold text-red-600 mb-4">Please select a payment method before proceeding.</p>
+            <button onclick="closePaymentWarningModal()" class="bg-darkYellow text-white px-4 py-2 rounded hover:bg-yellow-600 transition">
+            OK
+            </button>
+        </div>
+    </div>
+
+
     <!-- Proceed Payment Hidden Form -->
     <form id="proceedPaymentForm" action="<%= request.getContextPath() %>/Order/processPayment" method="post" enctype="multipart/form-data">
         <input type="hidden" name="methodId" id="methodId">
@@ -395,7 +406,7 @@
                 });
             });
 
-            const paymentOptions = document.querySelectorAll('[data-payment-type]');
+            const paymentOptions = document.querySelectorAll('[data-payment-method]');
             const cardOptions = document.querySelectorAll('.card-option');
 
             paymentOptions.forEach(option => {
@@ -449,6 +460,13 @@
             const selectedPaymentMethod = document.querySelector('[data-payment-method].selected');
             const selectedCard = document.querySelector('.card-option.selected');
             let methodId = 0;
+
+            if (!selectedPaymentMethod && !selectedCard) {
+                document.getElementById("paymentWarningModal").classList.remove("hidden");
+                document.getElementById("paymentWarningModal").classList.add("flex");
+                return; // ❌ Don't proceed
+            }
+
             let paymentInfo = {
                 creditDebit: {
                     method: false,
@@ -507,6 +525,11 @@
             document.getElementById("proceedPaymentForm").submit();
         }
 
+        function closePaymentWarningModal() {
+            const modal = document.getElementById("paymentWarningModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
 
     </script>
 

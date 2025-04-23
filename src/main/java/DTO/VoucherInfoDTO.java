@@ -1,4 +1,6 @@
-package Models.Accounts;
+package DTO;
+
+import Models.Accounts.Voucher;
 
 public class VoucherInfoDTO {
     private Voucher voucher;

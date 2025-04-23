@@ -23,10 +23,10 @@
         <div class="basis-3/5">
             <ul class="flex justify-center gap-2 text-xl">
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                    <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
+                    <a href="<%= request.getContextPath() %>/product/productCatalog" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Products</a>
                 </li>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                    <a href="index.html" class="    -semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
+                    <a href="<%= request.getContextPath() %>/Landing" class="    -semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
                 </li>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                     <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
@@ -36,7 +36,7 @@
 
         <!--user and cart-->
         <div class="basis-1/5">
-            <ul class="flex justify-center items-center gap-4">
+            <ul class="flex justify-center items-center gap-2">
                 <li>
                     <div class="relative inline-block">
                         <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="cart-button">
@@ -55,7 +55,34 @@
                                     <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
 
-                                <div class="flex flex-col max-h-[550px] overflow-y-auto" id="cart-items">
+                                <div class="flex flex-col max-h-[450px] overflow-y-auto" id="cart-items">
+                                    
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>  
+                </li>
+                <li>
+                    <div class="relative inline-block">
+                        <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button">
+                            <i class="fa-solid fa-bell fa-lg"></i>
+                        </div>
+                        <!--Popover Notification-->
+                        <div class="hidden opacity-0 min-w-[330px] min-h-[450px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="notification-popup">
+                            <div class="flex flex-col">
+                                <div class="flex justify-between items-center p-4 pb-2">
+                                    <div class="flex items-center gap-4">
+                                        <h1 class="text-lg font-semibold font-poppins">Notifications</h1>
+                                        <div class="hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300" id="notification-refresh">
+                                            <i class="fa-solid fa-arrows-rotate"></i>
+                                        </div>
+                                    </div>
+                                    <a href="<%= request.getContextPath() %>/User/account#notifications" class="text-sm font-semibold text-darkYellow underline">View All</a>
+                                </div>
+
+                                <div class="flex flex-col max-h-[550px] overflow-y-auto" id="notification-items">
                                     
                                 </div>
 
@@ -74,7 +101,7 @@
                         <div class="hidden absolute right-0 top-full mt-3 min-w-40 w-fit z-[1000] bg-white border border-gray-200 rounded-md mhc-box-shadow opacity-0" id="user-menu">
                             <ul class="flex flex-col gap-2 p-2">
                                 <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
-                                    <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Profile</a>
+                                    <a href="<%= request.getContextPath() %>/User/account" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Profile</a>
                                 </li>
                                 <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
                                     <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Settings</a>
@@ -288,6 +315,19 @@
                     });
                 }
 
+                if (isNotificationPopupVisible) {
+                    gsap.to($notificationPopup, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
+                        }
+                    });
+                }
+
                 if (!isCartPopupVisible) {
                     setTimeout(function() {
                         $cartPopup.removeClass('hidden');
@@ -324,6 +364,79 @@
                 fetchCartItems();
             });
 
+            const $notificationButton = $('#notification-button');
+            const $notificationPopup = $('#notification-popup');
+            const $notificationRefresh = $('#notification-refresh');
+
+            let isNotificationPopupVisible = false;
+
+            $notificationButton.on('click', function (e) {
+                e.stopPropagation(); // Prevent the event from bubbling up to the document
+                
+                // Close user menu if it's open
+                if (isUserMenuVisible) {
+                    gsap.to($userMenu, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $userMenu.addClass('hidden');
+                            isUserMenuVisible = false;
+                        }
+                    });
+                }
+
+                if (isCartPopupVisible) {
+                    gsap.to($cartPopup, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $cartPopup.addClass('hidden');
+                            isCartPopupVisible = false;
+                        }
+                    });
+                }
+
+
+                if (!isNotificationPopupVisible) {
+                    setTimeout(function() {
+                        $notificationPopup.removeClass('hidden');
+                        gsap.fromTo($notificationPopup[0],
+                            { y: 10, autoAlpha: 0 },
+                            {
+                                y: 0,
+                                autoAlpha: 1,
+                                duration: 0.2,
+                                ease: 'power2.out'
+                            }
+                        );
+                       
+                    }, 100); // Delay the popup display by 100ms
+                    
+                    isNotificationPopupVisible = true;
+                } else {
+                    gsap.to($notificationPopup[0], {
+                        y: 10,
+                        autoAlpha: 0,
+                        duration: 0.2,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
+                        }
+                    });
+                    isNotificationPopupVisible = false;
+                }
+            });
+
+            $notificationRefresh.on('click', function (e) {
+                e.stopPropagation(); // Prevent the event from bubbling up to the document
+
+            });
+
 
 
             const $userButton = $('#user-button');
@@ -343,6 +456,19 @@
                         onComplete: function () {
                             $cartPopup.addClass('hidden');
                             isCartPopupVisible = false;
+                        }
+                    });
+                }
+
+                if (isNotificationPopupVisible) {
+                    gsap.to($notificationPopup, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
                         }
                     });
                 }
@@ -383,6 +509,17 @@
                         onComplete: function () {
                             $cartPopup.addClass('hidden');
                             isCartPopupVisible = false;
+                        }
+                    });
+                }
+                if (isNotificationPopupVisible && !$notificationPopup.is(e.target) && $notificationPopup.has(e.target).length === 0 && !$notificationButton.is(e.target) && $notificationButton.has(e.target).length === 0) {
+                    gsap.to($notificationPopup, {
+                        duration: 0.2,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
                         }
                     });
                 }

@@ -2,19 +2,19 @@ package DAO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import Models.Products.product;
 import Models.Products.productFeedback;
 import Models.Products.productFeedbackKey;
 import Models.Products.productType;
-import Models.Products.productVariationOptions;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import mvc.DataAccess;
 import mvc.Cache.Redis;
+import mvc.DataAccess;
 
 @Stateless 
 public class productDAO implements Serializable{
@@ -257,4 +257,43 @@ public class productDAO implements Serializable{
     return db.find(productFeedback.class, key);
     }
 
+    public boolean addProductFeedback(productFeedback feedback) {
+        try {
+            db.getTransaction().begin();
+            db.persist(feedback);
+            db.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Map<Integer, Boolean> getFeedbackMapByOrderId(int orderId) {
+        String key = "feedbackMap-order-" + orderId;
+    
+        TypedQuery<Integer> query = db.createQuery(
+            "SELECT pf.productId FROM productFeedback pf WHERE pf.orderId = :orderId", Integer.class);
+        query.setParameter("orderId", orderId);
+    
+        List<Integer> productIds = cache.getOrCreateList(key, Integer.class, query, Redis.CacheLevel.LOW, "Order");
+    
+        // 🛡️ Safeguard against null list
+        if (productIds == null) {
+            System.out.println("Redis returned null for key: " + key + " — falling back to empty map.");
+            productIds = new ArrayList<>();
+        }
+    
+        Map<Integer, Boolean> feedbackMap = new HashMap<>();
+        for (Integer pid : productIds) {
+            feedbackMap.put(pid, true);
+        }
+    
+        return feedbackMap;
+    }
+    
+    
+
 }
+    
