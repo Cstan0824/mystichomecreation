@@ -26,8 +26,10 @@ services:
             - ./src/main/Content:${FILE_UPLOAD_PATH}
             - ./src/main/Logs:${LOG_PATH}
             # # # LOAD CLIENT FILES DYNAMICALLY
-            # - ./src/main/webapp/Views:${CLEINT_FILE_PATH}/Views:rw
-            # - ./src/main/webapp/Content:${CLEINT_FILE_PATH}/Content:rw
+
+            #- ./src/main/webapp/Views:${CLEINT_FILE_PATH}/Views:rw
+            #- ./src/main/webapp/Content:${CLEINT_FILE_PATH}/Content:rw
+
 
             # # #backup use only
             # # - ./src/main/webapp/Views:${FILE_UPLOAD_PATH}/../webapp/Views:rw
@@ -75,6 +77,10 @@ services:
             HASH_ITERATION: ${HASH_ITERATION}
             HASH_KEY_LENGTH: ${HASH_KEY_LENGTH}
             HASH_SECRET_KEY: ${HASH_SECRET_KEY}
+
+            STRIPE_BASE_URL: ${STRIPE_BASE_URL}
+            STRIPE_API_KEY: ${STRIPE_API_KEY}
+            STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
         depends_on:
             - ${MYSQL_CONTAINER_NAME}
 

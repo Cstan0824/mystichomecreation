@@ -29,7 +29,7 @@ public class User {
     @Column(name = "user_id")
     private int id;
 
-    @Column(name = "role_id")
+    @Column(name = "role_id", insertable = false, updatable = false)
     private int role_id;
 
     @Column(name = "user_name")
@@ -51,7 +51,7 @@ public class User {
     private List<PaymentCard> paymentCards = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "role_id", referencedColumnName = "role_id", insertable = false, updatable = false)
+    @JoinColumn(name = "role_id", referencedColumnName = "role_id")
     private Role role;
 
     @JsonIgnore
