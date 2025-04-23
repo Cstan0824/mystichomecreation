@@ -237,6 +237,10 @@ public class SessionHelper {
         }
     }
 
+    public String getSessionID() {
+        return session != null ? session.getId() : null;
+    }
+
     public void remove() {
         if (session != null) {
             session.removeAttribute(USER_SESSION_KEY);
