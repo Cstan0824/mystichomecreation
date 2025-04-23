@@ -1,4 +1,6 @@
 package Models.Orders;
+
+
 import Models.Products.product;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,23 +25,28 @@ public class OrderTransaction {
     @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private product product;
 
+    @Id
+    @Column(name = "created_at")
+    private String createdAt;
+
     @Column(name = "order_quantity")
     private int orderQuantity;
 
     @Column(name = "ordered_product_price")
     private double orderedProductPrice;
 
-    @Column(name = "selected_variations", columnDefinition = "JSON")
+    @Column(name = "selected_variations")
     private String selectedVariations;
 
     public OrderTransaction() {}
 
-    public OrderTransaction(Order order, product product, int orderQuantity, double orderedProductPrice, String selectedVariations) {
+    public OrderTransaction(Order order, product product, int orderQuantity, double orderedProductPrice, String selectedVariations, String createdAt) {
         this.order = order;
         this.product = product;
         this.orderQuantity = orderQuantity;
         this.orderedProductPrice = orderedProductPrice;
         this.selectedVariations = selectedVariations;
+        this.createdAt = createdAt;
     }
 
     public Order getOrder() {
@@ -56,6 +63,14 @@ public class OrderTransaction {
 
     public void setProduct(product product) {
         this.product = product;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public int getOrderQuantity() {

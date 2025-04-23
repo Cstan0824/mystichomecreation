@@ -14,7 +14,7 @@
 <%@ page import="Models.Users.CartItem" %>
 <%@ page import="Models.Accounts.ShippingInformation" %>
 <%@ page import="mvc.Helpers.Helpers" %>
-
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
 
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
@@ -45,14 +45,32 @@
                     for(CartItem item : cartItems){  %>
                     
 
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="<%= item.getProduct().getPrice() %>" data-product-id="<%= item.getProduct().getId() %>" data-cart-id="<%= item.getCart().getId() %>">
+              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="<%= item.getProduct().getPrice() %>" data-product-id="<%= item.getProduct().getId() %>" data-cart-id="<%= item.getCart().getId() %>" data-variation="<%= StringEscapeUtils.escapeHtml4(item.getSelectedVariation()) %>">
                 <div class="col-span-5">
                     <div class="flex gap-4">
-                        <img src="<%= item.getProduct().getImageUrl() %>" alt="Product 1" class="w-[100px] h-[100px] object-cover rounded-lg">
+                        <img src="<%= item.getProduct().getImageUrl() %>" alt="<%= item.getProduct().getTitle() %>" class="w-[100px] h-[100px] object-cover rounded-lg">
                         <div class="flex flex-col justify-between">
                             <div class="flex flex-col">
                                 <p class="font-medium text-md lineClamp-2"><%= item.getProduct().getTitle() %></p>
-                                <p class="text-sm font-normal"><%= item.getSelectedVariation() %></p>
+                                <p class="font-normal text-sm"><%= item.getProduct().getTypeId().gettype() %></p>
+                                
+                                <p class="text-sm font-normal">
+                                <% String jsonString = item.getSelectedVariation();
+                                    if (jsonString != null && !jsonString.isEmpty() && !jsonString.equals("null")) {
+                                    %>
+                                        <script>
+                                            try {
+                                                const variation = JSON.parse('<%= StringEscapeUtils.escapeEcmaScript(jsonString) %>');
+                                                const formatted = Object.entries(variation)
+                                                    .map(([key, value]) => key + ': ' + value)
+                                                    .join(', ');
+                                                document.write(formatted);
+                                            } catch (e) {
+                                                document.write('<%= StringEscapeUtils.escapeHtml4(jsonString) %>');
+                                            }
+                                        </script>
+                                <% } %>
+                                </p>
                             </div>
                             
                             <p class="text-sm font-normal">RM<%= item.getProduct().getPrice() %></p>
@@ -104,10 +122,13 @@
                 <hr>
 
                 <div class="py-4 flex flex-col gap-4">
-
-                    <div class="flex justify-between text-md font-dmSans">
+                    
+                    <div class="flex flex-col text-md font-dmSans">
                         <p class="font-medium">Shipping Fee</p>
-                        <p class="font-normal" id="shipping-total">RM 0.00</p>
+                        <div class="flex items-center justify-between text-md font-dmSans">
+                            <p class="font-normal text-sm">Free Shipping if exceed RM1000</p>
+                            <p class="font-normal" id="shipping-total">RM 0.00</p>
+                        </div>
                     </div>
 
                     
@@ -418,6 +439,8 @@
             const row = icon.closest('.product-row');
             const cartId = parseInt(row.dataset.cartId);
             const productId = parseInt(row.dataset.productId);
+            const variation = row.dataset.variation;
+
             if (row) {
                 $.ajax({
                     url: '<%= request.getContextPath() %>/Cart/removeCartItemById',
@@ -425,7 +448,9 @@
                     contentType: 'application/json',
                     data: JSON.stringify({
                         cartId: cartId,
-                        productId: productId
+                        productId: productId,
+                        selectedVariation: variation
+
                     }),
                     success: function (response) {
                         console.log('Item deleted successfully:', response);
@@ -447,8 +472,7 @@
             const oldQty = parseInt(qtyEl.textContent);
             const cartId = parseInt(row.dataset.cartId);
             const productId = parseInt(row.dataset.productId);
-            console.log("cartId", cartId);
-            console.log("productId", productId);
+            const variation = row.dataset.variation;
 
             $.ajax({
                 url: '<%= request.getContextPath() %>/Cart/updateQuantity',
@@ -457,6 +481,7 @@
                 data: JSON.stringify({
                     cartId: cartId,
                     productId: productId,
+                    selectedVariation: variation,
                     delta: delta
                 }),
                 success: function(response) {
@@ -629,6 +654,7 @@
         }
 
         function renderCartRow(item) {
+            const variationStr = JSON.stringify(item.selected_variation).replace(/"/g, '&quot;');
             const variation = JSON.parse(item.selected_variation || '{}');
             const variationText = Object.entries(variation).map(function(pair) {
                 return pair[0] + ": " + pair[1];
@@ -636,7 +662,7 @@
 
             return (
                 '<div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row"' +
-                    ' data-price="' + item.product_price + '" data-product-id="' + item.product_id + '" data-cart-id="' + item.cart_id + '">' +
+                    ' data-price="' + item.product_price + '" data-product-id="' + item.product_id + '" data-cart-id="' + item.cart_id + '" data-variation="' + item.selected_variation + '">' +
                     '<div class="col-span-5">' +
                         '<div class="flex gap-4">' +
                             '<img src="' + item.product_img + '" alt="Product" class="w-[100px] h-[100px] object-cover rounded-lg">' +

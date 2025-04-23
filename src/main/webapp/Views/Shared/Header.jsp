@@ -139,7 +139,11 @@
 
                     if (innerData.cart_items && Array.isArray(innerData.cart_items)) {
                         innerData.cart_items.forEach(item => {
-                            const variation = JSON.parse(item.selected_variation);
+                            const variationStr = JSON.stringify(item.selected_variation).replace(/"/g, '&quot;');
+                            const variation = JSON.parse(item.selected_variation || '{}');
+                            const variationText = Object.entries(variation).map(function(pair) {
+                                return pair[0] + ": " + pair[1];
+                            }).join(', ');
                             console.log("product name: ", item.product_name);
                             console.log("product img: ", item.product_img);
                             console.log("product category: ", item.product_category);
@@ -159,9 +163,10 @@
                                             <div class="w-full flex justify-between gap-3">
                                                 <div class="w-full flex flex-col gap-0.5">
                                                     <h1 class="text-sm font-normal text-black" id="cart-product-name">`+ item.product_name +`</h1>
-                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-category">`+ item.product_category +`y</p>
+                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-category">`+ item.product_category +`</p>
+                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-variation">`+ variationText +`</p>
                                                 </div>
-                                                <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`)"> 
+                                                <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`)"> 
                                                     <i class="fa-solid fa-trash"></i>
                                                 </div>
                                             </div>
@@ -173,7 +178,7 @@
                                                 <div class="flex items-center h-[26px] bg-white">
                                                     <!-- Decrease Button -->
                                                     <button 
-                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, -1)"
+                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, -1)"
                                                         id="decrease-btn" type="button" 
                                                         class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200 px-2">
                                                         <span>-</span>
@@ -187,7 +192,7 @@
                                             
                                                     <!-- Increase Button -->
                                                     <button 
-                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, +1)"
+                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, +1)"
                                                         id="increase-btn" type="button" 
                                                         class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200 px-2">
                                                         <span>+</span>
@@ -220,7 +225,7 @@
             });
         }
 
-        function updateQty(btn, cartId, productId, delta) {
+        function updateQty(btn, cartId, productId, variation, delta) {
             const row = btn.closest('.prod-row');
             const qtyEl = row.querySelector('.quantity');
             const oldQty = parseInt(qtyEl.textContent);
@@ -232,6 +237,7 @@
                 data: JSON.stringify({
                     cartId: cartId,
                     productId: productId,
+                    selectedVariation: variation,
                     delta: delta
                 }),
                 success: function(response) {
@@ -261,14 +267,16 @@
         }
 
         // Function to delete cart item
-        function deleteCartItem(cartId, productId) {
+        function deleteCartItem(cartId, productId, variation) {
+            console.log("variation", variation);
             $.ajax({
                 url: '<%= request.getContextPath() %>/Cart/removeCartItemById',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
                     cartId: cartId,
-                    productId: productId
+                    productId: productId,
+                    selectedVariation: variation
                 }),
                 success: function (response) {
                     console.log('Item deleted successfully:', response);

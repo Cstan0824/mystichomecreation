@@ -24,7 +24,11 @@ import Models.Products.productFeedbackKey;
 import Models.Products.productType;
 import Models.Products.productVariationOptions;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Part;
+import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.HttpRequest;
+import mvc.ControllerBase;
+import mvc.Http.HttpMethod;
+import mvc.Result;
 
 
 
@@ -356,9 +360,10 @@ public class productController extends ControllerBase {
     public Result replyFeedback() throws Exception {
         int productId = Integer.parseInt(request.getParameter("productId"));
         int orderId   = Integer.parseInt(request.getParameter("orderId"));
+        String createdAt = request.getParameter("createdAt");
         String reply  = request.getParameter("reply").trim();
 
-        productFeedbackKey key = new productFeedbackKey(productId, orderId);
+        productFeedbackKey key = new productFeedbackKey(productId, orderId, createdAt);
         productFeedback fb = productDAO.findById(key);
         if (fb == null) {
             return error("Feedback not found");

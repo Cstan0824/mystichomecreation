@@ -37,6 +37,19 @@ public class Helpers {
                 .replace("\t", "\\t");
     }
 
+    public static String escapeJS(String str) {
+        if (str == null) return "";
+        return str
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
+    }
+    
+    
+
     public static String generateOrderRefNo(Date date, String userId) {
         SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
         String formattedDate = formatter.format(date);

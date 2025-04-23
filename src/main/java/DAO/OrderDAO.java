@@ -318,6 +318,31 @@ public class OrderDAO {
         return orderTransaction;
     }
 
+    public OrderTransaction getOrderTransactionByOrderAndProductAndVariation(Order order, product product, String selectedVariation) {
+        int orderId = order.getId();
+        int productId = product.getId();
+    
+        TypedQuery<OrderTransaction> query = db.createQuery(
+            "SELECT ot FROM OrderTransaction ot WHERE ot.order.id = :orderId AND ot.product.id = :productId AND ot.selectedVariations = :variation",
+            OrderTransaction.class
+        )
+        .setParameter("orderId", orderId)
+        .setParameter("productId", productId)
+        .setParameter("variation", selectedVariation);
+    
+        try {
+            // Using Redis key composed of all identifying elements
+            return cache.getOrCreate(
+                "ordertransaction-" + orderId + "-" + productId + "-" + selectedVariation,
+                OrderTransaction.class,
+                query,
+                Redis.CacheLevel.LOW
+            );
+        } catch (Exception e) {
+            // Fallback to database query if cache fails
+            return query.getSingleResult();
+        }
+    }
     // #endregion ORDER TRANSACTION
 
     // #region ORDER STATUS

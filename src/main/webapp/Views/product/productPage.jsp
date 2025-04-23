@@ -197,6 +197,7 @@
                                 >
                                     <input type="hidden" name="productId" value="<%= feedback.getProductId() %>"/>
                                     <input type="hidden" name="orderId"   value="<%= feedback.getOrderId()   %>"/>
+                                    <input type="hidden" name="createdAt"   value="<%= feedback.getCreatedAt()   %>"/>
 
                                     <label class="block text-sm font-semibold">Your reply:</label>
                                     <textarea

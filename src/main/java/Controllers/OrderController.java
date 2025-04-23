@@ -81,7 +81,7 @@ public class OrderController extends ControllerBase {
 
         List<OrderTransaction> orderTransactions = orderDAO.getAllOrderTransactionByOrder(order);
 
-        Map<Integer, Boolean> feedbackMap = new HashMap<>();
+        Map<String, Boolean> feedbackMap = new HashMap<>();
         if (order.getStatus().getId() == 4) {
             feedbackMap = productDAO.getFeedbackMapByOrderId(order.getId());
         }
@@ -449,10 +449,11 @@ public class OrderController extends ControllerBase {
                             product prod = item.getProduct();
                             int quantity = item.getQuantity();
                             String selectedVariation = item.getSelectedVariation();
+                            String createdAt = item.getCreatedAt();
                             double orderedProductPrice = prod.getPrice();
     
                             Order order = orderDAO.getOrderById(orderId);
-                            OrderTransaction orderTransaction = new OrderTransaction(order, prod, quantity, orderedProductPrice, selectedVariation);
+                            OrderTransaction orderTransaction = new OrderTransaction(order, prod, quantity, orderedProductPrice, selectedVariation, createdAt);
                             
                             // Step 4: Create order transaction
                             if (orderDAO.createOrderTransaction(orderTransaction)) {
@@ -465,7 +466,7 @@ public class OrderController extends ControllerBase {
 
                                 Redis.getSignalHub().publish("OrderTransaction", "invalidate feedback cache for OrderTransaction " + orderId);
 
-                                if (cartDAO.deleteCartItem(item.getCart(), item.getProduct())) {
+                                if (cartDAO.deleteCartItem(item.getCart(), item.getProduct(), item.getSelectedVariation())) {
                                     System.out.println("Cart Item Deleted Successfully");
                                     Redis.getSignalHub().publish("CartItem", "invalidate feedback cache for CartItem " + item.getCart().getId() + "Product " + item.getProduct().getId());
                                 } else {
@@ -873,9 +874,13 @@ public class OrderController extends ControllerBase {
 
     @SyncCache(channel = "Product_Feedback", message = "from order/addOrderFeedback")
     @HttpRequest(HttpMethod.POST)
-    public Result addOrderFeedback(int orderId, int productId, String comment, int rating) throws Exception {
+    public Result addOrderFeedback(int orderId, int productId, String selectedVariation, String comment, int rating) throws Exception {
 
         System.out.println("Add Order Feedback");
+
+        System.out.println("#api SelectedVariation: " + selectedVariation);
+        System.out.println("#api OrderId: " + orderId);
+        System.out.println("#api ProductId: " + productId);
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode jsonResponse = mapper.createObjectNode();
@@ -883,24 +888,51 @@ public class OrderController extends ControllerBase {
         Order order = orderDAO.getOrderById(orderId);
         product product = productDAO.searchProducts(productId);
 
-        productFeedback orderFeedback = new productFeedback();
+        System.out.println("#api2 SelectedVariation: " + selectedVariation);
 
-        Date feedbackDate = Date.valueOf(LocalDate.now());
-        orderFeedback.setFeedbackDate(feedbackDate);
-        orderFeedback.setOrder(order);
-        orderFeedback.setProduct(product);
-        orderFeedback.setComment(comment);
-        orderFeedback.setRating(rating);
-        orderFeedback.setOrderId(orderId);
-        orderFeedback.setProductId(productId);
+        if (order == null) {
+            System.out.println("#api Order not found");
+        } else {
+            System.out.println("#api Order found: " + order.getId());
+        }
+        if (product == null) {
+            System.out.println("#api Product not found");
+        } else {
+            System.out.println("#api Product found: " + product.getId());
+        }
 
-
-        // Only allow feedback if order is completed
-        if (order.getStatus() == null || order.getStatus().getId() != 4) {
+        if (order == null || product == null) {
             jsonResponse.put("success", false);
-            jsonResponse.put("error_msg", "Order not completed yet");
+            jsonResponse.put("error_msg", "Order or Product not found.");
             return json(jsonResponse);
         }
+
+        // ✅ Only allow feedback if order is completed (assuming status ID 4 = completed)
+        if (order.getStatus() == null || order.getStatus().getId() != 4) {
+            jsonResponse.put("success", false);
+            jsonResponse.put("error_msg", "Order not completed yet.");
+            return json(jsonResponse);
+        }
+
+        // ✅ Get the exact OrderTransaction (based on variation)
+        OrderTransaction targetTxn = orderDAO.getOrderTransactionByOrderAndProductAndVariation(order, product, selectedVariation);
+
+        if (targetTxn == null) {
+            jsonResponse.put("success", false);
+            jsonResponse.put("error_msg", "Unable to locate order transaction for this product and variation.");
+            return json(jsonResponse);
+        }
+
+        // ✅ Create and populate the feedback object
+        productFeedback orderFeedback = new productFeedback();
+        orderFeedback.setOrder(order);
+        orderFeedback.setProduct(product);
+        orderFeedback.setOrderId(orderId);
+        orderFeedback.setProductId(productId);
+        orderFeedback.setCreatedAt(targetTxn.getCreatedAt());
+        orderFeedback.setFeedbackDate(Date.valueOf(LocalDate.now()));
+        orderFeedback.setComment(comment);
+        orderFeedback.setRating(rating);
 
         try {
             boolean isAdded = productDAO.addProductFeedback(orderFeedback);
@@ -913,12 +945,14 @@ public class OrderController extends ControllerBase {
                 jsonResponse.put("error_msg", "Failed to add feedback.");
             }
         } catch (Exception e) {
+            e.printStackTrace();
             jsonResponse.put("success", false);
             jsonResponse.put("error_msg", e.getMessage());
         }
 
-        return json(jsonResponse); // ✅ Add final return
+        return json(jsonResponse);
     }
+
 
 
 
