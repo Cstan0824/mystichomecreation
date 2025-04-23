@@ -11,10 +11,10 @@ import DAO.AccountDA;
 import DAO.CartDAO;
 import DAO.UserDA;
 import DAO.productDAO;
+import DTO.VoucherInfoDTO;
 import Models.Accounts.PaymentCard;
 import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
-import Models.Accounts.VoucherInfoDTO;
 import Models.Products.product;
 import Models.Users.Cart;
 import Models.Users.CartItem;
@@ -65,7 +65,6 @@ public class CartController extends ControllerBase{
     public Result checkout(String label, String receiverName, String phoneNumber, String state, String postCode, String addressLine1, String addressLine2, boolean isDefault) throws Exception {
 
         System.out.println("Cart Checkout Page");
-        ObjectMapper mapper = new ObjectMapper();
         User user = userDA.getUserById(1);
         if (user == null) {
             return json("User not found");

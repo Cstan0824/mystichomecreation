@@ -128,7 +128,7 @@
 
                 <!-- Order Status Log -->
                 <div class="flex basis-2/3 flex-col w-full items-start justify-between">
-                    <p class="font-poppins font-semibold text-lg mb-4">Order <%= order.getOrderRefNo() %></p>
+                    <p class="font-poppins font-semibold text-lg mb-4"><%= order.getOrderRefNo() %></p>
                     
                     <% if (order.getReceiveDate() != null && !order.getReceiveDate().isEmpty()) { 
                         String input = order.getReceiveDate();
@@ -202,7 +202,7 @@
         
             <!-- Buy again or View Receipt -->
             <div class="flex justify-end gap-4 items-center">
-                <button class="border-darkYellow border text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300">View Receipt</button>
+                <button onClick="generatePDF()" class="border-darkYellow border text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300">View Receipt</button>
             </div>
         </div>
     </div>  
@@ -239,14 +239,18 @@
                             <% if (isOrderReceived) { %>
                                 <% if (hasFeedback) { %>
                                     <button class="border-darkYellow border text-md text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300" 
-                                        data-product-id="<%= item.getProduct().getId() %>" 
-                                        data-order-id="<%= item.getOrder().getId() %>" >
+                                        onclick="window.location.href='<%= request.getContextPath() %>/product/productPage?id=<%= item.getProduct().getId() %>'">
                                         View Review
                                     </button>
                                 <% } else { %>
                                     <button 
                                         class="border-darkYellow border text-md text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300"
-                                        onclick="openFeedbackModal('<%= item.getOrder().getId() %>', '<%= item.getProduct().getId() %>', '<%= item.getProduct().getTitle() %>')">
+                                        onclick="openFeedbackModal(
+                                                    '<%= item.getOrder().getId() %>', 
+                                                    '<%= item.getProduct().getId() %>', 
+                                                    '<%= item.getProduct().getTitle() %>', 
+                                                    '<%= item.getProduct().getImageUrl() %>', 
+                                                    '<%= item.getOrderedProductPrice() %>')">
                                         Review Here
                                     </button>
                                 <% } %>
@@ -353,22 +357,45 @@
     <!-- #endregion -->
 
     <!-- #region Feedback Modal -->
-    <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Leave Your Feedback</h2>
-            <p id="modalProductName" class="text-md text-gray-600 mb-2"></p>
+    <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-[1000] flex">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-3xl shadow-xl flex flex-col gap-4">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 font-poppins">Leave Your Review</h2>
+ 
+            <div id="order-item" class="flex gap-2">
+                <!-- Image -->
+                <div class="flex items-center flex-shrink-0">
+                    <img src="https://placehold.co/100x100/png" alt="product-img" 
+                        class="w-[100px] h-[100px] rounded-[6px] object-cover border border-grey2" />
+                </div>
+                
+                <!-- Details -->
+                <div class="flex flex-col justify-between w-full h-[100px]">
+                    <!-- Top (Product Name) -->
+                    <div class="flex flex-col gap-0.5 overflow-hidden max-w-[70%]">
+                        <h1 class="text-lg font-normal text-black truncate font-dmSans" id="modalProductName">Product Name That Might Be Very Long</h1>
+                    </div>
+
+                    <!-- Bottom Right (Price) -->
+                    <div class="flex justify-end">
+                        <p class="font-semibold text-lg py-1 text-nowrap" id="product-price">RM 88.00</p>
+                    </div>
+                </div>
+
+            </div>
             <!-- Rating Stars -->
-            <div id="rating-stars" class="flex space-x-2 mb-4 cursor-pointer text-2xl text-gray-300">
-                <%-- 5 stars using font-awesome --%>
-                <i class="fa-solid fa-star" data-index="1"></i>
-                <i class="fa-solid fa-star" data-index="2"></i>
-                <i class="fa-solid fa-star" data-index="3"></i>
-                <i class="fa-solid fa-star" data-index="4"></i>
-                <i class="fa-solid fa-star" data-index="5"></i>
+            <div class="flex flex-col items-center justify-center gap-1">
+                <p id="rating-description" class="text-center text-md text-gray-600 font-medium h-5"></p>
+                <div id="rating-stars" class="flex justify-center space-x-2 my-4 mb-6 cursor-pointer text-3xl text-gray-300">
+                    <i class="fa-solid fa-star" data-index="1"></i>
+                    <i class="fa-solid fa-star" data-index="2"></i>
+                    <i class="fa-solid fa-star" data-index="3"></i>
+                    <i class="fa-solid fa-star" data-index="4"></i>
+                    <i class="fa-solid fa-star" data-index="5"></i>
+                </div>
             </div>
 
             <!-- Comment box -->
-            <textarea id="feedback-comment" rows="4" placeholder="Write your comment here..." 
+            <textarea id="feedback-comment" rows="6" placeholder="Write your review here..." 
                 class="w-full border rounded-lg px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-darkYellow resize-none mb-4"></textarea>
 
             <!-- Buttons -->
@@ -378,10 +405,12 @@
             </div>
         </div>
     </div>
+
 <!-- #endregion -->
 
 </body>
 <script>
+    const thisOrderId = '<%= order.getId() %>';
     var status = '<%= order.getStatus().getStatusDesc() %>';
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -414,19 +443,56 @@
 
     let selectedRating = 0;
 
-    function openFeedbackModal(orderId, productId, productTitle) {
-    const modal = document.getElementById('feedbackModal');
-    modal.classList.remove('hidden');
-    modal.dataset.orderId = orderId;
-    modal.dataset.productId = productId;
+    const ratingDescriptions = {
+        1: "Very Bad",
+        2: "Bad",
+        3: "Okay",
+        4: "Good",
+        5: "Excellent"
+    };
 
-    selectedRating = 0;
-    document.getElementById('feedback-comment').value = "";
-    document.getElementById('modalProductName').innerText = `Product: ` + productTitle;
+    function openFeedbackModal(orderId, productId, productTitle, productImage, productPrice) {
+        const modal = document.getElementById('feedbackModal');
+        modal.classList.remove('hidden');
+        modal.dataset.orderId = orderId;
+        modal.dataset.productId = productId;
 
-    highlightStars(0);
-}
+        selectedRating = 0;
+        document.getElementById('feedback-comment').value = "";
+        document.getElementById('modalProductName').innerText = productTitle;
 
+        // Inject image and price
+        document.querySelector('#order-item img').src = productImage;
+        document.querySelector('#order-item #product-price').innerText = `RM ` + parseFloat(productPrice).toFixed(2);
+
+        highlightStars(0);
+    }
+
+    function generatePDF() {
+
+        $.ajax({
+            url: '<%= request.getContextPath() %>/Order/generateReceipt',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                orderId: parseInt(thisOrderId)
+            }),
+            success: function(response) {
+                const parsedResponse = JSON.parse(response.data);
+                if (parsedResponse.pdf_success) {
+                    
+                    alert("Receipt generated successfully! View at: " + parsedResponse.pdf_path);
+                    
+                } else {
+                    alert("Failed to submit feedback: " + parsedResponse.error_msg);
+                }
+            },
+            error: function() {
+                console.log("Something went wrong while generating receipt.");
+            }
+        });
+
+    }
 
     function closeFeedbackModal() {
         document.getElementById('feedbackModal').classList.add('hidden');
@@ -442,22 +508,33 @@
     document.querySelectorAll('#rating-stars i').forEach(star => {
         const index = parseInt(star.dataset.index);
 
-        star.addEventListener('mouseenter', () => highlightStars(index));
-        star.addEventListener('click', () => selectedRating = index);
+        star.addEventListener('mouseenter', () => {
+            highlightStars(index);
+            document.getElementById('rating-description').innerText = ratingDescriptions[index] || "";
+        });
+
+        star.addEventListener('click', () => {
+            selectedRating = index;
+        });
     });
+
 
     document.getElementById('rating-stars').addEventListener('mouseleave', () => {
         highlightStars(selectedRating);
+        document.getElementById('rating-description').innerText = selectedRating ? ratingDescriptions[selectedRating] : "";
     });
+
 
     function submitFeedback() {
         const modal = document.getElementById('feedbackModal');
         const orderId = modal.dataset.orderId;
         const productId = modal.dataset.productId;
-        const comment = document.getElementById('feedback-comment').value.trim();
+        let comment = document.getElementById('feedback-comment').value.trim();
+        if (comment.length == 0) {
+            comment = null;
+        }
 
         if (selectedRating === 0) return alert("Please select a star rating.");
-        if (comment.length < 5) return alert("Comment must be at least 5 characters long.");
 
         $.ajax({
             url: '<%= request.getContextPath() %>/Order/addOrderFeedback',
@@ -475,7 +552,7 @@
                     closeFeedbackModal();
                     alert("Feedback submitted successfully!");
                     setTimeout(() => {
-                        location.reload();
+                        location.reload(true);
                     }, 1000);
                 } else {
                     alert("Failed to submit feedback: " + parsedResponse.error_msg);

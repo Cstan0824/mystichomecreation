@@ -55,7 +55,7 @@
                                     <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
 
-                                <div class="flex flex-col max-h-[550px] overflow-y-auto" id="cart-items">
+                                <div class="flex flex-col max-h-[450px] overflow-y-auto" id="cart-items">
                                     
                                 </div>
 
@@ -69,8 +69,8 @@
                         <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button">
                             <i class="fa-solid fa-bell fa-lg"></i>
                         </div>
-                        <!--Popover Cart-->
-                        <div class="hidden opacity-0 min-w-[330px] min-h-[550px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="notification-popup">
+                        <!--Popover Notification-->
+                        <div class="hidden opacity-0 min-w-[330px] min-h-[450px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="notification-popup">
                             <div class="flex flex-col">
                                 <div class="flex justify-between items-center p-4 pb-2">
                                     <div class="flex items-center gap-4">
@@ -315,6 +315,19 @@
                     });
                 }
 
+                if (isNotificationPopupVisible) {
+                    gsap.to($notificationPopup, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
+                        }
+                    });
+                }
+
                 if (!isCartPopupVisible) {
                     setTimeout(function() {
                         $cartPopup.removeClass('hidden');
@@ -447,6 +460,19 @@
                     });
                 }
 
+                if (isNotificationPopupVisible) {
+                    gsap.to($notificationPopup, {
+                        duration: 0.2,
+                        y: 10,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
+                        }
+                    });
+                }
+
                 if (!isUserMenuVisible) {
                     $userMenu.removeClass('hidden');
                     gsap.fromTo($userMenu[0],
@@ -483,6 +509,17 @@
                         onComplete: function () {
                             $cartPopup.addClass('hidden');
                             isCartPopupVisible = false;
+                        }
+                    });
+                }
+                if (isNotificationPopupVisible && !$notificationPopup.is(e.target) && $notificationPopup.has(e.target).length === 0 && !$notificationButton.is(e.target) && $notificationButton.has(e.target).length === 0) {
+                    gsap.to($notificationPopup, {
+                        duration: 0.2,
+                        autoAlpha: 0,
+                        ease: 'power2.in',
+                        onComplete: function () {
+                            $notificationPopup.addClass('hidden');
+                            isNotificationPopupVisible = false;
                         }
                     });
                 }

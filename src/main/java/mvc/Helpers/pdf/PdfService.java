@@ -12,12 +12,15 @@ import java.util.UUID;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.tool.xml.XMLWorkerHelper;
 
 public class PdfService {
     private PdfType pdfType;
     private Map<String, String> values = new HashMap<>();
+    private PdfOrientation orientation = PdfOrientation.PORTRAIT;
+
 
     private static final String PDF_TEMPLATE_PATH = System.getenv("PDF_TEMPLATE_PATH");
     private static final String PDF_OUTPUT_PATH = System.getenv("PDF_OUTPUT_PATH");
@@ -34,6 +37,17 @@ public class PdfService {
         this.pdfType = pdfType;
         this.values = values;
     }
+
+    public PdfService(PdfType pdfType, Map<String, String> values, PdfOrientation orientation) {
+        this.pdfType = pdfType;
+        this.values = values;
+        this.orientation = orientation;
+    }
+    
+    public void setOrientation(PdfOrientation orientation) {
+        this.orientation = orientation;
+    }
+    
 
     public Map<String, String> getValues() {
         return values;
@@ -56,7 +70,10 @@ public class PdfService {
     }
 
     public File convert() {
-        Document document = new Document();
+        Document document = orientation == PdfOrientation.LANDSCAPE
+            ? new Document(PageSize.A4.rotate())
+            : new Document(PageSize.A4);
+
         String html = getHtmlContent();
         File file = new File(getOutputPath());
         try {
@@ -86,7 +103,10 @@ public class PdfService {
     }
 
     public byte[] toByte() {
-        Document document = new Document();
+        Document document = orientation == PdfOrientation.LANDSCAPE
+            ? new Document(PageSize.A4.rotate())
+            : new Document(PageSize.A4);
+
         String html = getHtmlContent();
         if (html == null) {
             return null;
@@ -116,14 +136,34 @@ public class PdfService {
         if (!file.exists()) {
             return null;
         }
-        // read the file and extract it to string
+    
         try {
-            return Files.readString(file.toPath());
+            String html = Files.readString(file.toPath());
+            return injectValues(html); // replace placeholders
         } catch (Exception e) {
             e.printStackTrace(System.err);
             return null;
         }
-
     }
 
+    private String injectValues(String html) {
+        if (values == null || values.isEmpty()) return html;
+    
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+    
+            // Support both {{key}} and ${key} syntaxes
+            html = html.replace("{{" + key + "}}", value);
+            html = html.replace("${" + key + "}", value);
+        }
+    
+        return html;
+    }
+    
+    public enum PdfOrientation {
+        PORTRAIT,
+        LANDSCAPE
+    }
+    
 }
