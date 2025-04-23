@@ -8,7 +8,6 @@ import DTO.UserSession;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.HttpRequest;
 import mvc.Helpers.Helpers;
 import mvc.Helpers.SessionHelper;
@@ -17,7 +16,6 @@ import mvc.DataAccess;
 import mvc.Http.HttpMethod;
 import mvc.Result;
 
-@WebServlet("/Landing/*")
 public class LandingController extends ControllerBase {
     private EntityManager db = DataAccess.getEntityManager();
     private UserDA userDA = new UserDA();
@@ -32,21 +30,33 @@ public class LandingController extends ControllerBase {
     }
 
     @HttpRequest(HttpMethod.POST)
-    public Result login(UserCredentials userCredential) throws Exception {
-        User user = userDA.getUserByUsername(userCredential.getUsername());
+    public Result login(String username, String password) throws Exception {
+        User user = userDA.getUserByUsername(username);
         SessionHelper session = getSessionHelper();
         UserSession userSession = new UserSession();
+
         if (user == null) {
-            return error("Invalid username or password.");
+            request.setAttribute("error", "Invalid username or password.");
+            return page();
         }
-        String password = userDA.getUserPasswordById(user.getId());
-        if (!Helpers.verifyPassword(userCredential.getPassword(), password)) {
-            return error("Invalid username or password.");
+
+        if (!user.getUsername().equals(username)) {
+            request.setAttribute("error", "Invalid username or password.");
+            return page();
         }
+
+        String userPassword = userDA.getUserPasswordById(user.getId());
+        if (!Helpers.verifyPassword(password, userPassword)) {
+            request.setAttribute("error", "Invalid username or password.");
+            return page();
+        }
+
         List<String> accessUrls = userDA.getUrlAccesses(user.getRole().getId());
         if (accessUrls == null) {
-            return error("User does not have any access permissions.");
+            request.setAttribute("error", "User does not have any access permissions.");
+            return page();
         }
+
         UserImage userImage = userDA.getUserImageByUserId(user.getId());
         if (userImage != null) {
             userSession.setImageId(userImage.getId());
@@ -59,8 +69,19 @@ public class LandingController extends ControllerBase {
         userSession.setAccessUrls(accessUrls);
 
         session.setUserSession(userSession);
-        SessionHelper demo = getSessionHelper();
-        System.out.println(demo.getUserSession().getUsername());
-        return success();
+        System.out.println(session.getUserSession().getUsername());
+
+        return page("index");
+    }
+
+    @HttpRequest(HttpMethod.POST)
+    public Result logout() throws Exception {
+        SessionHelper session = getSessionHelper();
+        session.clear(); // Invalidate session
+        return page("index");
+    }
+
+    public Result test() throws Exception {
+        return page();
     }
 }

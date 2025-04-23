@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 public class OTP {
     private int id;
     private int userId;
+    private String email;
     private String otp;
     private Timestamp expiry;
 
@@ -44,6 +45,14 @@ public class OTP {
 
     public void setExpiry(Timestamp expiry) {
         this.expiry = expiry;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }

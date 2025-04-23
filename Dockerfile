@@ -3,39 +3,40 @@ FROM node:22 AS node-build
 
 WORKDIR /app
 
-# Copy package.json & package-lock.json first to leverage caching
 COPY package.json package-lock.json ./
-
-# Install dependencies
 RUN npm cache clean --force
 RUN rm -rf package-lock.json node_modules && npm install -g npm@latest
 
-# Ensure Tailwind CSS is explicitly installed
+# Install Tailwind
 RUN npm install tailwindcss@3 postcss autoprefixer
 
-# Copy Tailwind config file explicitly
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
-# Copy the full source code
+# Copy Tailwind config & source code
+COPY tailwind.config.js postcss.config.js ./
 COPY . .
 
-# Ensure Tailwind CLI is installed before running it
 RUN ls -al ./node_modules/.bin && npx tailwindcss --help && \
     npx tailwindcss -i ./src/main/webapp/Content/css/tailwind.css -o ./src/main/webapp/Content/css/output.css --minify
 
 # Java Build Stage
 FROM eclipse-temurin:17-jdk-jammy AS build
 
-WORKDIR /app
+# ✅ Install CA certs to fix SSL issues
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
+WORKDIR /app
 COPY --from=node-build /app /app
 
-# Build the Java application using Maven with caching
+# Build with Maven (cached dependencies)
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -f pom.xml clean package
 
 # Deployment Stage
 FROM ghcr.io/eclipse-ee4j/glassfish
 
-# Copy the built WAR file to the GlassFish autodeploy directory
+# ✅ Install CA certs to fix Stripe SSL in runtime
+USER root
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates ca-certificates-java && \
+    update-ca-certificates -f && \
+    rm -rf /var/lib/apt/lists/*
+# Copy WAR to autodeploy
 COPY --from=build /app/target/*.war /opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war

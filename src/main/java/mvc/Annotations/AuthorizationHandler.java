@@ -25,8 +25,6 @@ public class AuthorizationHandler implements Middleware {
         if (userSession.getAccessUrls() != null) {
             for (String userAccess : userSession.getAccessUrls()) {
                 for (String accessUrl : accessUrls.split(",")) {
-                    System.out.println("Access URL: " + accessUrl);
-                    System.out.println("User Access: " + userAccess);
                     if (userSession.isAuthenticated() && accessUrl.equals(userAccess)) {
                         return;
                     }

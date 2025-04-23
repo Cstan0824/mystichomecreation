@@ -5,10 +5,12 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import mvc.Annotations.AuthorizationHandler;
 import mvc.Annotations.SyncCacheHandler;
 import mvc.App.Application;
 import mvc.Cache.Redis;
+import mvc.Exceptions.PageNotFoundException;
 import mvc.Helpers.Audits.AuditService;
 import mvc.Helpers.Audits.AuditService.AuditType;
 import mvc.Helpers.Audits.AuditService.LogTarget;
@@ -18,6 +20,8 @@ import java.util.Map;
 public class ApplicationContext implements Application {
 
     private static Application application = new ApplicationContext();
+    private static final String NOT_FOUND_URL = "/web/Views/Error/notFound.jsp";
+    private static final String INTERNAL_ERROR_URL = "/web/Views/Error/internalError.jsp";
 
     public static Application getInstance() {
         return application;
@@ -43,11 +47,13 @@ public class ApplicationContext implements Application {
         // log error to file
         AuditService audit = new AuditService();
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         String uri = httpRequest.getRequestURI();
 
         // Skip static resources (css, js, images, video, etc.)
-        if (uri.matches(".*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|avif)$")) {
+        if (uri.matches(".*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|avif)$") || uri
+                .startsWith("/web/path_to_") || uri.startsWith("/web/Content/assets/")) {
             return; // Don't log static files
         }
 
@@ -56,6 +62,19 @@ public class ApplicationContext implements Application {
         audit.setType(AuditType.ERROR);
         audit.setTarget(LogTarget.FILE);
         audit.log();
+
+        // Redirect to error page based on the Exception type
+        try {
+            if (t instanceof PageNotFoundException) {
+                httpResponse.sendRedirect(NOT_FOUND_URL);
+
+            } else {
+                httpResponse.sendRedirect(INTERNAL_ERROR_URL);
+            }
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+
     }
 
     @Override

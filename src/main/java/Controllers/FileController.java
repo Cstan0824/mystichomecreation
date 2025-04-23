@@ -5,7 +5,6 @@ import java.sql.Blob;
 import javax.sql.rowset.serial.SerialBlob;
 
 import DAO.UserDA;
-import Models.TestImage;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
@@ -35,10 +34,7 @@ public class FileController extends ControllerBase {
         // get file from request and save it to the server
         // byte[] files1 = file[0];
         // byte[] files2 = file[1];
-        
-        
 
-        
         return success();
     }
 
@@ -127,22 +123,22 @@ public class FileController extends ControllerBase {
     }
     // #endregion
 
-    public Result getImage(int id) throws Exception {
-        EntityManager em = DataAccess.getEntityManager();
-        TestImage image = em.find(TestImage.class, id);
-        // convert blob to byte[]
-        byte[] imageBytes = Helpers.convertToByte(image.getImage());
-        FileType contentType = Helpers.getFileTypeFromBytes(imageBytes);
+    // public Result getImage(int id) throws Exception {
+    // EntityManager em = DataAccess.getEntityManager();
+    // TestImage image = em.find(TestImage.class, id);
+    // // convert blob to byte[]
+    // byte[] imageBytes = Helpers.convertToByte(image.getImage());
+    // FileType contentType = Helpers.getFileTypeFromBytes(imageBytes);
 
-        return source(imageBytes, "test-get-image-from-src", contentType);
-    }
+    // return source(imageBytes, "test-get-image-from-src", contentType);
+    // }
 
-    public Result testDownload(int id) throws Exception {
-        EntityManager em = DataAccess.getEntityManager();
-        TestImage image = em.find(TestImage.class, id);
-        // convert blob to byte[]
-        byte[] imageBytes = Helpers.convertToByte(image.getImage());
-        FileType contentType = Helpers.getFileTypeFromBytes(imageBytes);
-        return file(imageBytes, "test-download-image-from-url", contentType);
-    }
+    // public Result testDownload(int id) throws Exception {
+    // EntityManager em = DataAccess.getEntityManager();
+    // TestImage image = em.find(TestImage.class, id);
+    // // convert blob to byte[]
+    // byte[] imageBytes = Helpers.convertToByte(image.getImage());
+    // FileType contentType = Helpers.getFileTypeFromBytes(imageBytes);
+    // return file(imageBytes, "test-download-image-from-url", contentType);
+    // }
 }
