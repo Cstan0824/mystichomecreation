@@ -1,4 +1,5 @@
 package Controllers;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ import Models.Users.Cart;
 import Models.Users.CartItem;
 import Models.Users.User;
 import jakarta.servlet.annotation.WebServlet;
+import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.ControllerBase;
@@ -334,6 +336,53 @@ public class CartController extends ControllerBase{
         return json(jsonResponse);
     }
 
+    @ActionAttribute(urlPattern = "addToCartById")
+    @SyncCache(channel = "CartItem", message ="from cart/addToCartById")
+    @HttpRequest(HttpMethod.POST)
+    public Result addToCart(int productId, int quantity, String selectedVariation) throws Exception{
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonResponse = mapper.createObjectNode();
+
+        User user = userDA.getUserById(1); // Replace with session-based user retrieval
+        product product = null;
+        Cart cart = null;
+        try {
+            cart = cartDAO.getCartByUser(user.getId());
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("getCart_success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
+            return json(jsonResponse);
+        }
+        try {
+            product = productDAO.searchProducts(productId);
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("getProduct_success", false);
+            ((ObjectNode) jsonResponse).put("error msg", "Product not found");
+            return json(jsonResponse);
+        }
+        try {
+            System.out.println("Using Selected Variation: " + selectedVariation);
+            CartItem cartItem = new CartItem(cart, product, quantity, selectedVariation, LocalDateTime.now().toString());
+            if (cartDAO.addCartItem(cartItem)) {
+                ((ObjectNode) jsonResponse).put("addToCart_success", true);
+                ((ObjectNode) jsonResponse).put("cart_user", user.getUsername());
+                ((ObjectNode) jsonResponse).put("cart_item_quantity", cartItem.getQuantity());
+                ((ObjectNode) jsonResponse).put("cart_item_selected_variation", cartItem.getSelectedVariation());
+                ((ObjectNode) jsonResponse).put("cart_id", cartItem.getCart().getId());
+                ((ObjectNode) jsonResponse).put("cart_item_name", cartItem.getProduct().getTitle());
+                return json(jsonResponse);
+            } else {
+                ((ObjectNode) jsonResponse).put("addToCart_success", false);
+                ((ObjectNode) jsonResponse).put("error msg", "Cart item already exists");
+                return json(jsonResponse);
+            }
+        } catch (Exception e) {
+            ((ObjectNode) jsonResponse).put("addToCart_success", false);
+            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            return json(jsonResponse);
+        }
+    }
 
     // Increase Cart Item Quantity
     @SyncCache(channel = "CartItem", message ="from cart/increaseCartItemQuantity")

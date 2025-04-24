@@ -474,6 +474,8 @@
             const productId = parseInt(row.dataset.productId);
             const variation = row.dataset.variation;
 
+            console.log("variation", variation);
+
             $.ajax({
                 url: '<%= request.getContextPath() %>/Cart/updateQuantity',
                 type: 'POST',
