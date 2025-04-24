@@ -11,6 +11,14 @@ import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.tika.Tika;
 
+import java.security.SecureRandom;
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
+
+import Models.Accounts.BankType;
 import mvc.FileType;
 
 public class Helpers {
@@ -68,6 +76,19 @@ public class Helpers {
         }
         byte[] bytes = blob.getBytes(1, (int) blob.length());
         return bytes;
+    }
+
+    public static byte[] convertToByte2(Blob blob) throws SQLException, IOException {
+        if (blob == null) return null;
+        try (InputStream in = blob.getBinaryStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = in.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+            return out.toByteArray();
+        }
     }
 
     public static String hashPassword(String password) {
