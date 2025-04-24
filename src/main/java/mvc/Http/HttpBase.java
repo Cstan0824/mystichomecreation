@@ -51,8 +51,7 @@ import mvc.Result;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
         maxFileSize = 1024 * 1024 * 10, // 10MB
-        maxRequestSize = 1024 * 1024 * 50 // 50MB
-)
+        maxRequestSize = 1024 * 1024 * 50)
 public abstract class HttpBase extends HttpServlet {
     protected HttpContext context = new HttpContext();
     protected HttpServletRequest request;
@@ -61,6 +60,8 @@ public abstract class HttpBase extends HttpServlet {
     private static List<Middleware> middlewares;
     private static final String DEFAULT_CONTROLLER = "LandingController";
     private static final String DEFAULT_ACTION = "index";
+    private static final String NOT_FOUND_URL = "/web/Views/Error/notFound.jsp";
+    private static final String INTERNAL_ERROR_URL = "/web/Views/Error/internalError.jsp";
 
     // #region SERVER RESPONSE METHODS
     protected abstract Result page() throws Exception;
@@ -157,7 +158,7 @@ public abstract class HttpBase extends HttpServlet {
     // #endregion
 
     // #region Process Request and Middleware
-    private Method getCurrentAction() throws PageNotFoundException {
+    private Method getCurrentAction() throws PageNotFoundException, IOException {
         String action = context.getRequest().getPathInfo();
         String httpMethod = context.getRequest().getMethod().toUpperCase();
         if (action == null)
@@ -176,9 +177,18 @@ public abstract class HttpBase extends HttpServlet {
         // Retrieve current Controller's actions
         Method[] methods = this.getClass().getDeclaredMethods();
         if (methods.length == 0) {
-            // show user requested url
-            throw new PageNotFoundException(
-                    "No action found for the requested URL: " + context.getRequest().getRequestURI());
+            // redirect to error page
+            try {
+                response.setStatus(HttpStatusCode.NOT_FOUND.get());
+                response.sendRedirect(NOT_FOUND_URL);
+                // show user requested url
+                throw new PageNotFoundException(
+                        "No action found for the requested URL: " + context.getRequest().getRequestURI());
+            } catch (IOException | PageNotFoundException e) {
+                logger.log(Level.WARNING, "Error throws at [getCurrentAction()]: " + e.getMessage());
+                e.printStackTrace(System.err);
+            }
+
         }
 
         // Loop for the Controller Class Actions until the action is found
@@ -212,8 +222,13 @@ public abstract class HttpBase extends HttpServlet {
             return method;
         }
         // Action Not Found
+
+        response.setStatus(HttpStatusCode.NOT_FOUND.get());
+        response.sendRedirect(NOT_FOUND_URL);
+        // show user requested url
         throw new PageNotFoundException(
                 "No action found for the requested URL: " + context.getRequest().getRequestURI());
+
     }
 
     private void invokeMethod(Method action)
@@ -282,8 +297,16 @@ public abstract class HttpBase extends HttpServlet {
             }
 
         } else {
-            throw new InvalidActionResultException("Invalid Request");
-            // TODO: Redirect to error page, define the url in web.xml
+            try {
+                response.setStatus(HttpStatusCode.NOT_FOUND.get());
+                response.sendRedirect(INTERNAL_ERROR_URL);
+                // show user requested url
+                throw new InvalidActionResultException("Invalid Request");
+
+            } catch (IOException | PageNotFoundException e) {
+                logger.log(Level.WARNING, "Error throws at [getCurrentAction()]: " + e.getMessage());
+                e.printStackTrace(System.err);
+            }
 
         }
         // #endregion

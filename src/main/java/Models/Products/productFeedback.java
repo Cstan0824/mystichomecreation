@@ -25,6 +25,10 @@ public class productFeedback implements Serializable {
     @Column(name = "order_id", insertable = false, updatable = false)
     private int orderId;
 
+    @Id
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private String createdAt;
+
     @ManyToOne
     @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
     private product product;
@@ -48,15 +52,16 @@ public class productFeedback implements Serializable {
     @Column(name = "reply_date")
     private Date replyDate;
 
-
     public productFeedback() {}
 
-    // Getters and Setters
     public int getProductId() { return productId; }
     public void setProductId(int productId) { this.productId = productId; }
 
     public int getOrderId() { return orderId; }
     public void setOrderId(int orderId) { this.orderId = orderId; }
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
     public product getProduct() { return product; }
     public void setProduct(product product) { this.product = product; }
@@ -78,5 +83,4 @@ public class productFeedback implements Serializable {
 
     public Date getReplyDate() { return replyDate; }
     public void setReplyDate(Date replyDate) { this.replyDate = replyDate; }
-
 }

@@ -271,28 +271,35 @@ public class productDAO implements Serializable{
         }
     }
 
-    public Map<Integer, Boolean> getFeedbackMapByOrderId(int orderId) {
+    public Map<String, Boolean> getFeedbackMapByOrderId(int orderId) {
         String key = "feedbackMap-order-" + orderId;
-    
-        TypedQuery<Integer> query = db.createQuery(
-            "SELECT pf.productId FROM productFeedback pf WHERE pf.orderId = :orderId", Integer.class);
+
+        TypedQuery<Object[]> query = db.createQuery(
+            "SELECT pf.productId, pf.createdAt FROM productFeedback pf WHERE pf.orderId = :orderId", Object[].class
+        );
         query.setParameter("orderId", orderId);
-    
-        List<Integer> productIds = cache.getOrCreateList(key, Integer.class, query, Redis.CacheLevel.LOW, "Order");
-    
-        // 🛡️ Safeguard against null list
-        if (productIds == null) {
+
+        List<Object[]> feedbackKeys = cache.getOrCreateList(
+            key, Object[].class, query, Redis.CacheLevel.LOW, "Order"
+        );
+
+        // 🛡️ Fallback
+        if (feedbackKeys == null) {
             System.out.println("Redis returned null for key: " + key + " — falling back to empty map.");
-            productIds = new ArrayList<>();
+            feedbackKeys = new ArrayList<>();
         }
-    
-        Map<Integer, Boolean> feedbackMap = new HashMap<>();
-        for (Integer pid : productIds) {
-            feedbackMap.put(pid, true);
+
+        Map<String, Boolean> feedbackMap = new HashMap<>();
+        for (Object[] row : feedbackKeys) {
+            int productId = (int) row[0];
+            String createdAt = (String) row[1]; // No need to cast to LocalDateTime
+            String compositeKey = productId + "|" + createdAt;
+            feedbackMap.put(compositeKey, true);
         }
-    
+
         return feedbackMap;
     }
+
     
     public productImage findImageById(int imageId) {
         return db.find(productImage.class, imageId);

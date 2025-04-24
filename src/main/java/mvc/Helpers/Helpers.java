@@ -1,10 +1,9 @@
 package mvc.Helpers;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.security.SecureRandom;
+import java.sql.Blob;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 import javax.crypto.SecretKeyFactory;
@@ -21,7 +20,6 @@ import java.util.Base64;
 
 import Models.Accounts.BankType;
 import mvc.FileType;
-
 
 public class Helpers {
     // TODO: The escape String logic is not working properly, need to fix it
@@ -40,23 +38,24 @@ public class Helpers {
                 .replace("\t", "\\t");
     }
 
+    public static String escapeJS(String str) {
+        if (str == null) return "";
+        return str
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
+    }
+    
+    
+
     public static String generateOrderRefNo(Date date, String userId) {
         SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
         String formattedDate = formatter.format(date);
 
         return "ORD-" + formattedDate + "-" + userId;
-    }
-
-    // TODO: Bin Lookup API: https://bincheck.io/api
-    public static BankType getBankTypeByBin(String bin) throws MalformedURLException, IOException {
-        // Call Bin Lookup API to get bank type
-        String BINTABLE_API_KEY = System.getenv("BINTABLE_API_KEY");
-        String url = "https://DOMAIN_ENDPOINTS?api_key=" + BINTABLE_API_KEY;
-        URL apiUrl = new URL(url);
-        HttpURLConnection conn = (HttpURLConnection) apiUrl.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept-Version", "3");
-        return new BankType();
     }
 
     public static String getCurrentDateTime() {
@@ -93,15 +92,11 @@ public class Helpers {
     }
 
     public static String hashPassword(String password) {
-        return PasswordHasher.hashPassword(password); // Placeholder for actual
-        // password
-        // return password; // TEMPORARY
+        return PasswordHasher.hashPassword(password);
     }
 
     public static boolean verifyPassword(String password, String hashedPassword) {
-        return PasswordHasher.verifyPassword(password, hashedPassword); //
-        // Placeholder for actual password verification
-        // return password.equals(hashedPassword); // TEMPORARY
+        return PasswordHasher.verifyPassword(password, hashedPassword);
     }
 
     // IDK MAN IT JUST WORKS SO I PASTE IT
@@ -151,4 +146,36 @@ public class Helpers {
         }
     }
 
+    // private class BinListLookup {
+    // private static final String BINLIST_BASE_URL =
+    // System.getenv("BINLIST_BASE_URL");
+    // private OkHttpClient httpClient = HttpByPassSSLCertificate.getUnsafeClient();
+    // private String bin = "00000000";
+    // private AccountDA accountDA = new AccountDA();
+
+    // public BinListLookup(String bin) {
+    // this.bin = bin;
+    // }
+
+    // public BankType toBankType() {
+    // Request request = new Request.Builder()
+    // .url(BINLIST_BASE_URL + "/" + bin)
+    // .build();
+
+    // try (Response response = httpClient.newCall(request).execute()) {
+    // if (response.isSuccessful()) {
+    // String json = response.body().toString();
+
+    // } else {
+    // String json = response.body().toString();
+    // System.out.println("Error: " + json);
+    // return null;
+    // }
+
+    // } catch (IOException e) {
+    // return null;
+    // }
+
+    // }
+    // }
 }

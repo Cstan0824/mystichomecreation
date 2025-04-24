@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Models.Users.Permission;
+import Models.Users.Role;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
@@ -66,6 +67,14 @@ public class UserDA {
         return user;
     }
 
+    public boolean createUser(User user) {
+        db.getTransaction().begin();
+        db.persist(user);
+        db.getTransaction().commit();
+
+        return !db.getTransaction().getRollbackOnly();
+    }
+
     public boolean updateUser(User user) {
         db.getTransaction().begin();
         db.merge(user);
@@ -110,7 +119,7 @@ public class UserDA {
 
     public User getUserByUsername(String username) {
         User user = null;
-        TypedQuery<User> query = db.createQuery("SELECT u FROM User u  WHERE username=:username", User.class)
+        TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE u.username=:username", User.class)
                 .setParameter("username", username);
         try {
             user = cache.getOrCreate("user-" + username, User.class, query, CacheLevel.LOW);
@@ -149,4 +158,54 @@ public class UserDA {
         return urlAccesses;
     }
 
+    public String getEmailByUserId(int id) {
+        String email = null;
+        TypedQuery<String> query = db.createQuery("SELECT u.email FROM User u WHERE id=:id",
+                String.class)
+                .setParameter("id", id);
+        try {
+            List<String> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
+            email = query.getResultList().get(0);
+        } catch (Exception e) {
+            email = null;
+        }
+        return email;
+    }
+
+    public User getUserByEmailUsername(String email, String username) {
+        User user = null;
+        TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE u.email=:email OR u.username=:username",
+                User.class)
+                .setParameter("email", email)
+                .setParameter("username", username);
+        try {
+            List<User> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
+            user = query.getResultList().get(0);
+        } catch (Exception e) {
+            user = null;
+        }
+        return user;
+    }
+
+    public Role getRoleById(int id) {
+        Role role = null;
+        TypedQuery<Role> query = db.createQuery("SELECT r FROM Role r WHERE id=:id", Role.class)
+                .setParameter("id", id);
+        try {
+            role = cache.getOrCreate("role-" + id, Role.class, query, CacheLevel.LOW);
+        } catch (Exception e) {
+            List<Role> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
+            role = resultList.get(0);
+        }
+        return role;
+    }
 }

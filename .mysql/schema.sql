@@ -59,16 +59,17 @@ CREATE TABLE IF NOT EXISTS `Voucher` (
 CREATE TABLE IF NOT EXISTS `Payment` (
   `payment_id` INT AUTO_INCREMENT,
   `method_id` INT NOT NULL,
-  `voucher_info` JSON,
+  `voucher_id` INT,
   `total_paid` DECIMAL NOT NULL,
   INDEX (`method_id`),
   PRIMARY KEY (`payment_id`),
-  FOREIGN KEY (`method_id`) REFERENCES `Payment_Method`(`method_id`)
+  FOREIGN KEY (`method_id`) REFERENCES `Payment_Method`(`method_id`),
+  FOREIGN KEY (`voucher_id`) REFERENCES `Voucher`(`voucher_id`)
 );
 
 
 CREATE TABLE  IF NOT EXISTS `Orders` (
-  `order_id` int NOT NULL,
+  `order_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `payment_id` int NOT NULL,
   `status_id` int NOT NULL,
@@ -132,16 +133,17 @@ CREATE TABLE IF NOT EXISTS `Permission` (
 );
 
 CREATE TABLE IF NOT EXISTS `Product_Feedback` (
-  `product_id` INT ,
-  `order_id` INT,
-  `rating` DECIMAL NOT NULL,
-  `comment` TEXT,
-  `reply` TEXT,
-  `feedback_date` DATE NOT NULL,
-  `reply_date` DATE,
-  PRIMARY KEY (`product_id`, `order_id`) ,
-  FOREIGN KEY (`order_id`) REFERENCES `Orders`(`order_id`),
-  FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
+  `product_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `created_at` varchar(255) NOT NULL,
+  `rating` double NOT NULL,
+  `comment` varchar(255) DEFAULT NULL,
+  `reply` varchar(255) DEFAULT NULL,
+  `feedback_date` date NOT NULL,
+  `reply_date` date DEFAULT NULL,
+  PRIMARY KEY (`product_id`,`order_id`,`created_at`),
+  FOREIGN KEY (`product_id`) REFERENCES `Product` (`product_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`)
 );
 
 
@@ -157,13 +159,14 @@ CREATE TABLE IF NOT EXISTS `Cart` (
 
 
 CREATE TABLE IF NOT EXISTS `Cart_Item` (
-  `cart_id` INT,
-  `product_id` INT,
-  `quantity` INT NOT NULL,
-  `selected_variations` JSON,
-  PRIMARY KEY (`cart_id`, `product_id`),
-  FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`),
-  FOREIGN KEY (`cart_id`) REFERENCES `Cart`(`cart_id`) ON DELETE CASCADE
+  `cart_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `quantity` int NOT NULL,
+  `selected_variations` varchar(255) DEFAULT NULL,
+  `created_at` varchar(255) NOT NULL,
+  PRIMARY KEY (`cart_id`,`product_id`,`created_at`),
+  FOREIGN KEY (`product_id`) REFERENCES `Product` (`product_id`),
+  FOREIGN KEY (`cart_id`) REFERENCES `Cart` (`cart_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `Bank_Type` (
@@ -186,15 +189,16 @@ CREATE TABLE IF NOT EXISTS `User_Payment_Card` (
 );
 
 CREATE TABLE IF NOT EXISTS `Order_Transaction` (
-  `order_id` INT,
-  `product_id` INT,
-  `order_quantity` INT NOT NULL,
-  `ordered_product_price` DECIMAL NOT NULL,
-  `selected_variations` JSON,
-  PRIMARY KEY(`order_id`, `product_id`),
-  FOREIGN KEY (`order_id`) REFERENCES `Orders`(`order_id`) ON DELETE CASCADE,
-  FOREIGN KEY (`product_id`) REFERENCES `Product`(`product_id`) ON DELETE CASCADE
-);
+  `order_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `order_quantity` int NOT NULL,
+  `ordered_product_price` double DEFAULT NULL,
+  `selected_variations` varchar(255) DEFAULT NULL,
+  `created_at` varchar(255) NOT NULL,
+  PRIMARY KEY (`order_id`,`product_id`,`created_at`),
+  FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`),
+  FOREIGN KEY (`product_id`) REFERENCES `Product` (`product_id`) ON DELETE CASCADE
+) 
 
 CREATE TABLE IF NOT EXISTS `Audit_Trail` (
   `id` INT AUTO_INCREMENT,

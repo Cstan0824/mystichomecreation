@@ -56,30 +56,29 @@ public class productController extends ControllerBase {
         System.out.println("📦 Product Created Date: " + p.getCreatedDate());
         // System.out.println("📦 Product Image URL: " + p.getImageUrl());
         System.out.println("📦 Product Featured: " + p.getFeatured());
-       
-    
+
         productVariationOptions options = null;
-    
+
         try {
             String rawJson = p.getVariations();
             System.out.println("📦 Raw JSON: " + rawJson);
-    
+
             if (rawJson != null && !rawJson.trim().isEmpty()) {
                 ObjectMapper objectMapper = new ObjectMapper();
-    
+
                 // Deserialize JSON directly to Map<String, List<String>>
                 Map<String, List<String>> variationMap = objectMapper.readValue(
-                    rawJson, new com.fasterxml.jackson.core.type.TypeReference<Map<String, List<String>>>() {}
-                );
-    
-                options = new productVariationOptions(); 
-                options.setOptions(variationMap);        
-    
+                        rawJson, new com.fasterxml.jackson.core.type.TypeReference<Map<String, List<String>>>() {
+                        });
+
+                options = new productVariationOptions();
+                options.setOptions(variationMap);
+
                 System.out.println("✅ Parsed variation keys: " + variationMap.keySet());
             } else {
                 System.out.println("⚠ Variation JSON is empty or null.");
             }
-    
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("❌ Failed to parse variations JSON", e);
@@ -90,26 +89,26 @@ public class productController extends ControllerBase {
         for (productFeedback fb : feedbackList) {
             System.out.println("⭐ Feedback: " + fb.getRating() + " - " + fb.getComment());
         }
-    
+
         List<productType> types = productDAO.getAllProductTypes();
         request.setAttribute("productTypes", types);
-        
+
         request.setAttribute("product", p);
-        request.setAttribute("variationOptions", options); 
+        request.setAttribute("variationOptions", options);
         request.setAttribute("feedbackList", feedbackList);
 
         return page();
     }
 
-    // only return the products and the types 
+    // only return the products and the types
     @ActionAttribute(urlPattern = "productCatalog")
     public Result productCatalog() throws Exception {
 
         List<productType> types = productDAO.getAllProductTypes();
         request.setAttribute("productTypes", types);
-        
+
         List<product> products = productDAO.getAllProducts();
-        
+
         request.setAttribute("products", products);
         for (product p : products) {
             if (p.getImage() != null) {
@@ -124,14 +123,16 @@ public class productController extends ControllerBase {
 
 
     }
-    
+
     @ActionAttribute(urlPattern = "productCatalog/Categories")
     public Result getProductsByCategories() throws Exception {
         String[] selectedCategories = request.getParameterValues("categories");
         System.out.println("Selected Categories: " + Arrays.toString(selectedCategories));
         
         // convert the selected categories to a list of integers
-        List<Integer> categoryIds = selectedCategories != null ? Arrays.stream(selectedCategories).map(Integer::parseInt).toList() : new ArrayList<>();
+        List<Integer> categoryIds = selectedCategories != null
+                ? Arrays.stream(selectedCategories).map(Integer::parseInt).toList()
+                : new ArrayList<>();
 
         System.out.println("📦 Category IDs: " + categoryIds);
 
@@ -139,32 +140,29 @@ public class productController extends ControllerBase {
         String minPriceRaw = request.getParameter("minPrice");
         String maxPriceRaw = request.getParameter("maxPrice");
 
-        //for safety check , force it to be double 
+        // for safety check , force it to be double
         Double minPrice = minPriceRaw != null && !minPriceRaw.isEmpty() ? Double.parseDouble(minPriceRaw) : null;
         Double maxPrice = maxPriceRaw != null && !maxPriceRaw.isEmpty() ? Double.parseDouble(maxPriceRaw) : null;
 
         System.out.println("💰 Min price: " + minPrice + " | Max price: " + maxPrice);
 
-        //Get Sort Option 
-        String sortBy = request.getParameter("sortBy"); 
+        // Get Sort Option
+        String sortBy = request.getParameter("sortBy");
         System.out.println("🔄 Sort by: " + sortBy);
 
-        String keywords =  request.getParameter("keyword");
+        String keywords = request.getParameter("keyword");
         System.out.println("🔍 Keywords: " + keywords);
 
-
-        List<product> filteredProducts = productDAO.filterProducts(categoryIds, minPrice, maxPrice, sortBy , keywords);
+        List<product> filteredProducts = productDAO.filterProducts(categoryIds, minPrice, maxPrice, sortBy, keywords);
         System.out.println("✅ DAO returned products: " + filteredProducts.size());
-
 
         List<productDTO> dtos = filteredProducts.stream().map(productDTO::new).toList();
 
         System.out.println("🚀 Returning product DTOs as JSON");
 
         return json(dtos); // Convert to JSON and return
-  
+
     }
-    
 
     // This is to add product
     @ActionAttribute(urlPattern = "productCatalog/addProduct")
@@ -180,8 +178,8 @@ public class productController extends ControllerBase {
         String slug =  request.getParameter("slug");
         boolean featured = request.getParameter("featured")!= null; // this is a checkbox so if it is checked it will be true
         String variationsJson = request.getParameter("variations");
-        
-        if(variationsJson == null || variationsJson.isEmpty()){
+
+        if (variationsJson == null || variationsJson.isEmpty()) {
             variationsJson = "{}"; // set to empty json if it is null or empty
         }
 
@@ -212,8 +210,8 @@ public class productController extends ControllerBase {
 
 
         double price = Double.parseDouble(priceRaw);
-        int stock    = Integer.parseInt(stockRaw);
-        int typeId   = Integer.parseInt(typeIdRaw);
+        int stock = Integer.parseInt(stockRaw);
+        int typeId = Integer.parseInt(typeIdRaw);
 
         
 
@@ -244,24 +242,21 @@ public class productController extends ControllerBase {
 
         
 
-       
         try {
 
-            if(productDAO.isProductNameExists(title)  == true){ 
+            if (productDAO.isProductNameExists(title) == true) {
                 System.out.println("❌ Product name already exists: " + title);
                 return error("Product name already exists");
-            }else{
+            } else {
                 productDAO.addProduct(newProduct);
                 System.out.println("✅ product persisted, id=" + newProduct.getId());
             }
-           
+
         } catch (Exception ex) {
             ex.printStackTrace();
             return error("Error saving product");
         }
 
-        
-        
         // 7. redirect to catalog
         response.sendRedirect(request.getContextPath() + "/product/productCatalog?created=1");
         return null;
@@ -270,7 +265,7 @@ public class productController extends ControllerBase {
 
     @ActionAttribute(urlPattern = "deleteProduct")
     @HttpRequest(HttpMethod.POST)
-    public Result deleteProduct () throws Exception {
+    public Result deleteProduct() throws Exception {
         int id = Integer.parseInt(request.getParameter("productId"));
         System.out.println("🗑️ Deleting product with ID: " + id);
         productDAO.deleteProduct(id);
@@ -369,15 +364,16 @@ public class productController extends ControllerBase {
         response.sendRedirect(request.getContextPath() + "/product/productCatalog?updated=1");
         return null;
     }
-    
+
     @ActionAttribute(urlPattern = "feedback/reply")
     @HttpRequest(HttpMethod.POST)
     public Result replyFeedback() throws Exception {
         int productId = Integer.parseInt(request.getParameter("productId"));
         int orderId   = Integer.parseInt(request.getParameter("orderId"));
+        String createdAt = request.getParameter("createdAt");
         String reply  = request.getParameter("reply").trim();
 
-        productFeedbackKey key = new productFeedbackKey(productId, orderId);
+        productFeedbackKey key = new productFeedbackKey(productId, orderId, createdAt);
         productFeedback fb = productDAO.findById(key);
         if (fb == null) {
             return error("Feedback not found");
@@ -387,17 +383,7 @@ public class productController extends ControllerBase {
         productDAO.replyToFeedback(fb);
 
         return success("Reply sent successfully");
-    
+
     }
 
-
-
-
-    
-
-
-    
-
-
-   
 }

@@ -44,7 +44,7 @@
                         </div>
                         <!--Popover Cart-->
                         <div class="hidden opacity-0 min-w-[330px] min-h-[550px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="cart-popup">
-                            <div class="flex flex-col">
+                            <div class="flex flex-col h-full max-h-full">
                                 <div class="flex justify-between items-center p-4 pb-2">
                                     <div class="flex items-center gap-4">
                                         <h1 class="text-lg font-semibold font-poppins">Your Cart</h1>
@@ -55,7 +55,8 @@
                                     <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
 
-                                <div class="flex flex-col max-h-[450px] overflow-y-auto" id="cart-items">
+u
+                                <div class="flex flex-col h-full max-h-full overflow-y-auto" id="cart-items">
                                     
                                 </div>
 
@@ -71,7 +72,7 @@
                         </div>
                         <!--Popover Notification-->
                         <div class="hidden opacity-0 min-w-[330px] min-h-[450px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="notification-popup">
-                            <div class="flex flex-col">
+                            <div class="flex flex-col h-full max-h-full">
                                 <div class="flex justify-between items-center p-4 pb-2">
                                     <div class="flex items-center gap-4">
                                         <h1 class="text-lg font-semibold font-poppins">Notifications</h1>
@@ -137,15 +138,22 @@
                         ? JSON.parse(response.data)
                         : response.data;
 
-                    if (innerData.cart_items && Array.isArray(innerData.cart_items)) {
+                    if (innerData.cart_items && Array.isArray(innerData.cart_items) && innerData.cart_items.length > 0) {
                         innerData.cart_items.forEach(item => {
-                            const variation = JSON.parse(item.selected_variation);
+                            const variationStr = JSON.stringify(item.selected_variation).replace(/"/g, '&quot;');
+                            const variation = JSON.parse(item.selected_variation || '{}');
+                            const variationText = Object.entries(variation).map(function(pair) {
+                                return pair[0] + ": " + pair[1];
+                            }).join(', ');
                             console.log("product name: ", item.product_name);
                             console.log("product img: ", item.product_img);
                             console.log("product category: ", item.product_category);
                             console.log("product price: RM", item.product_price);
                             console.log("product quantity: ", item.quantity);
-    
+                            cartContainer.style.display = "flex";
+                            cartContainer.style.flexDirection = "column";
+                            cartContainer.style.justifyContent = "flex-start";
+                            cartContainer.style.alignItems = "stretch";
 
                             html += 
                             
@@ -159,9 +167,10 @@
                                             <div class="w-full flex justify-between gap-3">
                                                 <div class="w-full flex flex-col gap-0.5">
                                                     <h1 class="text-sm font-normal text-black" id="cart-product-name">`+ item.product_name +`</h1>
-                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-category">`+ item.product_category +`y</p>
+                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-category">`+ item.product_category +`</p>
+                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-variation">`+ variationText +`</p>
                                                 </div>
-                                                <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`)"> 
+                                                <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`)"> 
                                                     <i class="fa-solid fa-trash"></i>
                                                 </div>
                                             </div>
@@ -173,7 +182,7 @@
                                                 <div class="flex items-center h-[26px] bg-white">
                                                     <!-- Decrease Button -->
                                                     <button 
-                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, -1)"
+                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, -1)"
                                                         id="decrease-btn" type="button" 
                                                         class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200 px-2">
                                                         <span>-</span>
@@ -187,7 +196,7 @@
                                             
                                                     <!-- Increase Button -->
                                                     <button 
-                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, +1)"
+                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, +1)"
                                                         id="increase-btn" type="button" 
                                                         class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200 px-2">
                                                         <span>+</span>
@@ -211,7 +220,17 @@
                         const event = new CustomEvent('cart:changed');
                         window.dispatchEvent(event);
                     } else {
-                        console.warn('cart_items is not defined or not an array:', innerData.cart_items);
+                        html = `
+                            <div class="flex flex-col justify-center items-center gap-4 h-full">
+                                <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png" alt="empty-cart" class="w-[150px] h-[150px] object-cover"/>
+                                <p class="text-gray-500 font-dmSans">Your cart is empty.</p>
+                            </div>
+                        `;
+                        cartContainer.style.display = "flex";
+                        cartContainer.style.flexDirection = "column";
+                        cartContainer.style.justifyContent = "center";
+                        cartContainer.style.alignItems = "center";
+                        cartContainer.innerHTML = html;
                     }
                 },
                 error: function (error) {
@@ -220,7 +239,7 @@
             });
         }
 
-        function updateQty(btn, cartId, productId, delta) {
+        function updateQty(btn, cartId, productId, variation, delta) {
             const row = btn.closest('.prod-row');
             const qtyEl = row.querySelector('.quantity');
             const oldQty = parseInt(qtyEl.textContent);
@@ -232,6 +251,7 @@
                 data: JSON.stringify({
                     cartId: cartId,
                     productId: productId,
+                    selectedVariation: variation,
                     delta: delta
                 }),
                 success: function(response) {
@@ -261,14 +281,16 @@
         }
 
         // Function to delete cart item
-        function deleteCartItem(cartId, productId) {
+        function deleteCartItem(cartId, productId, variation) {
+            console.log("variation", variation);
             $.ajax({
                 url: '<%= request.getContextPath() %>/Cart/removeCartItemById',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
                     cartId: cartId,
-                    productId: productId
+                    productId: productId,
+                    selectedVariation: variation
                 }),
                 success: function (response) {
                     console.log('Item deleted successfully:', response);

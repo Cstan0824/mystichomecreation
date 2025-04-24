@@ -8,12 +8,14 @@ import Models.Products.product;
 public class OrderTransactionId implements Serializable {
     private Order order;
     private product product;
+    private String createdAt;
 
     public OrderTransactionId() {}
 
-    public OrderTransactionId(Order order, product product) {
+    public OrderTransactionId(Order order, product product, String createdAt) {
         this.order = order;
         this.product = product;
+        this.createdAt = createdAt;
     }
 
     @Override
@@ -22,11 +24,12 @@ public class OrderTransactionId implements Serializable {
         if (!(o instanceof OrderTransactionId)) return false;
         OrderTransactionId that = (OrderTransactionId) o;
         return Objects.equals(order, that.order) &&
-               Objects.equals(product, that.product);
+               Objects.equals(product, that.product) &&
+               Objects.equals(createdAt, that.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(order, product);
+        return Objects.hash(order, product, createdAt);
     }
 }

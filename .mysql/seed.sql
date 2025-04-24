@@ -399,9 +399,9 @@ INSERT INTO `Order_Status` (`status_description`) VALUES ('Packing');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Shipping');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Received');
 INSERT INTO `Order_Status` (`status_description`) VALUES ('Cancelled');
-INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Credit Card');
-INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Online Banking');
-INSERT INTO `Payment_Method` (`method_desc`) VALUES ('Cash on Delivery');
+INSERT INTO `Payment_Method` (`method_description`) VALUES ('Credit Card');
+INSERT INTO `Payment_Method` (`method_description`) VALUES ('Online Banking');
+INSERT INTO `Payment_Method` (`method_description`) VALUES ('Cash on Delivery');
 
 INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '65.28', '247.99', '35.62', '5', 'She', 'Study oil process tend land.', '1');
 INSERT INTO `Voucher` (`voucher_type`, `voucher_min`, `voucher_max`, `voucher_amount`, `voucher_usage_per_month`, `voucher_name`, `voucher_description`, `voucher_status`) VALUES ('Percent', '88.48', '378.77', '26.06', '3', 'Member', 'Forward several help usually thank wonder.', '1');
@@ -494,3 +494,41 @@ INSERT INTO `Permission` (`role_id`, `permission_url`, `permission_description`)
 -- Permissions for Guest (minimal access)
 INSERT INTO `Permission` (`role_id`, `permission_url`, `permission_description`) VALUES
 (3, 'User/account', 'Access account dashboard');
+
+-- Cart Data
+INSERT INTO `Cart` (`cart_id`, `user_id`) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10);
+
+-- Cart Item Data
+INSERT INTO `Cart_Item` (`cart_id`, `product_id`, `quantity`, `selected_variations`, `created_at`) VALUES
+(1, 2, 8, '{\"testing3\":\"testing3\"}', '2025-04-23T20:18:10.895095237');
+
+-- Payment Data
+INSERT INTO `Payment` (`payment_id`, `method_id`, `total_paid`, `payment_info`, `voucher_id`) VALUES
+(3, 1, 572.6, '{\"creditDebit\":{\"method\":true,\"cardNumber\":\"**** **** **** 1111\",\"bankType\":\"\",\"cardName\":\"John Doe\",\"expiryDate\":\"2026-08-31\"},\"bankTransfer\":{\"method\":false},\"cod\":{\"method\":false}}', 2),
+(4, 1, 2288, '{\"creditDebit\":{\"method\":true,\"cardNumber\":\"**** **** **** 0004\",\"bankType\":\"\",\"cardName\":\"John Doe - Travel\",\"expiryDate\":\"2025-12-31\"},\"bankTransfer\":{\"method\":false},\"cod\":{\"method\":false}}', 3);
+
+-- Order Data
+INSERT INTO `Orders` (`order_id`, `user_id`, `payment_id`, `status_id`, `shipping_information`, `order_date`, `pack_date`, `ship_date`, `receive_date`, `order_ref_no`) VALUES
+(2, 1, 3, 4, '{\"label\":\"Home\",\"receiverName\":\"Alice Tan\",\"addressLine1\":\"123 Jalan Mawar\",\"addressLine2\":\"Taman Bunga\",\"postCode\":\"47000\",\"state\":\"Selangor\",\"phoneNumber\":\"0123456789\"}', '2025-04-23 19:30:26', '2025-04-23 19:30:34', '2025-04-23 19:30:36', '2025-04-23 19:30:38', 'ORD#2504231930261'),
+(3, 1, 4, 1, '{\"label\":\"Home\",\"receiverName\":\"Alice Tan\",\"addressLine1\":\"123 Jalan Mawar\",\"addressLine2\":\"Taman Bunga\",\"postCode\":\"47000\",\"state\":\"Selangor\",\"phoneNumber\":\"0123456789\"}', '2025-04-23 20:44:23', NULL, NULL, NULL, 'ORD#2504232044231');
+
+-- Order Transaction Data
+INSERT INTO `Order_Transaction` (`order_id`, `product_id`, `order_quantity`, `ordered_product_price`, `selected_variations`, `created_at`) VALUES
+(2, 1, 4, 185, '{\"testing2\": \"testing2\"}', '2025-04-23T19:28:54.824185914'),
+(3, 1, 4, 185, '{\"testing2\":\"testing2\"}', '2025-04-23T20:17:35.478760980'),
+(3, 2, 7, 162, '{\"testing2\":\"testing2\"}', '2025-04-23T20:13:35.958400652'),
+(3, 2, 4, 162, '{\"testing3\":\"testing3\"}', '2025-04-23T20:18:10.895095237');
+
+-- Product Feedback Data
+INSERT INTO `Product_Feedback` (`product_id`, `order_id`, `created_at`, `rating`, `comment`, `reply`, `feedback_date`, `reply_date`) VALUES
+(1, 2, '2025-04-23T19:28:54.824185914', 3, NULL, NULL, '2025-04-23', NULL);
