@@ -44,7 +44,7 @@
                         </div>
                         <!--Popover Cart-->
                         <div class="hidden opacity-0 min-w-[330px] min-h-[550px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="cart-popup">
-                            <div class="flex flex-col">
+                            <div class="flex flex-col h-full max-h-full">
                                 <div class="flex justify-between items-center p-4 pb-2">
                                     <div class="flex items-center gap-4">
                                         <h1 class="text-lg font-semibold font-poppins">Your Cart</h1>
@@ -55,7 +55,8 @@
                                     <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
 
-                                <div class="flex flex-col max-h-[450px] overflow-y-auto" id="cart-items">
+u
+                                <div class="flex flex-col h-full max-h-full overflow-y-auto" id="cart-items">
                                     
                                 </div>
 
@@ -71,7 +72,7 @@
                         </div>
                         <!--Popover Notification-->
                         <div class="hidden opacity-0 min-w-[330px] min-h-[450px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="notification-popup">
-                            <div class="flex flex-col">
+                            <div class="flex flex-col h-full max-h-full">
                                 <div class="flex justify-between items-center p-4 pb-2">
                                     <div class="flex items-center gap-4">
                                         <h1 class="text-lg font-semibold font-poppins">Notifications</h1>
@@ -137,7 +138,7 @@
                         ? JSON.parse(response.data)
                         : response.data;
 
-                    if (innerData.cart_items && Array.isArray(innerData.cart_items)) {
+                    if (innerData.cart_items && Array.isArray(innerData.cart_items) && innerData.cart_items.length > 0) {
                         innerData.cart_items.forEach(item => {
                             const variationStr = JSON.stringify(item.selected_variation).replace(/"/g, '&quot;');
                             const variation = JSON.parse(item.selected_variation || '{}');
@@ -149,7 +150,10 @@
                             console.log("product category: ", item.product_category);
                             console.log("product price: RM", item.product_price);
                             console.log("product quantity: ", item.quantity);
-    
+                            cartContainer.style.display = "flex";
+                            cartContainer.style.flexDirection = "column";
+                            cartContainer.style.justifyContent = "flex-start";
+                            cartContainer.style.alignItems = "stretch";
 
                             html += 
                             
@@ -216,7 +220,17 @@
                         const event = new CustomEvent('cart:changed');
                         window.dispatchEvent(event);
                     } else {
-                        console.warn('cart_items is not defined or not an array:', innerData.cart_items);
+                        html = `
+                            <div class="flex flex-col justify-center items-center gap-4 h-full">
+                                <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png" alt="empty-cart" class="w-[150px] h-[150px] object-cover"/>
+                                <p class="text-gray-500 font-dmSans">Your cart is empty.</p>
+                            </div>
+                        `;
+                        cartContainer.style.display = "flex";
+                        cartContainer.style.flexDirection = "column";
+                        cartContainer.style.justifyContent = "center";
+                        cartContainer.style.alignItems = "center";
+                        cartContainer.innerHTML = html;
                     }
                 },
                 error: function (error) {

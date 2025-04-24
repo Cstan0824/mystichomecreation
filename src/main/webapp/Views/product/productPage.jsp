@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <%@ include file="/Views/Shared/Header.jsp" %>
@@ -91,7 +92,10 @@
                                 <h2 class="text-xl font-semibold capitalize"><%= entry.getKey() %></h2>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
                                     <% for (String value : entry.getValue()) { %>
-                                        <button class="py-2 px-4 bg-gray-200 rounded"><%= value %></button>
+                                        <button class="py-2 px-4 bg-gray-200 rounded variation-btn hover:bg-gray-300 transition duration-200" 
+                                            data-option="<%= entry.getKey() %>" data-value="<%= value %>">
+                                            <%= value %>
+                                        </button>
                                     <% } %>
                                 </div>
                             </div>
@@ -107,11 +111,12 @@
                     </div>
 
                     <div class="flex items-center justify-between my-4">
-                        <div class="flex items-center border rounded overflow-hidden">
-                            <div class="text-md px-4 bg-gray-200"><i class="fa-solid fa-minus"></i></div>
-                            <span class="px-4">1</span>
-                            <div class="text-md px-4 bg-gray-200"><i class="fa-solid fa-plus"></i></div>
+                        <div class="flex items-center justify-between w-28 border border-black rounded select-none">
+                            <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(-1)">−</button>
+                            <span class="text-lg font-medium qty">1</span>
+                            <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(+1)">+</button>
                         </div>
+
                         <div class="text-sm text-gray-600 italic font-bold">
                             <span>Stock: <%= product.getStock() %></span>
                         </div>
@@ -119,7 +124,7 @@
 
                     <!-- Add to Cart Button -->
                     <div class="text-center my-4">
-                        <button class="bg-yellow-400 text-white py-3 px-12 rounded-full font-bold w-full md:w-1/2">Add</button>
+                        <button class="bg-yellow-400 text-white py-3 px-12 rounded-full font-bold w-full md:w-1/2" onClick="addToCart()">Add to Cart</button>
                     </div>
                 </div>
             </div>
@@ -260,6 +265,122 @@
 
 
     <script>
+
+        const maxQuantity = <%= product.getStock() %>;
+        const selectedVariations = {};
+
+        const qtySpan = document.querySelector('.qty');
+        let currentQty = parseInt(qtySpan.textContent) || 1;
+
+        document.querySelectorAll('.variation-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const option = button.dataset.option;
+                const value = button.dataset.value;
+
+                // Save selected value
+                selectedVariations[option] = value;
+
+                // Clear previous selections for this option
+                document.querySelectorAll(`.variation-btn[data-option="`+ option +`"]`).forEach(btn => {
+                    btn.classList.remove('bg-darkYellow', 'text-white');
+                    btn.classList.add('bg-gray-200');
+                });
+
+                // Highlight selected button
+                button.classList.remove('bg-gray-200');
+                button.classList.add('bg-darkYellow', 'text-white');
+
+                console.log("Selected variations:", selectedVariations);
+            });
+        });
+
+        function getAvailableVariations() {
+            const availableVariations = {};
+
+            // Collect variation data
+            document.querySelectorAll('.variation-btn').forEach(button => {
+                const option = button.dataset.option;
+                const value = button.dataset.value;
+
+                // Populate the available variations
+                if (!availableVariations[option]) {
+                    availableVariations[option] = [];
+                }
+                availableVariations[option].push(value);
+            });
+
+            return availableVariations;
+        }
+
+        function checkVariationsSelected() {
+            const availableVariations = getAvailableVariations();
+            let allKeysSelected = true;
+
+            // Check if each variation type has at least one selected option
+            for (const option in availableVariations) {
+                if (!selectedVariations[option]) {
+                    allKeysSelected = false;
+                    break; // Stop if any option is not selected
+                }
+            }
+
+            if (!allKeysSelected) {
+                alert("Please select a value for all variations.");
+                return false;
+            }
+            return true;
+        }
+
+
+
+        function changeQty(delta) {
+            
+            currentQty += delta;
+            
+            // Enforce bounds
+            if (currentQty < 1) currentQty = 1;
+            if (currentQty >= maxQuantity) currentQty = maxQuantity;
+
+            // Update the display
+            qtySpan.textContent = currentQty;
+        }
+
+        function addToCart() {
+            // First, check if all variation keys are selected
+            if (!checkVariationsSelected()) {
+                return; // Stop if any variation is not selected
+            }
+
+            const selectedVariationsJson = JSON.stringify(selectedVariations);
+
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Cart/addToCartById',
+                type: 'POST',
+                data: JSON.stringify({
+                    productId: <%= product.getId() %>,
+                    quantity: currentQty,
+                    selectedVariation: selectedVariationsJson
+                }),
+                contentType: 'application/json',
+                success: function(response) {
+                    const parsedJson = JSON.parse(response.data);
+                    if (parsedJson.addToCart_success) {
+                        alert('✅ Product added to cart successfully!');
+                        window.location.href = "<%= request.getContextPath() %>/Cart/cart";
+                    } else {
+                        alert('❌ Failed to add product to cart: ' + parsedJson.error_msg);
+                    }
+
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error adding to cart:', error);
+                    alert('❌ An error occurred while adding the product to the cart.');
+                }
+            });
+
+            
+        }
+
         var swiper = new Swiper(".mySwiper", {
             loop: true,
             spaceBetween: 10,
