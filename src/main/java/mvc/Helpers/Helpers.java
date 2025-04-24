@@ -11,14 +11,11 @@ import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.tika.Tika;
 
-import java.security.SecureRandom;
-import java.sql.Blob;
+
 import java.sql.SQLException;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Base64;
-
-import Models.Accounts.BankType;
+import java.io.IOException;
 import mvc.FileType;
 
 public class Helpers {

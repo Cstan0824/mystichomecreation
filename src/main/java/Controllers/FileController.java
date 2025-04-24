@@ -6,7 +6,6 @@ import javax.sql.rowset.serial.SerialBlob;
 
 import DAO.UserDA;
 import DAO.productDAO;
-import Models.TestImage;
 import Models.Products.productImage;
 import Models.Users.User;
 import Models.Users.UserImage;
