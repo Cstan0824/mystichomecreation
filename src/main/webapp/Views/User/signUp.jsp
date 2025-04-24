@@ -195,7 +195,7 @@
                         // Redirect to the login or home page.
                         window.location.href = "<%= request.getContextPath() %>/Landing";
                     },
-                    error: function() {
+                    error: function(response) {
                         alert("Sign up failed. Please check your OTP and try again.");
                     }
                 });
