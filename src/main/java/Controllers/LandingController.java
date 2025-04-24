@@ -3,7 +3,6 @@ package Controllers;
 import java.util.List;
 
 import DAO.UserDA;
-import DTO.UserCredentials;
 import DTO.UserSession;
 import Models.Users.User;
 import Models.Users.UserImage;
