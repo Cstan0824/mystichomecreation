@@ -17,7 +17,7 @@
         <h2 class="text-2xl font-bold mb-6">Update Product</h2>
 
         <!-- Form -->
-        <form id="editProductForm" method="post" action="<%= request.getContextPath() %>/product/updateProduct" class="space-y-4">
+        <form id="editProductForm" method="post" action="<%= request.getContextPath() %>/product/updateProduct" enctype="multipart/form-data" class="space-y-4">
 
             <input type="hidden" name="productId" value="<%= product.getId() %>">
 
@@ -132,10 +132,19 @@
                 <input type="text" name="retailInfo" value="<%=product.getRetailInfo()%>" class="w-full border px-3 py-2 rounded" />
             </div>
 
+            <div>
+            <label class="block mb-1 font-medium">Current Image</label>
+            <img 
+                src="<%=request.getContextPath()%>/File/Content/product/retrieve?id=<%=product.getImage().getId()%>" 
+                alt="Current Image" 
+                class="w-40 h-40 object-cover rounded border"
+            />
+            </div>
+
             <!-- Image URL -->
             <div>
-                <label class="block mb-1 font-semibold">Image URL</label>
-                <input type="text" name="imageUrl" class="w-full border px-3 py-2 rounded" />
+                <label class="block mb-1 font-semibold">Product Image</label>
+                <input type="file" id="imageFile" name="imageFile" accept="image/*" required/>
             </div>
 
             <!-- Featured -->

@@ -273,7 +273,7 @@ public class CartController extends ControllerBase{
                         cartItemNode.put("cart_id", item.getCart().getId());
                         cartItemNode.put("product_id", item.getProduct().getId());
                         cartItemNode.put("product_name", item.getProduct().getTitle());
-                        cartItemNode.put("product_img", item.getProduct().getImageUrl());
+                        // cartItemNode.put("product_img", item.getProduct().getImageUrl());
                         cartItemNode.put("product_category", item.getProduct().getTypeId().gettype());
                         cartItemNode.put("product_price", item.getProduct().getPrice());
                         cartItemNode.put("quantity", item.getQuantity());
