@@ -60,6 +60,7 @@ public class productDAO implements Serializable{
 
     // Catalog use this method to get all products (dont touch this method)
     public List<product> getAllProducts() {
+        
         try {
             TypedQuery<product> query = db.createQuery(
                 "SELECT p FROM product p JOIN FETCH p.image ORDER BY p.createdDate DESC",
@@ -67,7 +68,7 @@ public class productDAO implements Serializable{
             );
             return query.getResultList();
         } catch (Exception e) {
-            e.printStackTrace(); // Handle exception
+            e.printStackTrace(System.err); // Handle exception
         }
         return null;
     }
@@ -78,7 +79,7 @@ public class productDAO implements Serializable{
             TypedQuery<productType> query = db.createQuery("SELECT pt FROM productType pt", productType.class);
             return query.getResultList();
         } catch (Exception e) {
-            e.printStackTrace(); // Handle exception
+            e.printStackTrace(System.err); // Handle exception
         }
         return null;
     }   

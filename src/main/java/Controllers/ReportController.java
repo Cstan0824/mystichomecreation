@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+
 import DAO.ReportDAO;
 import DAO.productDAO;
 import Models.Products.product;
@@ -41,10 +43,10 @@ public class ReportController extends ControllerBase{
         // List<product> lowStock = reportDAO.getLowStockProducts(5);
         // List<Object[]> feedbackRatings = reportDAO.getFeedbackRatings();
         List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
-        List<Object[]> salesByCategory = reportDAO.getSalesByCategory();
+        // List<Object[]> salesByCategory = reportDAO.getSalesByCategory();
         List<Object[]> ordersByMonth = reportDAO.getOrdersPerMonth();
         double totalRevenue = reportDAO.getTotalRevenue();
-        List<Object[]> topSelling = reportDAO.getTopSellingProductsEachMonth();
+        // List<Object[]> topSelling = reportDAO.getTopSellingProductsEachMonth();
         List<productType> productTypes = productDAO.getAllProductTypes();
 
         List<product> products = reportDAO.getAllProducts();
@@ -72,35 +74,33 @@ public class ReportController extends ControllerBase{
         // #Debugging output
         System.out.println("✅ Total Customers: " + totalCustomers);
         System.out.println("✅ Total Staff: " + totalStuff);
-        // System.out.println("✅ Low Stock Products: " + lowStock.size() + " items found.");
-        // System.out.println("✅ Feedback Ratings: " + feedbackRatings.size() + " items found.");
         System.out.println("✅ productList count = " + products.size());
 
-        for (Object[] row : paymentPreferences) {
-            String method = (String) row[0];
-            long   count  = ((Number) row[1]).longValue();
-            System.out.printf("🔹 %d × %s%n", count, method);
-        }
+        // for (Object[] row : paymentPreferences) {
+        //     String method = (String) row[0];
+        //     long   count  = ((Number) row[1]).longValue();
+        //     System.out.printf("🔹 %d × %s%n", count, method);
+        // }
 
-        System.out.printf(
-            "✅ salesByCategory count=%d categories: %s%n",
-            salesByCategory.size(),
-            salesByCategory.stream()
-                            .map(r -> String.format("%s=RM%.2f", r[0], ((Number)r[1]).doubleValue()))
-                            .toList()
-        );
+        // System.out.printf(
+        //     "✅ salesByCategory count=%d categories: %s%n",
+        //     salesByCategory.size(),
+        //     salesByCategory.stream()
+        //                     .map(r -> String.format("%s=RM%.2f", r[0], ((Number)r[1]).doubleValue()))
+        //                     .toList()
+        // );
 
-        System.out.printf("✅ months=%d → %s%n",
-            ordersByMonth.size(),
-            ordersByMonth.stream()
-                .map(r -> String.format("%d-%02d=%d",
-                    ((Number)r[0]).intValue(),
-                    ((Number)r[1]).intValue(),
-                    ((Number)r[2]).intValue()))
-                .toList()
-            );
+        // System.out.printf("✅ months=%d → %s%n",
+        //     ordersByMonth.size(),
+        //     ordersByMonth.stream()
+        //         .map(r -> String.format("%d-%02d=%d",
+        //             ((Number)r[0]).intValue(),
+        //             ((Number)r[1]).intValue(),
+        //             ((Number)r[2]).intValue()))
+        //         .toList()
+        //     );
                     
-            System.out.printf("✅ totalRevenue=RM%.2f%n", totalRevenue);
+        //     System.out.printf("✅ totalRevenue=RM%.2f%n", totalRevenue);
 
 
             // System.out.printf(
@@ -126,8 +126,8 @@ public class ReportController extends ControllerBase{
         request.setAttribute("paymentPreferences", paymentPreferences);
         request.setAttribute("ordersByMonth", ordersByMonth);
         request.setAttribute("totalRevenue", totalRevenue);
-        request.setAttribute("topSelling", topSelling);
-        request.setAttribute("salesByCategory", salesByCategory);
+        // request.setAttribute("topSelling", topSelling);
+        // request.setAttribute("salesByCategory", salesByCategory);
 
 
         // display purpose only 
@@ -228,79 +228,115 @@ public class ReportController extends ControllerBase{
 
     }
 
-
     @ActionAttribute(urlPattern = "report/dailyRevenue")
     public Result dailyRevenue() throws Exception {
-
-        // remember to accept the parameter from the request 
         int days = Integer.parseInt(request.getParameter("days"));
+        System.out.println("🔍 [dailyRevenue] raw daysParam = " + days);
 
+        List<Object[]> daily = reportDAO.getDailyRevenue(days);
 
-
-        List<Object[]> daily  = reportDAO.getDailyRevenue(days);
-
-
-        System.out.println("---- Daily Revenue (last 7 days) ----");
+        System.out.println("---- Daily Revenue (last " + days + " days) ----");
         for (Object[] r : daily) {
-            java.sql.Date day     = (java.sql.Date) r[0];
-            Number      totalPaid = (Number)    r[1];   // use Number
+            java.sql.Date day = (java.sql.Date) r[0];
+            Number totalPaid = (Number) r[1];
             System.out.printf(
-              "%s → RM%.2f%n",
-              day.toString(),
-              totalPaid.doubleValue()           // doubleValue()
+                "%s → RM%.2f%n",
+                day.toString(),
+                totalPaid.doubleValue()
             );
         }
 
-
         var dailylist = daily.stream()
-        // For each Object[] r, build a Map with two entries:
-        .map(r -> Map.of(
-            // “day” → the first column, r[0], as a String
-            "day",   r[0].toString(),
-            // “total” → the second column, r[1], as a double
-            "total", ((Number)r[1]).doubleValue()
-        ))
-        // Collect into a List<Map<String,Object>>
-        .toList();
+            .map(r -> Map.of(
+                "day", r[0].toString(),
+                "total", ((Number)r[1]).doubleValue()
+            ))
+            .toList();
 
-     
+        Map<String, Object> envelope = Map.of(
+            "status", 200,
+            "timestamp", System.currentTimeMillis(),
+            "message", "success",
+            "data", dailylist
+        );
 
-
-       
-        return json(dailylist);
+        return json(envelope);
     }
-
 
     @ActionAttribute(urlPattern = "report/monthlyRevenue")
     public Result monthlyRevenue() throws Exception {
-
-        // remember to accept the parameter from the request    
         int months = Integer.parseInt(request.getParameter("months"));
-
-
-
-        List<Object[]> monthly  = reportDAO.getMonthlyRevenue(months);
-
-
-        System.out.println("---- Monthly Revenue (last 12 months) ----");
+        System.out.println("🔍 [monthlyRevenue] raw monthsParam = " + months);
+    
+        List<Object[]> monthly = reportDAO.getMonthlyRevenue(months);
+    
+        System.out.println("---- Monthly Revenue (last " + months + " months) ----");
         for (Object[] r : monthly) {
-            java.sql.Date month     = (java.sql.Date) r[0];
-            Number      totalPaid = (Number)    r[1];   // use Number
-            System.out.printf(
-              "%s → RM%.2f%n",
-              month.toString(),
-              totalPaid.doubleValue()           // doubleValue()
-            );
+            int y = ((Number) r[0]).intValue();
+            int m = ((Number) r[1]).intValue();
+            double tot = ((Number) r[2]).doubleValue();
+            System.out.printf("%d-%02d → RM%.2f%n", y, m, tot);
         }
-
-     
-
-
-       
-        return page();
+    
+        var monthlyList = monthly.stream()
+            .map(r -> {
+                int y = ((Number)r[0]).intValue();
+                int m = ((Number)r[1]).intValue();
+                double tot = ((Number)r[2]).doubleValue();
+                String label = String.format("%d-%02d", y, m);
+                return Map.<String, Object>of(
+                    "month", label,
+                    "total", tot
+                );
+            })
+            .toList();
+    
+        Map<String, Object> envelope = Map.of(
+            "status", 200,
+            "timestamp", System.currentTimeMillis(),
+            "message", "success",
+            "data", monthlyList
+        );
+    
+        return json(envelope);
     }
 
 
+    @ActionAttribute(urlPattern = "report/salesByCategory")
+    public Result salesByCategory() throws Exception {
+        List<Object[]> sales = reportDAO.getSalesByCategoryNative();
+
+        System.out.println("---- Sales by Category ----");
+        for (Object[] r : sales) {
+            String catName = (String) r[0];
+            double total = ((Number) r[1]).doubleValue();
+            System.out.printf("%s → RM%.2f%n", catName, total);
+        }
+
+        var salesList = sales.stream()
+            .map(r -> Arrays.asList(
+                r[0].toString(),
+                ((Number)r[1]).doubleValue()
+            ))
+            .toList();
+
+            Map<String, Object> envelope = Map.of(
+                "status", 200,
+                "timestamp", System.currentTimeMillis(),
+                "message", "success",
+                "data", salesList
+            );
+
+        return json(envelope);
+    }
+
+    @ActionAttribute(urlPattern = "report/topSellingProducts")
+    public Result topSellingProducts() throws Exception {
+
+     
+        
+        return page();
+    }
 
 
     

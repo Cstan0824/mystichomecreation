@@ -16,6 +16,7 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Base64;
 
 import Models.Accounts.BankType;

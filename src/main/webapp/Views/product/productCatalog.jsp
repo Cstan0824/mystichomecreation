@@ -69,7 +69,7 @@
                         </select>
                     </div>
 
-                    <!-- 🔽 Category -->
+                    <!--  Category -->
                     <div class="border-b pb-3 mb-3">
                         <h3 class="text-gray-600 font-semibold mb-2">Category</h3>
                         <div class="space-y-1">

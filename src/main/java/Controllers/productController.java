@@ -106,15 +106,30 @@ public class productController extends ControllerBase {
 
         List<productType> types = productDAO.getAllProductTypes();
         request.setAttribute("productTypes", types);
-
+        System.out.println("📦 Product Types: " + types.size());
         List<product> products = productDAO.getAllProducts();
-
+        System.out.println("📦 Products: " + products.size());
         request.setAttribute("products", products);
+        // for (product p : products) {
+        //     if (p.getImage() != null) {
+        //         System.out.println("📩 Image       = " + p.getImage().getId());
+        //     } else {
+        //         System.out.println("No image available for product ID: " + p.getId());
+        //     }
+        // }
+
         for (product p : products) {
+            System.out.println("🔍 Product ID: " + p.getId());
+            System.out.println("🔍 Product Title: " + p.getTitle());
+            System.out.println("🔍 Product Price: " + p.getPrice());
+            System.out.println("🔍 Product Stock: " + p.getStock());
+            System.out.println("🔍 Product Type: " + (p.getTypeId() != null ? p.getTypeId().gettype() : "No Type"));
+            System.out.println("🔍 Product Description: " + p.getDescription());
+            System.out.println("🔍 Product Featured: " + p.getFeatured());
             if (p.getImage() != null) {
-                System.out.println("📩 Image       = " + p.getImage().getId());
+                System.out.println("🔍 Product Image ID: " + p.getImage().getId());
             } else {
-                System.out.println("No image available for product ID: " + p.getId());
+                System.out.println("🔍 No image available for this product.");
             }
         }
 
