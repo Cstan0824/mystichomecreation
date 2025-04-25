@@ -12,6 +12,16 @@
 </head>
 <body class="bg-grey1 font-poppins leading-normal tracking-normal min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden p-8 space-y-8">
+        <!-- Add Back to Home button -->
+        <div class="flex justify-between items-center mb-2">
+            <a href="<%= request.getContextPath() %>/Landing" class="text-grey4 flex items-center hover:text-darkYellow transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Home
+            </a>
+        </div>
+        
         <div class="text-center">
             <h1 class="text-3xl font-bold text-grey5">Login</h1>
         </div>

@@ -17,7 +17,7 @@ import mvc.Http.HttpStatusCode;
 public class ControllerBase extends HttpBase {
     private boolean isRedirect = true; // to hold redirect status temporarily
     private static final String FILE_UPLOAD_PATH = System.getenv("FILE_UPLOAD_PATH");
-
+    
     public ControllerBase() {
         super();
 

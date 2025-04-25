@@ -359,6 +359,21 @@ public class AccountDA {
         return !db.getTransaction().getRollbackOnly();
     }
 
+    public boolean changePassword(String email, String password) {
+        User user = userDA.getUserByEmail(email);
+        if (user == null) {
+            return false;
+        }
+        password = Helpers.hashPassword(password);
+        user.setPassword(password);
+
+        db.getTransaction().begin();
+        db.merge(user);
+        db.getTransaction().commit();
+
+        return !db.getTransaction().getRollbackOnly();
+    }
+
     public List<Voucher> getVouchers() {
         List<Voucher> vouchers = null;
         TypedQuery<Voucher> typedQuery = this.db.createQuery("SELECT v FROM Voucher v", Voucher.class);
