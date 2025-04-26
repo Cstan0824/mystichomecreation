@@ -41,6 +41,7 @@ import mvc.Annotations.SyncCache;
 import mvc.Cache.Redis;
 import mvc.ControllerBase;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.SessionHelper;
 import mvc.Helpers.pdf.PdfService;
 import mvc.Helpers.pdf.PdfService.PdfOrientation;
 import mvc.Helpers.pdf.PdfType;
@@ -247,6 +248,42 @@ public class OrderController extends ControllerBase {
 
         return json(dtos); // Convert to JSON and return
 
+    }
+
+    @ActionAttribute(urlPattern = "orders/AccountFilter")
+    @HttpRequest(HttpMethod.POST)
+    public Result getOrderByFilterAndSort(String[] selectedStatuses, String sortBy, String keywords, String startDate, String endDate, Double minPrice, Double maxPrice) throws Exception {
+
+        System.out.println("Selected Statuses: " + Arrays.toString(selectedStatuses));
+        List<Integer> statusIds = selectedStatuses != null ? Arrays.stream(selectedStatuses).map(Integer::parseInt).toList() : new ArrayList<>();
+        
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+
+        System.out.println("🔄 Sort by: " + sortBy);
+
+        System.out.println("🔍 Keywords: " + keywords);
+
+        LocalDate startDateFormatted = null;
+        LocalDate endDateFormatted = null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        if (startDate != null && !startDate.isBlank()) {
+            startDateFormatted = LocalDate.parse(startDate, formatter);
+        }
+        if (endDate != null && !endDate.isBlank()) {
+            endDateFormatted = LocalDate.parse(endDate, formatter);
+        }
+
+        List<Order> filteredOrders = orderDAO.filterAccountOrders(statusIds, sortBy, keywords, startDateFormatted, endDateFormatted, minPrice, maxPrice, userId);
+
+        System.out.println("✅ DAO returned products: " + filteredOrders.size());
+
+        List<OrderDTO> dtos = filteredOrders.stream().map(OrderDTO::new).toList();
+
+        System.out.println("🚀 Returning order DTOs as JSON");
+
+        return json(dtos); // Convert to JSON and return
     }
 
     @SyncCache(channel = "Order", message = "from order/updateOrderStatus")

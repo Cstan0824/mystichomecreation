@@ -21,12 +21,12 @@ public class product {
     @Column(name = "product_id")
     private int id;
 
-    @ManyToOne 
+    @ManyToOne
     @JoinColumn(name = "product_type_id", referencedColumnName = "product_type_id")
     private productType type;
 
     @OneToOne
-    @JoinColumn(name="product_image_id")
+    @JoinColumn(name = "product_image_id", referencedColumnName = "image_id")
     private productImage image;
 
     @Column(name = "product_title", length = 50, nullable = false)
@@ -56,14 +56,13 @@ public class product {
     @Column(name = "product_created_date")
     private Date createdDate;
 
-    
-
     // Default constructor
-    public product() {}
+    public product() {
+    }
 
     // Parameterized constructor
     public product(productType type, String title, String slug, String description, double price, int stock,
-                   String retailInfo, int featured, String variations, Date createdDate ) {
+            String retailInfo, int featured, String variations, Date createdDate) {
         this.type = type;
         this.title = title;
         this.slug = slug;
@@ -173,9 +172,4 @@ public class product {
         this.image = image;
     }
 
-    
-    
-
-
-   
 }

@@ -1,35 +1,37 @@
 package Controllers;
 
-import mvc.ControllerBase;
-import mvc.Result;
+import java.util.List;
+
+import DAO.AccountDA;
+import DAO.OrderDAO;
+import DAO.UserDA;
+import DTO.VoucherInfoDTO;
+import Models.Accounts.BankType;
+import Models.Accounts.PaymentCard;
+import Models.Accounts.ShippingInformation;
+import Models.Accounts.Voucher;
+import Models.Orders.Order;
+import Models.Orders.OrderStatus;
+import Models.Users.Role;
+import Models.Users.User;
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Cache.Redis;
+import mvc.ControllerBase;
 import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
 import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.Notify.NotificationService;
+import mvc.Helpers.SessionHelper;
 import mvc.Helpers.otps.OTPHelper;
 import mvc.Http.HttpMethod;
-
-import java.util.List;
-
-import DAO.AccountDA;
-import DAO.UserDA;
-import DTO.UserCredentials;
-import DTO.UserSession;
-import Models.Accounts.BankType;
-import Models.Accounts.PaymentCard;
-import Models.Accounts.ShippingInformation;
-import Models.Accounts.Voucher;
-import Models.Users.Role;
-import Models.Users.User;
-import Models.Users.UserImage;
+import mvc.Result;
 
 public class UserController extends ControllerBase {
     private AccountDA accountDA = new AccountDA();
     private UserDA userDA = new UserDA();
+    private OrderDAO orderDAO = new OrderDAO();
     private Redis redis = new Redis();
 
     // #region User Account
@@ -103,6 +105,13 @@ public class UserController extends ControllerBase {
     // @Authorization(permissions = "User/account/transactions")
     @ActionAttribute(urlPattern = "account/transactions")
     public Result transactions() throws Exception {
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        List<OrderStatus> orderStatuses = orderDAO.getAllOrderStatuses();
+        List<Order> orders = orderDAO.getOrdersByUserId(userId);
+        request.setAttribute("orders", orders);
+        request.setAttribute("orderStatuses", orderStatuses);
+
         // wait for product/order part to be done
         return page();
     }
@@ -157,8 +166,16 @@ public class UserController extends ControllerBase {
         if (!"step#2".equals(passwordChangeState) && !"step#2".equals(forgotPasswordState)) {
             return error("Invalid state for OTP generation");
         }
-
-        boolean response = OTPHelper.sendOTP(userId);
+        boolean response = false;
+        if ("step#2".equals(passwordChangeState)) {
+            response = OTPHelper.sendOTP(userId);
+        } else {
+            String email = session.get("forgotPasswordState-user-email");
+            if (email == null || "".equals(email)) {
+                return error("Invalid State for  OTP generation");
+            }
+            response = OTPHelper.sendOTP(email);
+        }
         if (response) {
             return success("OTP sent successfully");
         }
@@ -169,15 +186,24 @@ public class UserController extends ControllerBase {
     @ActionAttribute(urlPattern = "account/password/otp")
     @HttpRequest(HttpMethod.POST)
     public Result verifyOTP(String otp) throws Exception {
-        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        SessionHelper session = getSessionHelper();
         String passwordChangeState = session.get("passwordChangeState");
         String forgotPasswordState = session.get("forgotPasswordState");
 
         if (!"step#2".equals(passwordChangeState) && !"step#2".equals(forgotPasswordState)) {
             return error("Invalid state for OTP validation");
         }
+        boolean response = false;
+        if ("step#2".equals(passwordChangeState)) {
+            response = OTPHelper.verifyOTP(session.getId(), otp);
+        } else {
+            String email = session.get("forgotPasswordState-user-email");
+            if (email == null || "".equals(email)) {
+                return error("Invalid State for OTP generation");
+            }
+            response = OTPHelper.verifyOTP(email, otp);
+        }
 
-        boolean response = OTPHelper.verifyOTP(session.getId(), otp);
         if (response) {
             session.set("passwordChangeState", "step#3");
             session.set("forgotPasswordState", "step#3");
@@ -202,6 +228,57 @@ public class UserController extends ControllerBase {
         boolean response = accountDA.changePassword(userId, newPassword);
         if (response) {
             session.remove("passwordChangeState");
+            // TODO: Notify User
+            NotificationService notificationService = new NotificationService();
+            Notification notification = new Notification();
+            // Get Current DateTime in String format
+            String currentDateTime = Helpers.getCurrentDateTime();
+
+            notification.setCreatedAt(currentDateTime);
+            notification.setTitle("Password Changed");
+            notification
+                    .setContent("Your password has been changed successfully, Not you? Click me for customer support.");
+            notification.setUserId(userId);
+            notification.setUrl("");
+
+            notificationService.setNotification(notification);
+            notificationService.inform();
+            return success("Password changed successfully");
+        }
+        return error("Failed to change password");
+    }
+
+    @ActionAttribute(urlPattern = "account/forgetPassword/new")
+    @SyncCache(channel = "User")
+    @HttpRequest(HttpMethod.POST)
+    public Result resetPassword(String newPassword) throws Exception {
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        String forgotPasswordState = session.get("forgotPasswordState");
+
+        if (!"step#3".equals(forgotPasswordState)) {
+            return error("Invalid state for password change");
+        }
+
+        String email = session.get("forgotPasswordState-user-email");
+
+        boolean response = accountDA.changePassword(email, newPassword);
+        if (response) {
+            session.remove("passwordChangeState");
+            // TODO: Notify User
+            User user = userDA.getUserByEmail(email);
+            String currentDateTime = Helpers.getCurrentDateTime();
+            NotificationService notificationService = new NotificationService();
+            Notification notification = new Notification();
+
+            notification.setCreatedAt(currentDateTime);
+            notification.setTitle("Password Changed");
+            notification
+                    .setContent("Your password has been changed successfully, Not you? Click me for customer support.");
+            notification.setUser(user);
+            notification.setUrl("");
+
+            notificationService.setNotification(notification);
+            notificationService.inform();
             return success("Password changed successfully");
         }
         return error("Failed to change password");
@@ -340,10 +417,12 @@ public class UserController extends ControllerBase {
         return error("Failed to delete payment card");
     }
 
-    @Authorization(accessUrls = "User/account/vouchers")
+    //@Authorization(accessUrls = "User/account/vouchers")
     @ActionAttribute(urlPattern = "account/vouchers")
     public Result vouchers() throws Exception {
-        List<Voucher> vouchers = accountDA.getVouchers();
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        List<VoucherInfoDTO> vouchers = accountDA.getAllVoucherInfo(userId);
         request.setAttribute("vouchers", vouchers);
         return page();
     }
@@ -396,11 +475,16 @@ public class UserController extends ControllerBase {
     }
 
     public Result signUp() throws Exception {
+        SessionHelper session = getSessionHelper();
+        String signUpState = session.get("signUpState");
+        if (null == signUpState || "".equals(signUpState)) {
+            signUpState = "step#1";
+        }
+        request.setAttribute("signUpState", signUpState.split("#")[1]);
         return page();
     }
 
     @HttpRequest(HttpMethod.POST)
-    @SyncCache(channel = "User")
     public Result signUp(String email, String username) throws Exception {
         SessionHelper session = getSessionHelper();
         User user = userDA.getUserByEmailUsername(email, username);
@@ -416,6 +500,7 @@ public class UserController extends ControllerBase {
 
         if (true == OTPHelper.sendOTP(email)) {
             session.set("signUpState", "step#2");
+            session.set("signup-user-email", email);
         }
         return success();
     }
@@ -429,7 +514,15 @@ public class UserController extends ControllerBase {
             return error("Invalid State for Account Registration");
         }
 
-        boolean response = OTPHelper.verifyOTP(user.getEmail(), entryOtp);
+        if (user.getEmail() == null || "".equals(user.getEmail())) {
+            return error("Invalid State for Account Registration");
+        }
+
+        if (!user.getEmail().equals(session.get("signup-user-email"))) {
+            return error("Invalid State for Account Registration");
+        }
+
+        boolean response = OTPHelper.verifyOTP(session.get("signup-user-email"), entryOtp);
         if (!response) {
             return error("Invalid OTP");
         }
@@ -439,7 +532,6 @@ public class UserController extends ControllerBase {
         if (role == null) {
             return error("Error while trying to create user account. Role not found.");
         }
-
         user.setPassword(Helpers.hashPassword(user.getPassword()));
         user.setRole(role);
         boolean result = userDA.createUser(user);
@@ -452,13 +544,19 @@ public class UserController extends ControllerBase {
 
     @HttpRequest(HttpMethod.POST)
     @ActionAttribute(urlPattern = "signUp/otp/send")
-    public Result resendOTP(User user, String entryOtp) throws Exception {
+    public Result resendOTP() throws Exception {
         SessionHelper session = getSessionHelper();
         if (!"step#2".equals(session.get("signUpState"))) {
             return error("Invalid State for Account Registration");
         }
 
-        boolean response = OTPHelper.sendOTP(user.getEmail());
+        String email = session.get("signup-user-email");
+
+        if (email == null || "".equals(email)) {
+            return error("Invalid State for Account Registration");
+        }
+
+        boolean response = OTPHelper.sendOTP(email);
         if (!response) {
             return error("Failed to send OTP");
         }
@@ -468,12 +566,18 @@ public class UserController extends ControllerBase {
 
     @ActionAttribute(urlPattern = "account/forgetPassword")
     public Result forgetPassword() throws Exception {
+        SessionHelper session = getSessionHelper();
+        String forgotPasswordState = session.get("forgotPasswordState");
+        if (null == forgotPasswordState || "".equals(forgotPasswordState)) {
+            forgotPasswordState = "step#1";
+        }
+        request.setAttribute("forgotPasswordState", forgotPasswordState.split("#")[1]);
         return page();
     }
 
     @HttpRequest(HttpMethod.POST)
     @SyncCache(channel = "User")
-    @ActionAttribute(urlPattern = "password/verify")
+    @ActionAttribute(urlPattern = "account/forgetPassword/verify")
     public Result verifyEmail(String email, String username) throws Exception {
         SessionHelper session = getSessionHelper();
         User user = userDA.getUserByEmailUsername(email, username);
@@ -492,69 +596,8 @@ public class UserController extends ControllerBase {
 
         if (true == OTPHelper.sendOTP(email)) {
             session.set("forgotPasswordState", "step#2");
+            session.set("forgotPasswordState-user-email", email);
         }
-
-        return success();
-    }
-
-    @HttpRequest(HttpMethod.POST)
-    @SyncCache(channel = "User")
-    @ActionAttribute(urlPattern = "password/verifyEmail")
-    public Result resetPassword(String email, String username) throws Exception {
-        SessionHelper session = getSessionHelper();
-        User user = userDA.getUserByEmailUsername(email, username);
-
-        if (user == null) {
-            return error("User or Email Not Found.");
-        }
-
-        if (!username.equals(user.getUsername())) {
-            return error("User not Found");
-        }
-
-        if (!email.equals(user.getEmail())) {
-            return error("Email Doesn't Match with your account.");
-        }
-
-        if (true == OTPHelper.sendOTP(email)) {
-            session.set("forgotPasswordState", "step#2");
-        }
-
-        return success();
-    }
-
-    public Result demoSession(String username, String password) throws Exception {
-        UserCredentials userCredential = new UserCredentials();
-        userCredential.setUsername(username);
-        userCredential.setPassword(password);
-        User user = userDA.getUserByUsername(userCredential.getUsername());
-        SessionHelper session = getSessionHelper();
-        UserSession userSession = new UserSession();
-        if (user == null) {
-            return error("Invalid username or password.");
-        }
-        String passwords = userDA.getUserPasswordById(user.getId());
-        if (!Helpers.verifyPassword(userCredential.getPassword(), passwords)) {
-            return error("Invalid username or password.");
-        }
-        List<String> accessUrls = userDA.getUrlAccesses(user.getRole().getId());
-        if (accessUrls == null) {
-            return error("User does not have any access permissions.");
-        }
-        UserImage userImage = userDA.getUserImageByUserId(user.getId());
-        if (userImage != null) {
-            userSession.setImageId(userImage.getId());
-        }
-        userSession.setId(user.getId());
-        userSession.setUsername(user.getUsername());
-        userSession.setEmail(user.getEmail());
-        userSession.setRole(user.getRole().getDescription());
-        userSession.setAuthenticated(true);
-        userSession.setAccessUrls(accessUrls);
-
-        session.setUserSession(userSession);
-        SessionHelper demo = getSessionHelper();
-        System.out.println(demo.getUserSession().getUsername());
 
         return success();
     }

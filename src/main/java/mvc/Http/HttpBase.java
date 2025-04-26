@@ -53,11 +53,17 @@ import mvc.Result;
         maxFileSize = 1024 * 1024 * 10, // 10MB
         maxRequestSize = 1024 * 1024 * 50)
 public abstract class HttpBase extends HttpServlet {
-    protected HttpContext context = new HttpContext();
-    protected HttpServletRequest request;
-    protected HttpServletResponse response;
+    protected static final ThreadLocal<HttpServletRequest> threadLocalRequest = new ThreadLocal<>();
+    protected static final ThreadLocal<HttpServletResponse> threadLocalResponse = new ThreadLocal<>();
+    protected static final ThreadLocal<HttpContext> threadLocalContext = new ThreadLocal<>();
+
+    protected static HttpServletRequest request;
+    protected static HttpServletResponse response;
+    protected static HttpContext context;
+
     protected Logger logger = AuditService.getLogger();
     private static List<Middleware> middlewares;
+
     private static final String DEFAULT_CONTROLLER = "LandingController";
     private static final String DEFAULT_ACTION = "index";
     private static final String NOT_FOUND_URL = "/web/Views/Error/notFound.jsp";
@@ -131,13 +137,22 @@ public abstract class HttpBase extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse res) {
         Method action = null;
         try {
-            context.setRequest(req);
-            context.setResponse(res);
-            request = req;
-            response = res;
+            // Set ThreadLocal variables first to ensure thread safety
+            threadLocalContext.set(new HttpContext(req, res));
+            threadLocalRequest.set(req);
+            threadLocalResponse.set(res);
+
+            request = threadLocalRequest.get();
+            response = threadLocalResponse.get();
+            context = threadLocalContext.get();
+
+            // Create and initialize a new HttpContext for this request
+            HttpContext localContext = new HttpContext();
+            localContext.setRequest(req);
+            localContext.setResponse(res);
+            threadLocalContext.set(localContext);
 
             action = getCurrentAction();
-
             invokeMethod(action);
         } catch (Exception e) {
             // Logging service
@@ -153,14 +168,22 @@ public abstract class HttpBase extends HttpServlet {
                 logger.log(Level.WARNING, "Error throws at [service(HttpServletRequest req, HttpServletResponse res)]: "
                         + e.getMessage());
             }
+        } finally {
+            // Critical: Clean up ThreadLocal variables to prevent memory leaks
+            threadLocalRequest.remove();
+            threadLocalResponse.remove();
+            threadLocalContext.remove();
         }
     }
     // #endregion
 
     // #region Process Request and Middleware
     private Method getCurrentAction() throws PageNotFoundException, IOException {
-        String action = context.getRequest().getPathInfo();
-        String httpMethod = context.getRequest().getMethod().toUpperCase();
+        HttpServletRequest localRequest = threadLocalRequest.get();
+        HttpServletResponse localResponse = threadLocalResponse.get();
+
+        String action = localRequest.getPathInfo();
+        String httpMethod = localRequest.getMethod().toUpperCase();
         if (action == null)
             action = "";
 
@@ -179,16 +202,15 @@ public abstract class HttpBase extends HttpServlet {
         if (methods.length == 0) {
             // redirect to error page
             try {
-                response.setStatus(HttpStatusCode.NOT_FOUND.get());
-                response.sendRedirect(NOT_FOUND_URL);
+                localResponse.setStatus(HttpStatusCode.NOT_FOUND.get());
+                localResponse.sendRedirect(NOT_FOUND_URL);
                 // show user requested url
                 throw new PageNotFoundException(
-                        "No action found for the requested URL: " + context.getRequest().getRequestURI());
+                        "No action found for the requested URL: " + localRequest.getRequestURI());
             } catch (IOException | PageNotFoundException e) {
                 logger.log(Level.WARNING, "Error throws at [getCurrentAction()]: " + e.getMessage());
                 e.printStackTrace(System.err);
             }
-
         }
 
         // Loop for the Controller Class Actions until the action is found
@@ -222,17 +244,18 @@ public abstract class HttpBase extends HttpServlet {
             return method;
         }
         // Action Not Found
-
-        response.setStatus(HttpStatusCode.NOT_FOUND.get());
-        response.sendRedirect(NOT_FOUND_URL);
+        localResponse.setStatus(HttpStatusCode.NOT_FOUND.get());
+        localResponse.sendRedirect(NOT_FOUND_URL);
         // show user requested url
         throw new PageNotFoundException(
-                "No action found for the requested URL: " + context.getRequest().getRequestURI());
-
+                "No action found for the requested URL: " + localRequest.getRequestURI());
     }
 
-    private void invokeMethod(Method action)
-            throws Exception {
+    private void invokeMethod(Method action) throws Exception {
+        HttpContext localContext = threadLocalContext.get();
+        HttpServletResponse localResponse = threadLocalResponse.get();
+        HttpServletRequest localRequest = threadLocalRequest.get();
+
         // Register Services
         Annotation[] annotations = action.getAnnotations();
 
@@ -241,33 +264,33 @@ public abstract class HttpBase extends HttpServlet {
 
         // #region execute Middlewares and action
         executeMiddleware(annotations, MiddlewareAction.BeforeAction);
-        if (context.isRequestCancelled()) {
-            if (!context.getResult().isRedirect()) {
+        if (localContext.isRequestCancelled()) {
+            if (!localContext.getResult().isRedirect()) {
                 return;
             }
-            context.setRequestCancelled(false);
-            context.getResult().setRedirect(false);
-            context.getRequest().getRequestDispatcher(context.getResult().getPath()).forward(context.getRequest(),
-                    context.getResponse());
+            localContext.setRequestCancelled(false);
+            localContext.getResult().setRedirect(false);
+            localRequest.getRequestDispatcher(localContext.getResult().getPath()).forward(localRequest,
+                    localResponse);
             return;
         }
 
         Object result = action.invoke(this, args);
         if (result instanceof Result actionResult) {
             // need to declare response header
-            context.getResponse().setContentType(actionResult.getContentType());
-            context.getResponse().setStatus(actionResult.getStatusCode().get());
-            context.getResponse().setCharacterEncoding(actionResult.getCharset());
+            localResponse.setContentType(actionResult.getContentType());
+            localResponse.setStatus(actionResult.getStatusCode().get());
+            localResponse.setCharacterEncoding(actionResult.getCharset());
             // setHeaders
             for (Entry<String, String> header : actionResult.getHeaders().entrySet()) {
-                context.getResponse().setHeader(header.getKey(), header.getValue());
+                localResponse.setHeader(header.getKey(), header.getValue());
             }
             executeMiddleware(annotations, MiddlewareAction.AfterAction);
 
             // Set headers to prevent caching from browser
             switch (actionResult.getContentType()) {
                 case "application/json" ->
-                    context.getResponse().getWriter().write(JsonConverter.serialize(actionResult.getData()));
+                    localResponse.getWriter().write(JsonConverter.serialize(actionResult.getData()));
                 case "text/html" -> {
                     if (actionResult.isRedirect()) {
                         String path = "/web" + actionResult.getPath().replace(".jsp", "");
@@ -279,27 +302,27 @@ public abstract class HttpBase extends HttpServlet {
                             path += query.toString();
                         }
 
-                        context.getResponse().sendRedirect(path);
+                        localResponse.sendRedirect(path);
                     } else {
                         // return current page
-                        context.getRequest().getRequestDispatcher("/Views" + actionResult.getPath()).forward(
-                                context.getRequest(),
-                                context.getResponse());
+                        localRequest.getRequestDispatcher("/Views" + actionResult.getPath()).forward(
+                                localRequest,
+                                localResponse);
                     }
                 }
                 default -> {
+                    System.out.println("FileType: " + actionResult.getContentType());
                     if (FileType.contains(actionResult.getContentType())) {
                         streamFileContent(actionResult.getData());
                     } else {
-                        context.getResponse().getWriter().write((actionResult.getData().toString()));
+                        localResponse.getWriter().write((actionResult.getData().toString()));
                     }
                 }
             }
-
         } else {
             try {
-                response.setStatus(HttpStatusCode.NOT_FOUND.get());
-                response.sendRedirect(INTERNAL_ERROR_URL);
+                localResponse.setStatus(HttpStatusCode.NOT_FOUND.get());
+                localResponse.sendRedirect(INTERNAL_ERROR_URL);
                 // show user requested url
                 throw new InvalidActionResultException("Invalid Request");
 
@@ -307,10 +330,8 @@ public abstract class HttpBase extends HttpServlet {
                 logger.log(Level.WARNING, "Error throws at [getCurrentAction()]: " + e.getMessage());
                 e.printStackTrace(System.err);
             }
-
         }
         // #endregion
-
     }
 
     private String urlQueryStringBuilder(JsonNode params) {
@@ -332,6 +353,8 @@ public abstract class HttpBase extends HttpServlet {
     }
 
     private void executeMiddleware(Annotation[] annotations, MiddlewareAction action, Exception ex) throws Exception {
+        HttpContext localContext = threadLocalContext.get();
+
         for (Annotation annotation : annotations) {
             String annotationName = annotation.annotationType().getSimpleName();
             String expectedHandlerName = annotationName + "Handler";
@@ -354,9 +377,9 @@ public abstract class HttpBase extends HttpServlet {
                 }
 
                 switch (action) {
-                    case BeforeAction -> middleware.executeBeforeAction(context);
-                    case AfterAction -> middleware.executeAfterAction(context);
-                    case OnError -> middleware.onError(context, ex);
+                    case BeforeAction -> middleware.executeBeforeAction(localContext);
+                    case AfterAction -> middleware.executeAfterAction(localContext);
+                    case OnError -> middleware.onError(localContext, ex);
                 }
                 break;
             }
@@ -368,22 +391,58 @@ public abstract class HttpBase extends HttpServlet {
     }
 
     private void streamFileContent(Object data) throws Exception {
-        try (OutputStream output = response.getOutputStream()) {
-            if (data instanceof byte[] bytes) {
-                output.write(bytes);
+        HttpServletResponse localResponse = threadLocalResponse.get();
+
+        if (localResponse == null) {
+            throw new IllegalStateException("Thread-local response is not available");
+        }
+
+        if (localResponse.isCommitted()) {
+            throw new IllegalStateException("Response is already committed, cannot stream file.");
+        }
+
+        try {
+            OutputStream output = localResponse.getOutputStream();
+            if (output == null) {
+                System.err.println("Error: OutputStream is null");
+                throw new IllegalStateException("OutputStream is not available.");
             }
-            output.flush();
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
+
+            if (data == null) {
+                System.err.println("Error: Data is null");
+                throw new IllegalArgumentException("Data is null.");
+            }
+
+            if (data instanceof byte[] bytes) {
+                int chunkSize = 512 * 1024; // 512KB chunks (smaller for better handling)
+                int totalLength = bytes.length;
+                int offset = 0;
+
+                while (offset < totalLength) {
+                    int length = Math.min(chunkSize, totalLength - offset);
+                    output.write(bytes, offset, length);
+                    offset += length;
+                    output.flush(); // Ensure the data is written in chunks
+                    Thread.yield(); // Give other threads a chance to run
+                }
+            } else {
+                System.err.println("Error: Data is not byte array.");
+                throw new IllegalArgumentException("Expected byte[] for file data.");
+            }
+        } catch (IOException e) {
+            System.err.println("IOException in streamFileContent: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error while streaming file content", e);
         }
     }
-
     // #endregion
 
     // #region PARAMETER MAPPING
     private Object[] parameterMapping(Method action) throws Exception {
-        String contentType = context.getRequest().getContentType();
-        String httpMethod = context.getRequest().getMethod();
+        HttpServletRequest localRequest = threadLocalRequest.get();
+
+        String contentType = localRequest.getContentType();
+        String httpMethod = localRequest.getMethod();
 
         // validate with request method and content_type
         if (httpMethod.equals("GET"))
@@ -395,10 +454,11 @@ public abstract class HttpBase extends HttpServlet {
         }
         // multipart/form-data
         return mapFromFormData(action);
-
     }
 
     private Object[] mapFromFormData(Method action) throws Exception {
+        HttpServletRequest localRequest = threadLocalRequest.get();
+
         Object[] formData = new Object[action.getParameters().length];
         Parameter[] parameters = action.getParameters(); // Get method parameters
         int count = 0;
@@ -415,7 +475,7 @@ public abstract class HttpBase extends HttpServlet {
                 if (componentType.equals(byte[].class)) {
                     // Handle file array (List of byte[])
                     List<byte[]> fileList = new ArrayList<>();
-                    for (Part part : context.getRequest().getParts()) {
+                    for (Part part : localRequest.getParts()) {
                         if (part.getName().equals(paramName) && part.getSubmittedFileName() != null) {
                             fileList.add(part.getInputStream().readAllBytes());
                         }
@@ -423,7 +483,7 @@ public abstract class HttpBase extends HttpServlet {
                     convertedValue = fileList.toArray(byte[][]::new); // a.k.a fileList.toArray(new byte[0][]);
                 } else {
                     // Handle text input array
-                    String[] paramValues = context.getRequest().getParameterValues(paramName);
+                    String[] paramValues = localRequest.getParameterValues(paramName);
                     if (paramValues != null) {
                         Object[] convertedArray = (Object[]) java.lang.reflect.Array.newInstance(componentType,
                                 paramValues.length);
@@ -438,7 +498,7 @@ public abstract class HttpBase extends HttpServlet {
 
             } else {
                 // Handle text or file input
-                Part part = context.getRequest().getPart(paramName);
+                Part part = localRequest.getPart(paramName);
                 if (part != null) {
                     if (part.getSubmittedFileName() != null) {
                         convertedValue = part.getInputStream().readAllBytes();
@@ -453,6 +513,8 @@ public abstract class HttpBase extends HttpServlet {
     }
 
     private Object[] mapFromQueryParams(Method action) throws Exception {
+        HttpServletRequest localRequest = threadLocalRequest.get();
+
         Object[] queryParams = new Object[action.getParameters().length];
         Parameter[] parameters = action.getParameters(); // Get method parameters
         int count = 0;
@@ -463,7 +525,7 @@ public abstract class HttpBase extends HttpServlet {
 
             if (paramType.isArray()) {
                 // Handle arrays: get all values as String[]
-                String[] paramValues = context.getRequest().getParameterValues(paramName);
+                String[] paramValues = localRequest.getParameterValues(paramName);
                 if (paramValues != null) {
                     queryParams[count] = convertArrayType(paramValues, paramType.getComponentType());
                 } else {
@@ -471,7 +533,7 @@ public abstract class HttpBase extends HttpServlet {
                 }
             } else {
                 // Handle single value
-                String paramValue = context.getRequest().getParameter(paramName);
+                String paramValue = localRequest.getParameter(paramName);
                 queryParams[count] = (paramValue != null) ? convertType(paramValue, paramType)
                         : getDefaultValue(paramType);
             }
@@ -522,7 +584,7 @@ public abstract class HttpBase extends HttpServlet {
     private String getBody() {
         StringBuilder stringBuilder = new StringBuilder();
         String line;
-        try (BufferedReader reader = context.getRequest().getReader()) {
+        try (BufferedReader reader = threadLocalRequest.get().getReader()) {
             while ((line = reader.readLine()) != null) {
                 stringBuilder.append(line);
             }

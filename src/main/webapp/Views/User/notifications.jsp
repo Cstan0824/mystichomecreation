@@ -83,6 +83,9 @@
                     success: function(response) {
                         if(response.status == 200){
                             let result = JSON.parse(response.data);
+                            if("" == result || null == result || "#" == result) {
+                                return;
+                            }
                             window.parent.location.href = contextRoot + result;
                         }
                     },

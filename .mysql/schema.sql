@@ -74,10 +74,10 @@ CREATE TABLE  IF NOT EXISTS `Orders` (
   `payment_id` int NOT NULL,
   `status_id` int NOT NULL,
   `shipping_information` varchar(500) DEFAULT NULL,
-  `order_date` date NOT NULL,
-  `pack_date` date DEFAULT NULL,
-  `ship_date` date DEFAULT NULL,
-  `receive_date` date DEFAULT NULL,
+  `order_date` VARCHAR(255) NOT NULL,
+  `pack_date` VARCHAR(255) DEFAULT NULL,
+  `ship_date` VARCHAR(255) DEFAULT NULL,
+  `receive_date` VARCHAR(255) DEFAULT NULL,
   `order_ref_no` varchar(255) NOT NULL,
   INDEX (`user_id`),
   INDEX (`status_id`),
@@ -222,20 +222,3 @@ CREATE TABLE IF NOT EXISTS `Notifications` (
     PRIMARY KEY(`id`),
     FOREIGN KEY (`user_id`) REFERENCES `Users`(`user_id`) ON DELETE CASCADE
 );
-
-
-
--- create tables -- FOR TEST ONLY
-CREATE TABLE IF NOT EXISTS `dev` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `created_date` DATE NOT NULL,
-  `email` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-);
-
-
-
-
-

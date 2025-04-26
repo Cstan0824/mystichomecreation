@@ -2,6 +2,7 @@
 <html lang="en">
 <%@ page import="java.util.List" %>
 <%@ page import="Models.Accounts.Voucher" %>
+<%@ page import="DTO.VoucherInfoDTO" %>
 <%@ page import="mvc.Helpers.Helpers" %>
 <head>
     <meta charset="UTF-8" />
@@ -24,30 +25,30 @@
     <div class="bg-white w-full p-4">
         <hr class="border-gray-200 p-2" />
         <%
-            List<Voucher> vouchers = (List<Voucher>) request.getAttribute("vouchers");
+            List<VoucherInfoDTO> vouchers = (List<VoucherInfoDTO>) request.getAttribute("vouchers");
             if(vouchers != null){
-                for(Voucher voucher : vouchers){
+                for(VoucherInfoDTO voucher : vouchers){
             %>
             <div class="bg-gray-50 p-4 rounded shadow mb-4">
                 <div class="flex justify-between">
                     <div class="text-sm">
-                        <p class="font-semibold text-gray-700"><%= voucher.getName() %> &middot; <%= voucher.getType().equals("Percent") ? voucher.getAmount() + "%" : "RM" + voucher.getAmount() %></p>
-                        <p class="text-xs text-gray-500"><%= voucher.getDescription() %></p>
-                        <p class="text-xs text-gray-400">MIN: RM<%= voucher.getMinSpent() %> &middot; MAX: RM<%= voucher.getMaxCoverage() %></p>
-                        <p class="text-xs text-gray-400">Usage: 2/3</p>
+                        <p class="font-semibold text-gray-700"><%= voucher.getVoucher().getName() %> &middot; <%= voucher.getVoucher().getType().equals("Percent") ? voucher.getVoucher().getAmount() + "%" : "RM" + voucher.getVoucher().getAmount() %></p>
+                        <p class="text-xs text-gray-500"><%= voucher.getVoucher().getDescription() %></p>
+                        <p class="text-xs text-gray-400">MIN: RM<%= voucher.getVoucher().getMinSpent() %> &middot; MAX: RM<%= voucher.getVoucher().getMaxCoverage() %></p>
+                        <p class="text-xs text-gray-400">Usage <%= voucher.getUsageLeft()%>/<%= voucher.getVoucher().getUsagePerMonth()%></p>
                     </div>
                     <div class="flex space-x-2 items-start">
                         
-                        <% if(voucher.getStatus() == 1) { %>
+                        <% if(voucher.getVoucher().getStatus() == 1) { %>
                             <button
                             class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
-                            data-status="active" data-id="<%= voucher.getId() %>">
+                            data-status="active" data-id="<%= voucher.getVoucher().getId() %>">
                             Active
                         </button>
                         <% } else { %>
                             <button
                             class="status-btn border border-gray-900 text-gray-900 text-xs px-3 py-1 rounded-md hover:bg-gray-100"
-                            data-status="inactive" data-id="<%= voucher.getId() %>">
+                            data-status="inactive" data-id="<%= voucher.getVoucher().getId() %>">
                             Inactive
                         </button>
                         <% } %>

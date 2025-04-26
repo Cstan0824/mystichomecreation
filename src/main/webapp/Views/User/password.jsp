@@ -235,7 +235,7 @@
 		});
 	});
 
-    showStep(currentStep);
+    showStep(1);
   });
 </script>
 

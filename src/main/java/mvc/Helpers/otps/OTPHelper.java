@@ -51,8 +51,10 @@ public class OTPHelper {
                 .setRecipient(user.getEmail())
                 .setSubject("Your OTP")
                 .setMailType(MailType.OTP)
-                .setValues("OTP",
+                .setValues("otp",
                         generatedOtp)
+                .setValues("name",
+                        user.getUsername())
                 .send();
         return true;
     }
@@ -86,8 +88,10 @@ public class OTPHelper {
                 .setRecipient(email)
                 .setSubject("Your OTP")
                 .setMailType(MailType.OTP)
-                .setValues("OTP",
+                .setValues("otp",
                         generatedOtp)
+                .setValues("name",
+                        "there")
                 .send();
         return true;
     }

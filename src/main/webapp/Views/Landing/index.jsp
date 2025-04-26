@@ -13,8 +13,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     
 </head>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="Models.Products.product" %>
+<%@ page import="Models.Products.productType" %>
+<%@ page import="Models.Products.productFeedback" %>
+<%@ page import="Models.Orders.OrderStatus" %>
+<%@ page import="mvc.Helpers.Helpers" %>
+
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
+
+    <%
+
+        List<product> bestSellers = (List<product>) request.getAttribute("bestSellers");
+        List<product> newProducts = (List<product>) request.getAttribute("newProducts");
+        List<product> randomProducts = (List<product>) request.getAttribute("randomProducts");
+        List<productType> productTypes = (List<productType>) request.getAttribute("productTypes");
+        List<productFeedback> feedbacks = (List<productFeedback>) request.getAttribute("feedbacks");
+
+    %>
     <!-- Carousel -->
     <div class="w-full flex flex-col">
         <!-- Video -->
@@ -67,54 +86,26 @@
                     <div class="hover:text-darkYellow border border-white rounded-lg hover:bg-gray-50 px-2 cursor-pointer flex justify-center item-center category-next">
                         <span class="text-lg">></span>
                     </div>
-                    <div class="hover:text-darkYellow border border-white rounded-lg hover:bg-gray-50 px-2 cursor-pointer flex justify-center items-center">
-                        <a href="#"><i class="fa-solid fa-ellipsis fa-lg"></i></a>
-                    </div>
                 </div>
             </div>
         </div>
         <div class="swiper category-swiper content-wrapper !my-0">
             <div class="swiper-wrapper pb-10">
-                <div class="swiper-slide w-full">
-                    <div class="w-full flex flex-col">
-                        <div class="border border-white bg-grey1 rounded-lg">
-                            <img src="<%= request.getContextPath() %>/Content/assets/image/category-img.avif" class="w-full h-full object-cover" alt="category-1">
-                        </div>
-                        <h2 class="text-lg font-semibold text-poppins p-2">Category 1</h2>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="w-full flex flex-col">
-                        <div class="border border-white bg-grey1 rounded-lg">
-                            <img src="<%= request.getContextPath() %>/Content/assets/image/category-img.avif" class="w-full h-full object-cover" alt="category-1">
-                        </div>
-                        <h2 class="text-lg font-semibold text-poppins p-2">Category 1</h2>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="w-full flex flex-col">
-                        <div class="border border-white bg-grey1 rounded-lg">
-                            <img src="<%= request.getContextPath() %>/Content/assets/image/category-img.avif" class="w-full h-full object-cover" alt="category-1">
-                        </div>
-                        <h2 class="text-lg font-semibold text-poppins p-2">Category 1</h2>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="w-full flex flex-col">
-                        <div class="border border-white bg-grey1 rounded-lg">
-                            <img src="<%= request.getContextPath() %>/Content/assets/image/category-img.avif" class="w-full h-full object-cover" alt="category-1">
-                        </div>
-                        <h2 class="text-lg font-semibold text-poppins p-2">Category 1</h2>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="w-full flex flex-col">
-                        <div class="border border-white bg-grey1 rounded-lg">
-                            <img src="<%= request.getContextPath() %>/Content/assets/image/category-img.avif" class="w-full h-full object-cover" alt="category-1">
-                        </div>
-                        <h2 class="text-lg font-semibold text-poppins p-2">Category 1</h2>
-                    </div>
-                </div>
+                <%  for (productType pType : productTypes) {
+                        for (product product : randomProducts) {
+                            if(product.getTypeId().getId() == pType.getId()) { %>
+                
+                                <div class="swiper-slide w-full cursor-pointer bg-white hover:bg-grey1 transition-colors ease-in-out duration-200 rounded-lg overflow-hidden" onClick="redirectURL('<%= request.getContextPath() %>/product/productCatalog?productTypeId=<%= pType.getId() %>')">
+                                    <div class="w-full flex flex-col rounded-lg overflow-hidden">
+                                        <div class="border border-white bg-grey1 rounded-lg">
+                                            <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= product.getImage().getId() %>" class="w-full h-full object-cover" alt="<%= pType.gettype()%>">
+                                        </div>
+                                        <h2 class="text-lg font-semibold text-poppins p-2"><%= pType.gettype() %></h2>
+                                    </div>
+                                </div>
+                        <% } 
+                        }
+                    } %>
             </div>
             <div class="category-scrollbar w-full h-2 cursor-pointer"></div>
         </div>  
@@ -128,78 +119,28 @@
         </div>
         <!-- Best sellers catalog -->
         <div class="flex gap-8">
-            <div class="w-full pb-10 basis-1/4">
-                <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                    <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                    </div>
-                    <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                    <div class="p-3">
-                        <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                        <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="font-bold">RM 2,499.00</span>
-                            <div class="flex items-center text-xs text-gray-500">
-                                <i class="fas fa-box mr-1"></i>
-                                <span>3 left</span>
+            <% for(product prod : bestSellers) { %>
+                <div class="w-full pb-10 basis-1/4 hover:mhc-box-shadow">
+                    <div class="bg-white rounded-lg overflow-hidden shadow cursor-pointer relative"
+                            onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= prod.getId() %>')">
+                        <% if (prod.getFeatured() == 1) { %>
+                            <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED</div>
+                        <% } %>
+                        <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= prod.getImage().getId() %>" alt="<%= prod.getTitle() %>" class="w-[350px] h-[260px] object-cover cursor-pointer">
+                        <div class="p-3 cursor-pointer hover:bg-grey1">
+                            <h3 class="font-medium"><%= prod.getTitle() %></h3>
+                            <p class="text-xs text-gray-500"><%= prod.getTypeId().gettype() %></p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="font-bold">RM <%= String.format("%.2f", prod.getPrice()) %></span>
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-box mr-1"></i>
+                                    <span><%= prod.getStock() %> left</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="w-full pb-10 basis-1/4">
-                <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                    <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                    </div>
-                    <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                    <div class="p-3">
-                        <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                        <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="font-bold">RM 2,499.00</span>
-                            <div class="flex items-center text-xs text-gray-500">
-                                <i class="fas fa-box mr-1"></i>
-                                <span>3 left</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="w-full pb-10 basis-1/4">
-                <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                    <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                    </div>
-                    <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                    <div class="p-3">
-                        <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                        <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="font-bold">RM 2,499.00</span>
-                            <div class="flex items-center text-xs text-gray-500">
-                                <i class="fas fa-box mr-1"></i>
-                                <span>3 left</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="w-full pb-10 basis-1/4">
-                <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                    <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                    </div>
-                    <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                    <div class="p-3">
-                        <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                        <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="font-bold">RM 2,499.00</span>
-                            <div class="flex items-center text-xs text-gray-500">
-                                <i class="fas fa-box mr-1"></i>
-                                <span>3 left</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <% } %>
         </div>
         
         <div>
@@ -237,118 +178,29 @@
         </div>
         <div class="swiper newArrivals-swiper content-wrapper !my-0">
             <div class="swiper-wrapper pb-10">
-                <div class="swiper-slide w-full">
-                    <div class="bg-white rounded-lg overflow-hidden mhc-box-shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
+                <% for(product p : newProducts) { %>
+                    <div class="swiper-slide w-full hover:mhc-box-shadow">
+                        <div class="bg-white rounded-lg overflow-hidden cursor-pointer relative" onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= p.getId() %>')">
+                            <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
+                            </div>
+                            <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover cursor-pointer">
+                            <div class="p-3 cursor-pointer hover:bg-grey1">
+                                <h3 class="font-medium"><%= p.getTitle() %></h3>
+                                <p class="text-xs text-gray-500"><%= p.getTypeId().gettype() %></p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="font-bold">RM <%= String.format("%.2f", p.getPrice()) %></span>
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <i class="fas fa-box mr-1"></i>
+                                        <span><%= p.getStock() %> left</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="bg-white rounded-lg overflow-hidden mhc-box-shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="bg-white rounded-lg overflow-hidden shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="bg-white rounded-lg overflow-hidden shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="bg-white rounded-lg overflow-hidden shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="bg-white rounded-lg overflow-hidden shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <% } %>
             </div>
             <div class="newArrivals-scrollbar w-full h-2 cursor-pointer"></div>
         </div>
-
     </div>     
 
 
@@ -375,180 +227,48 @@
 
         <div class="swiper review-swiper content-wrapper !my-0 font-poppins">
             <div class="swiper-wrapper pb-10">
-                <div class="swiper-slide w-full">
-                    <div class="flex flex-col gap-2">
-                        <div class="w-full max-h-[260px] rounded-lg">
-                            <img src="https://placehold.co/380x260/png" alt="review-1" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
-                            <div class="flex flex-col gap-1 font-dmSans">
-                                <p class="text-xl">★★★★★</p>
-                                <h2 class="text-2xl font-bold">Review Title</h2>
-                                <div class="max-h-[70%]">
-                                    <p class="line-clamp-5 text-justify text-lg">Review Description Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum, dolorem aut. Commodi, voluptatem dolores! Dolor quia dicta libero quisquam rem aut? Natus maiores mollitia excepturi ut quam, ducimus voluptates beatae.</p>
+                <% for(productFeedback feedback : feedbacks) { %>
+                    <% if (feedback.getComment() != null) { %>
+                        <div class="swiper-slide w-full">
+                            <div class="flex flex-col gap-2">
+                                <div class="w-full max-h-[260px] rounded-lg">
+                                    <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= feedback.getProduct().getImage().getId() %>" alt="<%= feedback.getProduct().getTitle() %>" class="w-full h-full object-cover rounded-lg cursor-pointer" onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= feedback.getProduct().getId() %>')">
                                 </div>
-                                
-                            </div>
-
-                            <div class="flex flex-col justify-between gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <h2 class="text-lg font-sembold">User Name</h2>
-                                    <div class="flex gap-2 items-center">
-                                        <i class="fa-solid fa-circle-check fa-sm"></i>
-                                        <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
+                                <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
+                                    <div class="flex flex-col gap-1 font-dmSans">
+                                        <p class="text-xl">
+                                            <% 
+                                                int rating = (int) Math.round(feedback.getRating());
+                                                for (int i = 0; i < rating; i++) { 
+                                            %>
+                                                ★
+                                            <% 
+                                                } 
+                                            %>
+                                        </p>
+                                        <h2 class="text-2xl font-bold"><%= feedback.getProduct().getTitle() %></h2>
+                                        <div class="max-h-[70%]">
+                                            <p class="line-clamp-5 text-justify text-lg"><%= feedback.getComment() %></p>
+                                        </div>
+                                        
                                     </div>
-                                </div>
-                                <a href="#" class="underline text-lg font-dmSans">Product Page</a>
-                            </div>
 
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="flex flex-col gap-2">
-                        <div class="w-full max-h-[260px] rounded-lg">
-                            <img src="https://placehold.co/380x260/png" alt="review-1" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
-                            <div class="flex flex-col gap-1 font-dmSans">
-                                <p class="text-xl">★★★★★</p>
-                                <h2 class="text-2xl font-bold">Review Title</h2>
-                                <div class="max-h-[70%]">
-                                    <p class="line-clamp-5 text-justify text-lg">Review Description Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum, dolorem aut. Commodi, voluptatem dolores! Dolor quia dicta libero quisquam rem aut? Natus maiores mollitia excepturi ut quam, ducimus voluptates beatae.</p>
-                                </div>
-                                
-                            </div>
-
-                            <div class="flex flex-col justify-between gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <h2 class="text-lg font-sembold">User Name</h2>
-                                    <div class="flex gap-2 items-center">
-                                        <i class="fa-solid fa-circle-check fa-sm"></i>
-                                        <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
+                                    <div class="flex flex-col justify-between gap-2">
+                                        <div class="flex flex-col gap-1">
+                                            <h2 class="text-lg font-sembold"><%= feedback.getOrder().getUser().getUsername() %></h2>
+                                            <div class="flex gap-2 items-center">
+                                                <i class="fa-solid fa-circle-check fa-sm"></i>
+                                                <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
+                                            </div>
+                                        </div>
+                                        <a href="<%= request.getContextPath() %>/product/productPage?id=<%= feedback.getProduct().getId() %>" class="underline text-lg font-dmSans">Product Page</a>
                                     </div>
-                                </div>
-                                <a href="#" class="underline text-lg font-dmSans">Product Page</a>
-                            </div>
 
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="flex flex-col gap-2">
-                        <div class="w-full max-h-[260px] rounded-lg">
-                            <img src="https://placehold.co/380x260/png" alt="review-1" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
-                            <div class="flex flex-col gap-1 font-dmSans">
-                                <p class="text-xl">★★★★★</p>
-                                <h2 class="text-2xl font-bold">Review Title</h2>
-                                <div class="max-h-[70%]">
-                                    <p class="line-clamp-5 text-justify text-lg">Review Description Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum, dolorem aut. Commodi, voluptatem dolores! Dolor quia dicta libero quisquam rem aut? Natus maiores mollitia excepturi ut quam, ducimus voluptates beatae.</p>
                                 </div>
-                                
                             </div>
-
-                            <div class="flex flex-col justify-between gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <h2 class="text-lg font-sembold">User Name</h2>
-                                    <div class="flex gap-2 items-center">
-                                        <i class="fa-solid fa-circle-check fa-sm"></i>
-                                        <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
-                                    </div>
-                                </div>
-                                <a href="#" class="underline text-lg font-dmSans">Product Page</a>
-                            </div>
-
                         </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="flex flex-col gap-2">
-                        <div class="w-full max-h-[260px] rounded-lg">
-                            <img src="https://placehold.co/380x260/png" alt="review-1" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
-                            <div class="flex flex-col gap-1 font-dmSans">
-                                <p class="text-xl">★★★★★</p>
-                                <h2 class="text-2xl font-bold">Review Title</h2>
-                                <div class="max-h-[70%]">
-                                    <p class="line-clamp-5 text-justify text-lg">Review Description Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum, dolorem aut. Commodi, voluptatem dolores! Dolor quia dicta libero quisquam rem aut? Natus maiores mollitia excepturi ut quam, ducimus voluptates beatae.</p>
-                                </div>
-                                
-                            </div>
-
-                            <div class="flex flex-col justify-between gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <h2 class="text-lg font-sembold">User Name</h2>
-                                    <div class="flex gap-2 items-center">
-                                        <i class="fa-solid fa-circle-check fa-sm"></i>
-                                        <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
-                                    </div>
-                                </div>
-                                <a href="#" class="underline text-lg font-dmSans">Product Page</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="flex flex-col gap-2">
-                        <div class="w-full max-h-[260px] rounded-lg">
-                            <img src="https://placehold.co/380x260/png" alt="review-1" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
-                            <div class="flex flex-col gap-1 font-dmSans">
-                                <p class="text-xl">★★★★★</p>
-                                <h2 class="text-2xl font-bold">Review Title</h2>
-                                <div class="max-h-[70%]">
-                                    <p class="line-clamp-5 text-justify text-lg">Review Description Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum, dolorem aut. Commodi, voluptatem dolores! Dolor quia dicta libero quisquam rem aut? Natus maiores mollitia excepturi ut quam, ducimus voluptates beatae.</p>
-                                </div>
-                                
-                            </div>
-
-                            <div class="flex flex-col justify-between gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <h2 class="text-lg font-sembold">User Name</h2>
-                                    <div class="flex gap-2 items-center">
-                                        <i class="fa-solid fa-circle-check fa-sm"></i>
-                                        <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
-                                    </div>
-                                </div>
-                                <a href="#" class="underline text-lg font-dmSans">Product Page</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-slide w-full">
-                    <div class="flex flex-col gap-2">
-                        <div class="w-full max-h-[260px] rounded-lg">
-                            <img src="https://placehold.co/380x260/png" alt="review-1" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <div class="max-w-[360px] h-[400px] rounded-lg p-5 bg-white mhc-box-shadow hover:border-lightMidYellow border flex flex-col justify-between">
-                            <div class="flex flex-col gap-1 font-dmSans">
-                                <p class="text-xl">★★★★★</p>
-                                <h2 class="text-2xl font-bold">Review Title</h2>
-                                <div class="max-h-[70%]">
-                                    <p class="line-clamp-5 text-justify text-lg">Review Description Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum, dolorem aut. Commodi, voluptatem dolores! Dolor quia dicta libero quisquam rem aut? Natus maiores mollitia excepturi ut quam, ducimus voluptates beatae.</p>
-                                </div>
-                                
-                            </div>
-
-                            <div class="flex flex-col justify-between gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <h2 class="text-lg font-sembold">User Name</h2>
-                                    <div class="flex gap-2 items-center">
-                                        <i class="fa-solid fa-circle-check fa-md"></i>
-                                        <span class="font-semibold font-poppins text-darkYellow text-md">Verified Buyer</span>
-                                    </div>
-                                </div>
-                                <a href="#" class="underline text-lg font-dmSans">Product Page</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
+                    <% } %>
+                <% } %>
             </div>
             <div class="review-scrollbar w-full h-2 cursor-pointer"></div>
         </div>
@@ -773,6 +493,10 @@
       },
       grabCursor: true,
     });
+
+    function redirectURL(url) {
+        window.location.href = url;
+    }
 
 </script>
 </html>

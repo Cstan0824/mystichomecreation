@@ -359,6 +359,21 @@ public class AccountDA {
         return !db.getTransaction().getRollbackOnly();
     }
 
+    public boolean changePassword(String email, String password) {
+        User user = userDA.getUserByEmail(email);
+        if (user == null) {
+            return false;
+        }
+        password = Helpers.hashPassword(password);
+        user.setPassword(password);
+
+        db.getTransaction().begin();
+        db.merge(user);
+        db.getTransaction().commit();
+
+        return !db.getTransaction().getRollbackOnly();
+    }
+
     public List<Voucher> getVouchers() {
         List<Voucher> vouchers = null;
         TypedQuery<Voucher> typedQuery = this.db.createQuery("SELECT v FROM Voucher v", Voucher.class);
@@ -474,6 +489,31 @@ public class AccountDA {
         } catch (Exception e) {
             e.printStackTrace(); // or use a proper logger if available
             return null;
+        }
+    }
+
+    public List<VoucherInfoDTO> getAllVoucherInfo(int userId) {
+        User user = userDA.getUserById(userId);
+        List<Voucher> vouchers = getVouchers();
+        List<VoucherInfoDTO> voucherInfoList = null;
+        if (vouchers == null || user == null) {
+            return null;
+        }
+        for(Voucher voucher : vouchers) {
+            VoucherInfoDTO voucherInfo = getVoucherInfo(voucher.getId(), user);
+            if (voucherInfo == null) {
+                continue;
+            }
+            if (voucherInfoList == null) {
+                voucherInfoList = new ArrayList<>();
+            }
+            voucherInfoList.add(voucherInfo);
+        }
+
+        if (voucherInfoList == null) {
+            return null;
+        }else {
+            return voucherInfoList;
         }
     }
 

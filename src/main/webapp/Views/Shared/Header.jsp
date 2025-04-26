@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="font-poppins overflow-x-hidden">
     <!-- Header -->
@@ -43,7 +44,7 @@
                             <i class="fa-solid fa-cart-shopping fa-lg"></i>
                         </div>
                         <!--Popover Cart-->
-                        <div class="hidden opacity-0 min-w-[330px] min-h-[550px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="cart-popup">
+                        <div class="hidden opacity-0 min-w-[330px] min-h-[550px] h-[550px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="cart-popup">
                             <div class="flex flex-col h-full max-h-full">
                                 <div class="flex justify-between items-center p-4 pb-2">
                                     <div class="flex items-center gap-4">
@@ -55,10 +56,8 @@
                                     <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
                                 </div>
 
-u
-                                <div class="flex flex-col h-full max-h-full overflow-y-auto" id="cart-items">
-                                    
-                                </div>
+                                <div id="cart-items" class="flex flex-col justify-center items-center h-full"></div>
+
 
 
                             </div>
@@ -67,28 +66,8 @@ u
                 </li>
                 <li>
                     <div class="relative inline-block">
-                        <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button">
+                        <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button" onClick="window.location.href='<%= request.getContextPath() %>/User/account#notifications'">
                             <i class="fa-solid fa-bell fa-lg"></i>
-                        </div>
-                        <!--Popover Notification-->
-                        <div class="hidden opacity-0 min-w-[330px] min-h-[450px] max-w-[330px] max-h-[630px] overflow-hidden bg-white border-full rounded-md mhc-box-shadow z-[1000] absolute right-0 top-full mt-3 transition-opacity duration-300 ease-in-out" id="notification-popup">
-                            <div class="flex flex-col h-full max-h-full">
-                                <div class="flex justify-between items-center p-4 pb-2">
-                                    <div class="flex items-center gap-4">
-                                        <h1 class="text-lg font-semibold font-poppins">Notifications</h1>
-                                        <div class="hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300" id="notification-refresh">
-                                            <i class="fa-solid fa-arrows-rotate"></i>
-                                        </div>
-                                    </div>
-                                    <a href="<%= request.getContextPath() %>/User/account#notifications" class="text-sm font-semibold text-darkYellow underline">View All</a>
-                                </div>
-
-                                <div class="flex flex-col max-h-[550px] overflow-y-auto" id="notification-items">
-                                    
-                                </div>
-
-
-                            </div>
                         </div>
                     </div>  
                 </li>
@@ -105,7 +84,7 @@ u
                                     <a href="<%= request.getContextPath() %>/User/account" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Profile</a>
                                 </li>
                                 <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
-                                    <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Settings</a>
+                                    <a href="<%= request.getContextPath() %>/User/account#transactions" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Purchases</a>
                                 </li>
                                 <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
                                     <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Logout</a>
@@ -150,10 +129,8 @@ u
                             console.log("product category: ", item.product_category);
                             console.log("product price: RM", item.product_price);
                             console.log("product quantity: ", item.quantity);
-                            cartContainer.style.display = "flex";
-                            cartContainer.style.flexDirection = "column";
-                            cartContainer.style.justifyContent = "flex-start";
-                            cartContainer.style.alignItems = "stretch";
+                            cartContainer.className = "flex flex-col justify-start items-stretch h-full w-full overflow-y-auto";
+
 
                             html += 
                             
@@ -161,7 +138,7 @@ u
                                 
                                 <div id="cart-item" class="px-6 py-4 flex gap-2 prod-row">
                                         <div class="w-full h-full max-w-[26px] max-h-[26px] lg:max-w-[30px] lg:max-h-[30px]">
-                                            <img src="`+ item.product_img + `" alt="product-img" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] rounded-[6px] object-cover border border-grey2 box-border"/>
+                                            <img src="<%= request.getContextPath()%>/File/Content/product/retrieve?id=` + item.product_img_id + `" alt="product-img" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] rounded-[6px] object-cover border border-grey2 box-border"/>
                                         </div>
                                         <div class="w-full flex flex-col gap-3">
                                             <div class="w-full flex justify-between gap-3">
@@ -213,6 +190,8 @@ u
                                 
                             `;
 
+
+
                         });
                         // Update the cart container with the generated HTML
                         cartContainer.innerHTML = html;
@@ -221,15 +200,15 @@ u
                         window.dispatchEvent(event);
                     } else {
                         html = `
-                            <div class="flex flex-col justify-center items-center gap-4 h-full">
-                                <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png" alt="empty-cart" class="w-[150px] h-[150px] object-cover"/>
+                            <div class="flex flex-col justify-center items-center gap-4 w-full h-full">
+                                <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png"
+                                    alt="empty-cart"
+                                    class="w-[150px] h-[150px] object-cover" />
                                 <p class="text-gray-500 font-dmSans">Your cart is empty.</p>
                             </div>
                         `;
-                        cartContainer.style.display = "flex";
-                        cartContainer.style.flexDirection = "column";
-                        cartContainer.style.justifyContent = "center";
-                        cartContainer.style.alignItems = "center";
+
+                        cartContainer.className = "flex flex-col justify-start items-stretch h-full w-full overflow-y-auto";
                         cartContainer.innerHTML = html;
                     }
                 },
@@ -255,20 +234,32 @@ u
                     delta: delta
                 }),
                 success: function(response) {
-                    console.log('Quantity updated successfully:', response);
-                    console.log("qtyEl found?", qtyEl);
                     const parsedJson = JSON.parse(response.data);
-                    console.log("New quantity:", parsedJson.quantity);
-                    qtyEl.textContent = parsedJson.quantity; // Update displayed quantity
-                    if ($('.product-row').length) {
-                        const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
-                        if (cartRow.length > 0) {
-                            cartRow.find('.qty').text(parsedJson.quantity);
+                    if(parsedJson.update_success){
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Quantity updated',
+                            showConfirmButton: false,
+                            timer: 700
+                        });
+                        qtyEl.textContent = parsedJson.quantity; 
+                        if ($('.product-row').length) {
+                            const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
+                            if (cartRow.length > 0) {
+                                cartRow.find('.qty').text(parsedJson.quantity);
+                            }
+                            const event = new CustomEvent('cart:changed');
+                            window.dispatchEvent(event);
                         }
-                        const event = new CustomEvent('cart:changed');
-                        window.dispatchEvent(event);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error updating quantity',
+                            text: 'Please try again later.' + parsedJson.error_msg,
+                            showConfirmButton: true
+                        });
+                        qtyEl.textContent = oldQty; // Revert to old quantity on error
                     }
-                    
                 },
                 error: function(xhr, status, error) {
                     qtyEl.textContent = oldQty; // Revert to old quantity on error
@@ -293,20 +284,39 @@ u
                     selectedVariation: variation
                 }),
                 success: function (response) {
-                    console.log('Item deleted successfully:', response);
-                    // Optionally, refresh the cart items after deletion
-                    setTimeout(fetchCartItems, 300);
-                    if ($('.product-row').length) {
-                        const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
-                        if (cartRow.length > 0) {
-                            cartRow.remove();
-                            const event = new CustomEvent('cart:changed');
-                            window.dispatchEvent(event);
+                    const parsedJson = JSON.parse(response.data);
+                    if(parsedJson.remove_success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Item removed from cart',
+                            showConfirmButton: false,
+                            timer: 700
+                        });
+                        setTimeout(fetchCartItems, 300);
+                        if ($('.product-row').length) {
+                            const cartRow = $('.product-row[data-cart-id="' + cartId + '"][data-product-id="' + productId + '"]');
+                            if (cartRow.length > 0) {
+                                cartRow.remove();
+                                const event = new CustomEvent('cart:changed');
+                                window.dispatchEvent(event);
+                            }
                         }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error removing item',
+                            text: 'Please try again later.' + parsedJson.error_msg,
+                            showConfirmButton: true
+                        });
                     }
                 },
                 error: function (error) {
-                    console.error('Error deleting item:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error removing item',
+                        text: 'Please try again later.',
+                        showConfirmButton: true
+                    });
                 }
             });
         }
@@ -333,19 +343,6 @@ u
                         onComplete: function () {
                             $userMenu.addClass('hidden');
                             isUserMenuVisible = false;
-                        }
-                    });
-                }
-
-                if (isNotificationPopupVisible) {
-                    gsap.to($notificationPopup, {
-                        duration: 0.2,
-                        y: 10,
-                        autoAlpha: 0,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $notificationPopup.addClass('hidden');
-                            isNotificationPopupVisible = false;
                         }
                     });
                 }
@@ -386,80 +383,6 @@ u
                 fetchCartItems();
             });
 
-            const $notificationButton = $('#notification-button');
-            const $notificationPopup = $('#notification-popup');
-            const $notificationRefresh = $('#notification-refresh');
-
-            let isNotificationPopupVisible = false;
-
-            $notificationButton.on('click', function (e) {
-                e.stopPropagation(); // Prevent the event from bubbling up to the document
-                
-                // Close user menu if it's open
-                if (isUserMenuVisible) {
-                    gsap.to($userMenu, {
-                        duration: 0.2,
-                        y: 10,
-                        autoAlpha: 0,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $userMenu.addClass('hidden');
-                            isUserMenuVisible = false;
-                        }
-                    });
-                }
-
-                if (isCartPopupVisible) {
-                    gsap.to($cartPopup, {
-                        duration: 0.2,
-                        y: 10,
-                        autoAlpha: 0,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $cartPopup.addClass('hidden');
-                            isCartPopupVisible = false;
-                        }
-                    });
-                }
-
-
-                if (!isNotificationPopupVisible) {
-                    setTimeout(function() {
-                        $notificationPopup.removeClass('hidden');
-                        gsap.fromTo($notificationPopup[0],
-                            { y: 10, autoAlpha: 0 },
-                            {
-                                y: 0,
-                                autoAlpha: 1,
-                                duration: 0.2,
-                                ease: 'power2.out'
-                            }
-                        );
-                       
-                    }, 100); // Delay the popup display by 100ms
-                    
-                    isNotificationPopupVisible = true;
-                } else {
-                    gsap.to($notificationPopup[0], {
-                        y: 10,
-                        autoAlpha: 0,
-                        duration: 0.2,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $notificationPopup.addClass('hidden');
-                            isNotificationPopupVisible = false;
-                        }
-                    });
-                    isNotificationPopupVisible = false;
-                }
-            });
-
-            $notificationRefresh.on('click', function (e) {
-                e.stopPropagation(); // Prevent the event from bubbling up to the document
-
-            });
-
-
 
             const $userButton = $('#user-button');
             const $userMenu = $('#user-menu');
@@ -478,19 +401,6 @@ u
                         onComplete: function () {
                             $cartPopup.addClass('hidden');
                             isCartPopupVisible = false;
-                        }
-                    });
-                }
-
-                if (isNotificationPopupVisible) {
-                    gsap.to($notificationPopup, {
-                        duration: 0.2,
-                        y: 10,
-                        autoAlpha: 0,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $notificationPopup.addClass('hidden');
-                            isNotificationPopupVisible = false;
                         }
                     });
                 }
@@ -531,17 +441,6 @@ u
                         onComplete: function () {
                             $cartPopup.addClass('hidden');
                             isCartPopupVisible = false;
-                        }
-                    });
-                }
-                if (isNotificationPopupVisible && !$notificationPopup.is(e.target) && $notificationPopup.has(e.target).length === 0 && !$notificationButton.is(e.target) && $notificationButton.has(e.target).length === 0) {
-                    gsap.to($notificationPopup, {
-                        duration: 0.2,
-                        autoAlpha: 0,
-                        ease: 'power2.in',
-                        onComplete: function () {
-                            $notificationPopup.addClass('hidden');
-                            isNotificationPopupVisible = false;
                         }
                     });
                 }

@@ -1,8 +1,9 @@
 package DAO;
 
 import java.io.Serializable;
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.sql.Blob;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,35 +19,33 @@ import jakarta.persistence.TypedQuery;
 import mvc.Cache.Redis;
 import mvc.DataAccess;
 
-@Stateless 
-public class productDAO implements Serializable{
+@Stateless
+public class productDAO implements Serializable {
     private EntityManager db = DataAccess.getEntityManager();
     private Redis cache = new Redis(); // Assuming you have a Redis cache implementation
-   
-    //Get all products with Cache
+
+    // Get all products with Cache
     public product searchProducts(int id) {
         TypedQuery<product> q = db.createQuery(
-            "SELECT p FROM product p JOIN FETCH p.image WHERE p.id = :id",
-            product.class
-        ).setParameter("id", id);
+                "SELECT p FROM product p JOIN FETCH p.image WHERE p.id = :id",
+                product.class).setParameter("id", id);
         return q.getSingleResult();
     }
+
     public List<productFeedback> getFeedbackWithUserAndProduct(int productId) {
-        String jpql =
-            "SELECT DISTINCT pf " +
-            "FROM productFeedback pf " +
-            "  JOIN FETCH pf.order o " +
-            "  JOIN FETCH o.user u   " +
-            "  JOIN FETCH pf.product p " +
-            "WHERE pf.productId = :productId";
-    
+        String jpql = "SELECT DISTINCT pf " +
+                "FROM productFeedback pf " +
+                "  JOIN FETCH pf.order o " +
+                "  JOIN FETCH o.user u   " +
+                "  JOIN FETCH pf.product p " +
+                "WHERE pf.productId = :productId";
+
         TypedQuery<productFeedback> query = db.createQuery(jpql, productFeedback.class);
         query.setParameter("productId", productId);
         return query.getResultList();
     }
-    
 
-    //never try before 
+    // never try before
     public void addFeedback(productFeedback feedback) {
         try {
             db.getTransaction().begin();
@@ -63,16 +62,15 @@ public class productDAO implements Serializable{
         
         try {
             TypedQuery<product> query = db.createQuery(
-                "SELECT p FROM product p JOIN FETCH p.image ORDER BY p.createdDate DESC",
-                product.class
-            );
+                    "SELECT p FROM product p JOIN FETCH p.image ORDER BY p.createdDate DESC",
+                    product.class);
             return query.getResultList();
         } catch (Exception e) {
             e.printStackTrace(System.err); // Handle exception
         }
         return null;
     }
-  
+
     // Get all product types (dont touch this method)
     public List<productType> getAllProductTypes() {
         try {
@@ -82,12 +80,14 @@ public class productDAO implements Serializable{
             e.printStackTrace(System.err); // Handle exception
         }
         return null;
-    }   
+    }
 
-    // Get all param from the form and then process it 
-    public List<product> filterProducts(List<Integer> categoryIds , Double minPrice , Double maxPrice , String sortBy , String keyword){
-        try{
-            // the 1=1 is to make the query always valid cuz 1=1 is always true and this help to reterieve all the products
+    // Get all param from the form and then process it
+    public List<product> filterProducts(List<Integer> categoryIds, Double minPrice, Double maxPrice, String sortBy,
+            String keyword) {
+        try {
+            // the 1=1 is to make the query always valid cuz 1=1 is always true and this
+            // help to reterieve all the products
             StringBuilder jpql = new StringBuilder("SELECT p FROM product p WHERE 1=1");
 
             if (categoryIds != null && !categoryIds.isEmpty()) {
@@ -108,7 +108,7 @@ public class productDAO implements Serializable{
                     case "priceLowHigh":
                         jpql.append(" ORDER BY p.price ASC");
                         break;
-                        
+
                     case "priceHighLow":
                         jpql.append(" ORDER BY p.price DESC");
                         break;
@@ -122,8 +122,7 @@ public class productDAO implements Serializable{
 
             System.out.println("🛠 Final JPQL: " + jpql);
 
-
-            //So now we have the query and we need to set the params
+            // So now we have the query and we need to set the params
             TypedQuery<product> query = db.createQuery(jpql.toString(), product.class);
 
             if (categoryIds != null && !categoryIds.isEmpty()) {
@@ -144,17 +143,16 @@ public class productDAO implements Serializable{
             }
 
             // this is where we get the result
-            List<product> result = query.getResultList(); // this is where we execute the query 
+            List<product> result = query.getResultList(); // this is where we execute the query
             System.out.println("✅ Found products: " + result.size());
             return result;
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("❌ Error in filterProducts: " + e.getMessage());
             return new ArrayList<>();
         }
     }
-
 
     public productType findTypeById(int id) {
         return db.find(productType.class, id);
@@ -193,13 +191,13 @@ public class productDAO implements Serializable{
         }
     }
 
-    public void updateProduct(product p){
+    public void updateProduct(product p) {
         try {
             db.getTransaction().begin();
             db.merge(p);
             db.getTransaction().commit();
             System.out.println("🔄 DAO: product updated");
-            
+
         } catch (Exception e) {
             db.getTransaction().rollback();
             e.printStackTrace();
@@ -207,12 +205,11 @@ public class productDAO implements Serializable{
         }
     }
 
-
     public boolean isProductNameExists(String name) {
         try {
             Long count = this.db.createQuery("SELECT COUNT(p) FROM product p WHERE p.title = :name", Long.class)
-                                .setParameter("name", name)
-                                .getSingleResult();
+                    .setParameter("name", name)
+                    .getSingleResult();
 
             return (count > 0) ? true : false;
 
@@ -237,7 +234,7 @@ public class productDAO implements Serializable{
 
     public void replyToFeedback(productFeedback fb) {
         try {
-           
+
             if (fb != null) {
                 db.getTransaction().begin();
                 db.merge(fb);
@@ -253,7 +250,6 @@ public class productDAO implements Serializable{
         }
 
     }
-
 
     public productFeedback findById(productFeedbackKey key) {
         return db.find(productFeedback.class, key);
@@ -276,13 +272,12 @@ public class productDAO implements Serializable{
         String key = "feedbackMap-order-" + orderId;
 
         TypedQuery<Object[]> query = db.createQuery(
-            "SELECT pf.productId, pf.createdAt FROM productFeedback pf WHERE pf.orderId = :orderId", Object[].class
-        );
+                "SELECT pf.productId, pf.createdAt FROM productFeedback pf WHERE pf.orderId = :orderId",
+                Object[].class);
         query.setParameter("orderId", orderId);
 
         List<Object[]> feedbackKeys = cache.getOrCreateList(
-            key, Object[].class, query, Redis.CacheLevel.LOW, "Order"
-        );
+                key, Object[].class, query, Redis.CacheLevel.LOW, "Order");
 
         // 🛡️ Fallback
         if (feedbackKeys == null) {
@@ -301,11 +296,10 @@ public class productDAO implements Serializable{
         return feedbackMap;
     }
 
-    
     public productImage findImageById(int imageId) {
-        return db.find(productImage.class, imageId);
+        EntityManager em = DataAccess.getEntityManager();
+        return em.find(productImage.class, imageId);
     }
-
 
     public void addProductImage(productImage pi) {
         db.getTransaction().begin();
@@ -313,5 +307,125 @@ public class productDAO implements Serializable{
         db.getTransaction().commit();
     }
 
-}
+    public List<product> getBestSellingProducts() {
+        List<product> topProducts = null;
     
+        String queryStr = """
+                SELECT ot.product 
+                FROM OrderTransaction ot
+                GROUP BY ot.product
+                ORDER BY SUM(ot.orderQuantity) DESC
+            """;
+    
+        TypedQuery<product> query = db.createQuery(queryStr, product.class)
+                                      .setMaxResults(4);
+    
+        try {
+            topProducts = cache.getOrCreateList(
+                    "top-4-best-sellers",
+                    product.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            topProducts = query.getResultList(); // fallback if Redis fails
+        }
+    
+        return topProducts;
+    }
+    
+    public List<product> getNewArrivalProducts() {
+        List<product> newArrivals = null;
+
+        String queryStr = """
+                SELECT p
+                FROM product p
+                WHERE p.createdDate >= :thirtyDaysAgo
+                ORDER BY p.createdDate DESC
+            """;
+
+        LocalDateTime nowMinus30 = LocalDateTime.now().minusDays(30);
+        Date thirtyDaysAgo = Date.valueOf(nowMinus30.toLocalDate()); // java.sql.Date
+
+        TypedQuery<product> query = db.createQuery(queryStr, product.class)
+                                    .setParameter("thirtyDaysAgo", thirtyDaysAgo);
+
+        try {
+            newArrivals = cache.getOrCreateList(
+                    "new-arrivals-last-30-days",
+                    product.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            newArrivals = query.getResultList(); // fallback
+        }
+
+        return newArrivals;
+    }
+
+    public List<product> getRandomProductFromEachType() {
+        List<product> randomProducts = new ArrayList<>();
+    
+        // Step 1: Get all product types
+        String typeQueryStr = """
+                SELECT pt.id
+                FROM productType pt
+            """;
+    
+        List<Integer> productTypeIds = db.createQuery(typeQueryStr, Integer.class)
+                                         .getResultList();
+    
+        // Step 2: For each type, pick 1 random product
+        for (Integer typeId : productTypeIds) {
+            String productQueryStr = """
+                    SELECT p
+                    FROM product p
+                    WHERE p.type.id = :typeId
+                    ORDER BY FUNCTION('RAND')
+                """;
+    
+            TypedQuery<product> query = db.createQuery(productQueryStr, product.class)
+                                          .setParameter("typeId", typeId)
+                                          .setMaxResults(1);
+    
+            try {
+                product randomProduct = cache.getOrCreate(
+                        "random-product-type-" + typeId,
+                        product.class, query, Redis.CacheLevel.LOW);
+    
+                if (randomProduct != null) {
+                    randomProducts.add(randomProduct);
+                }
+            } catch (Exception e) {
+                // fallback if cache fails
+                List<product> fallbackList = query.getResultList();
+                if (!fallbackList.isEmpty()) {
+                    randomProducts.add(fallbackList.get(0));
+                }
+            }
+        }
+    
+        return randomProducts;
+    }
+    
+    public List<productFeedback> getTopRatedProductFeedbacks() {
+        List<productFeedback> topFeedbacks = null;
+    
+        String queryStr = """
+                SELECT pf
+                FROM productFeedback pf
+                WHERE pf.comment IS NOT NULL
+                ORDER BY pf.rating DESC
+            """;
+    
+        TypedQuery<productFeedback> query = db.createQuery(queryStr, productFeedback.class)
+                                              .setMaxResults(6);
+    
+        try {
+            topFeedbacks = cache.getOrCreateList(
+                    "top-6-highest-feedbacks-with-comment",
+                    productFeedback.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            topFeedbacks = query.getResultList(); // fallback
+        }
+    
+        return topFeedbacks;
+    }
+    
+    
+}

@@ -273,7 +273,7 @@ public class CartController extends ControllerBase{
                         cartItemNode.put("cart_id", item.getCart().getId());
                         cartItemNode.put("product_id", item.getProduct().getId());
                         cartItemNode.put("product_name", item.getProduct().getTitle());
-                        // cartItemNode.put("product_img", item.getProduct().getImageUrl());
+                        cartItemNode.put("product_img_id", item.getProduct().getImage().getId());
                         cartItemNode.put("product_category", item.getProduct().getTypeId().gettype());
                         cartItemNode.put("product_price", item.getProduct().getPrice());
                         cartItemNode.put("quantity", item.getQuantity());
@@ -403,7 +403,7 @@ public class CartController extends ControllerBase{
             cart = cartDAO.getCartById(cartId);
             System.out.println("Cart #1: " + cart.getId());
         } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("update_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
             return json(jsonResponse);
         }
@@ -411,7 +411,7 @@ public class CartController extends ControllerBase{
             product = productDAO.searchProducts(productId);
             System.out.println("Product #2: " + product.getId());
         } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("update_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Product not found");
             return json(jsonResponse);
         }
@@ -424,7 +424,7 @@ public class CartController extends ControllerBase{
             cartItem = cartDAO.getCartItemByCartAndProductAndVariation(cart, product, selectedVariation);
         } catch (Exception e) {
             System.out.println("Error in getCartItemByCartAndProductAndVariation");
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("update_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
             return json(jsonResponse);
         }
@@ -433,24 +433,23 @@ public class CartController extends ControllerBase{
             System.out.println("here #4 updateCartItemQuantity");
             if (cartDAO.updateCartItemQuantity(cartItem, delta)) {
                 
-                ((ObjectNode) jsonResponse).put("success", true);
+                ((ObjectNode) jsonResponse).put("update_success", true);
                 ((ObjectNode) jsonResponse).put("quantity", cartItem.getQuantity());
                 ((ObjectNode) jsonResponse).put("selected_variation", cartItem.getSelectedVariation());
                 ((ObjectNode) jsonResponse).put("cart_id", cartItem.getCart().getId());
                 ((ObjectNode) jsonResponse).put("cart_item_name", cartItem.getProduct().getTitle());
             } else {
                 System.out.println("here #4 updateCartItemQuantity if false");
-                ((ObjectNode) jsonResponse).put("success", false);
+                ((ObjectNode) jsonResponse).put("update_success", false);
                 ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
             }
         } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("update_success", false);
             ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
         }
 
         return json(jsonResponse);
     }
-
 
     // Remove Cart Item
     @SyncCache(channel = "CartItem", message ="from cart/removeCartItem")
@@ -490,34 +489,34 @@ public class CartController extends ControllerBase{
         try{
             cart = cartDAO.getCartById(cartId);
         } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("remove_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
             return json(jsonResponse);
         }
         try{
             product = productDAO.searchProducts(productId);
         } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("remove_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Product not found");
             return json(jsonResponse);
         }
         try {
             cartItem = cartDAO.getCartItemByCartAndProduct(cart, product);
         }   catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("remove_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
             return json(jsonResponse);
         }
 
         try {
             if (cartDAO.deleteCartItem(cartItem)) {
-                ((ObjectNode) jsonResponse).put("success", true);
+                ((ObjectNode) jsonResponse).put("remove_success", true);
             } else {
-                ((ObjectNode) jsonResponse).put("success", false);
+                ((ObjectNode) jsonResponse).put("remove_success", false);
                 ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
             }
         } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
+            ((ObjectNode) jsonResponse).put("remove_success", false);
             ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
         }
 

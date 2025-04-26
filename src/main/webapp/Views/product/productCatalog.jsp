@@ -17,7 +17,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 
+
 <body class="bg-gray-50">
+<%@ include file="/Views/Shared/Header.jsp" %>
     <div class="content-wrapper">
         <!-- Header with search and cart -->
         <div class="flex flex-row justify-between items-center mb-6 gap-4">
@@ -250,6 +252,19 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const params = new URLSearchParams(window.location.search);
+            const typeId = params.get("productTypeId");
+            
+            if (typeId) {
+                // Tick the matching checkbox
+                const checkbox = document.querySelector(`input[name="categories"][value="`+ typeId +`"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+
+                // Trigger the filter
+                filterByCategory();
+            }
+
             if (params.get('created') === '1') {
                 alert('✅ Product created successfully!');
                 params.delete('created');

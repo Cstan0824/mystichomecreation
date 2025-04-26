@@ -3,25 +3,42 @@ package Controllers;
 import java.util.List;
 
 import DAO.UserDA;
-import DTO.UserCredentials;
+import DAO.productDAO;
 import DTO.UserSession;
+import Models.Products.product;
+import Models.Products.productFeedback;
+import Models.Products.productType;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
 import mvc.Annotations.HttpRequest;
-import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
 import mvc.ControllerBase;
 import mvc.DataAccess;
+import mvc.Helpers.Helpers;
+import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpMethod;
 import mvc.Result;
 
 public class LandingController extends ControllerBase {
     private EntityManager db = DataAccess.getEntityManager();
     private UserDA userDA = new UserDA();
+    private productDAO productDAO = new productDAO();
 
     // @Authorization(permissions = "Landing/index")
     public Result index() throws Exception {
+
+        List<product> bestSellers = productDAO.getBestSellingProducts();
+        List<product> newProducts = productDAO.getNewArrivalProducts();
+        List<product> randomProducts = productDAO.getRandomProductFromEachType();
+        List<productType> productTypes = productDAO.getAllProductTypes();
+        List<productFeedback> feedbacks = productDAO.getTopRatedProductFeedbacks();
+
+        request.setAttribute("bestSellers", bestSellers);
+        request.setAttribute("newProducts", newProducts);
+        request.setAttribute("randomProducts", randomProducts);
+        request.setAttribute("productTypes", productTypes);
+        request.setAttribute("feedbacks", feedbacks);
+
         return page();
     }
 
