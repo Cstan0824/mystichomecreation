@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Order Information</title>
 </head>
 <%@ page import="java.util.List" %>
@@ -35,7 +36,7 @@
         <div class="p-8 pb-0">
             <div class="flex justify-between">
                 <div class="text-2xl font-bold font-poppins hover:text-darkYellow cursor-pointer">
-                    <p class="flex gap-2 items-center"><i class="fa-solid fa-left-long fa-lg"></i>Back</p>
+                    <p class="flex gap-2 items-center" onclick="refreshPage()"><i class="fa-solid fa-left-long fa-lg"></i>Back</p>
                 </div>
 
                 <div class="flex gap-4 items-center text-xl">
@@ -220,7 +221,7 @@
             <% for(OrderTransaction item : orderTransactions) { %>
             <div class="flex flex-col border-t border-gray-300 py-4" id="product">
                 <div class="flex gap-4">
-                    <img src="<%= item.getProduct().getImageUrl() %>" alt="<%= item.getProduct().getTitle() %>" class="basis-[150px] w-[150px] h-[150px] object-cover rounded-lg shrink-0">
+                    <img src="<%= request.getContextPath()%>/File/Content/product/retrieve?id=<%= item.getProduct().getImage().getId() %>" alt="<%= item.getProduct().getTitle() %>" class="basis-[150px] w-[150px] h-[150px] object-cover rounded-lg shrink-0">
                     <div class="flex flex-col w-full justify-between">
                         <div>
                             <p class="font-poppins font-medium text-lg lineClamp-2"><%= item.getProduct().getTitle() %></p>
@@ -261,7 +262,7 @@
                             <% if (isOrderReceived) { %>
                                 <% if (hasFeedback) { %>
                                     <button class="border-darkYellow border text-md text-darkYellow font-poppins font-semibold px-4 py-2 rounded-lg hover:text-white hover:bg-yellow-500 transition-colors duration-300" 
-                                        onclick="window.location.href='<%= request.getContextPath() %>/product/productPage?id=<%= item.getProduct().getId() %>'">
+                                        onclick="window.top.location.href='<%= request.getContextPath() %>/product/productPage?id=<%= item.getProduct().getId() %>'">
                                         View Review
                                     </button>
                                 <% } else { %>
@@ -272,7 +273,7 @@
                                         data-product-id="<%= item.getProduct().getId() %>"
                                         data-title="<%= Helpers.escapeJS(item.getProduct().getTitle()) %>"
                                         data-variation="<%= StringEscapeUtils.escapeHtml4(item.getSelectedVariations()) %>"
-                                        data-image-url="<%= Helpers.escapeJS(item.getProduct().getImageUrl()) %>"
+                                        data-image-url="<%= request.getContextPath()%>/File/Content/product/retrieve?id=<%= item.getProduct().getImage().getId() %>"
                                         data-price="<%= item.getOrderedProductPrice() %>">
                                         Review Here
                                     </button>
@@ -462,7 +463,11 @@
     });
 
     function redirect(url){
-        window.location.href = url;
+        window.top.location.href = url;
+    }
+
+    function refreshPage() {
+        window.top.location.reload();
     }
 
     let selectedRating = 0;
@@ -506,14 +511,27 @@
                 const parsedResponse = JSON.parse(response.data);
                 if (parsedResponse.pdf_success) {
                     
-                    alert("Receipt generated successfully! View at: " + parsedResponse.pdf_path);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Receipt Generated',
+                        text: 'View at: ' + parsedResponse.pdf_path
+                    });
                     
                 } else {
-                    alert("Failed to submit feedback: " + parsedResponse.error_msg);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to generate receipt: ' + parsedResponse.error_msg
+                    });
                 }
             },
             error: function() {
-                console.log("Something went wrong while generating receipt.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to generate receipt: ' + parsedResponse.error_msg
+                });
             }
         });
 
@@ -592,16 +610,30 @@
                 const parsedResponse = JSON.parse(response.data);
                 if (parsedResponse.success) {
                     closeFeedbackModal();
-                    alert("Feedback submitted successfully!");
-                    setTimeout(() => {
-                        location.reload(true);
-                    }, 1000);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Feedback Submitted!',
+                        text: 'Your feedback was submitted successfully.',
+                        confirmButtonText: 'Close'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload(true);
+                        }
+                    });
                 } else {
-                    alert("Failed to submit feedback: " + parsedResponse.error_msg);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to Submit Feedback',
+                        text: parsedResponse.error_msg
+                    });
                 }
             },
             error: function() {
-                console.log("Something went wrong while submitting feedback.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to Submit Feedback',
+                    text: parsedResponse.error_msg
+                });
             }
         });
     }

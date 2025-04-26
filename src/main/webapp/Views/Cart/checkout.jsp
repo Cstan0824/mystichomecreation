@@ -215,7 +215,7 @@
                             <!-- Image -->
                             
                             <div class="flex items-center flex-shrink-0">
-                                <img src="<%= item.getProduct().getImageUrl() %>" alt="product-img" 
+                                <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= item.getProduct().getImage().getId() %>" alt="product-img" 
                                     class="w-[50px] h-[50px] rounded-[6px] object-cover border border-grey2" />
                             </div>
                             
