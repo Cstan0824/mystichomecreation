@@ -3,6 +3,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="DTO.UserSession" %>
 <%@ page import="Models.Users.User" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+
 
 <head>
   <meta charset="UTF-8" />
@@ -30,20 +32,27 @@
     }else{
       imageUrl =  request.getContextPath() + "/" + (String)request.getAttribute("imageUrl");
     }
+    
+    // Escape user-generated content
+    String escapedUsername = StringEscapeUtils.escapeHtml4(username);
+    String escapedEmail = StringEscapeUtils.escapeHtml4(email);
+    String escapedBirthdate = StringEscapeUtils.escapeHtml4(birthdate);
+    // For image URL, we should encode it properly for URL context
+    String escapedImageUrl = StringEscapeUtils.escapeHtml4(imageUrl);
   %>
 
   <!-- Profile Header -->
   <div class="flex items-start space-x-6 pb-6">
     <!-- Profile Picture -->
     <div class="relative group">
-      <img src="<%= imageUrl %>" id="profile-pic" class="w-20 h-20 rounded-full object-cover border" />
+      <img src="<%= escapedImageUrl %>" id="profile-pic" class="w-20 h-20 rounded-full object-cover border" />
       <input type="file" id="pic-input" class="hidden" accept="image/*" />
     </div>
 
     <!-- Username + Email Display -->
     <div>
-      <h2 class="text-xl font-semibold text-gray-900"><%= username %></h2>
-      <p class="text-gray-500"><%= email %></p>
+      <h2 class="text-xl font-semibold text-gray-900"><%= escapedUsername %></h2>
+      <p class="text-gray-500"><%= escapedEmail %></p>
     </div>
   </div>
 
@@ -55,7 +64,7 @@
     <!-- Username -->
     <div class="grid grid-cols-10 gap-4 items-center">
       <label class="col-span-3 text-sm font-medium text-gray-700">Username</label>
-      <input id="username" type="text" value="<%= username %>"
+      <input id="username" type="text" value="<%= escapedUsername %>"
         class="col-span-7 border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
 
@@ -64,14 +73,14 @@
       <label class="col-span-3 text-sm font-medium text-gray-700">Email Address</label>
       <div class="col-span-7 flex items-center border rounded-lg px-3 py-2 bg-white">
         <span class="text-gray-500 px-1"><i class="fa-solid fa-envelope"></i></span>
-        <input id="user-email" type="email" value="<%= email %>" class="ml-1 flex-1 focus:outline-none" />
+        <input id="user-email" type="email" value="<%= escapedEmail %>" class="ml-1 flex-1 focus:outline-none" />
       </div>
     </div>
 
     <!-- Birthdate -->
     <div class="grid grid-cols-10 gap-4 items-center">
       <label class="col-span-3 text-sm font-medium text-gray-700">Birthdate</label>
-      <input id="user-birthdate" type="date" value="<%= birthdate %>"
+      <input id="user-birthdate" type="date" value="<%= escapedBirthdate %>"
         class="col-span-7 border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
   </div>
@@ -150,9 +159,13 @@
               alert(response.message);
               location.reload();
             } else {
-              alert('Error: ' + response.message);
+             alert(response.message);
             }
-          }
+          },
+          error: function(xhr, status, error) {
+            let response = xhr.responseJSON;
+            alert(response.message);
+		  }
         });
       });
     });

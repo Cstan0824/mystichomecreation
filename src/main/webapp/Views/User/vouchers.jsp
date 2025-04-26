@@ -4,6 +4,8 @@
 <%@ page import="Models.Accounts.Voucher" %>
 <%@ page import="DTO.VoucherInfoDTO" %>
 <%@ page import="mvc.Helpers.Helpers" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,25 +34,33 @@
             <div class="bg-gray-50 p-4 rounded shadow mb-4">
                 <div class="flex justify-between">
                     <div class="text-sm">
-                        <p class="font-semibold text-gray-700"><%= voucher.getVoucher().getName() %> &middot; <%= voucher.getVoucher().getType().equals("Percent") ? voucher.getVoucher().getAmount() + "%" : "RM" + voucher.getVoucher().getAmount() %></p>
-                        <p class="text-xs text-gray-500"><%= voucher.getVoucher().getDescription() %></p>
-                        <p class="text-xs text-gray-400">MIN: RM<%= voucher.getVoucher().getMinSpent() %> &middot; MAX: RM<%= voucher.getVoucher().getMaxCoverage() %></p>
-                        <p class="text-xs text-gray-400">Usage <%= voucher.getUsageLeft()%>/<%= voucher.getVoucher().getUsagePerMonth()%></p>
+                        <p class="font-semibold text-gray-700">
+                            <%= StringEscapeUtils.escapeHtml4(voucher.getName()) %> &middot; 
+                            <%= voucher.getType().equals("Percent") ? 
+                                StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getAmount())) + "%" : 
+                                "RM" + StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getAmount())) %>
+                        </p>
+                        <p class="text-xs text-gray-500"><%= StringEscapeUtils.escapeHtml4(voucher.getDescription()) %></p>
+                        <p class="text-xs text-gray-400">
+                            MIN: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getMinSpent())) %> &middot; 
+                            MAX: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getMaxCoverage())) %>
+                        </p>
+                        <p class="text-xs text-gray-400">Usage: 2/3</p>
                     </div>
                     <div class="flex space-x-2 items-start">
-                        
-                        <% if(voucher.getVoucher().getStatus() == 1) { %>
+                        <% if(voucher.getStatus() == 1) { %>
                             <button
                             class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
-                            data-status="active" data-id="<%= voucher.getVoucher().getId() %>">
+                            data-status="active" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getId())) %>">
+
                             Active
-                        </button>
+                            </button>
                         <% } else { %>
                             <button
                             class="status-btn border border-gray-900 text-gray-900 text-xs px-3 py-1 rounded-md hover:bg-gray-100"
-                            data-status="inactive" data-id="<%= voucher.getVoucher().getId() %>">
+                            data-status="inactive" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getId())) %>">
                             Inactive
-                        </button>
+                            </button>
                         <% } %>
                     </div>
                 </div>
@@ -123,8 +133,14 @@
                             alert(response.message);
                         }
                     },
-                    error: function () {
-                        alert('Error updating status');
+                    error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+                        if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+                            alert("An error occurred while update the voucher's status.");
+                            return;
+                        }
+                        let response = xhr.responseJSON;
+                        alert(response ? response.message : "An error occurred while update the voucher's status.");
                     }
                 });
             });
@@ -157,8 +173,14 @@
                             alert(response.message);
                         }
                     },
-                    error: function () {
-                        alert('Error adding voucher');
+                    error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+                        if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+                            alert("An error occurred while saving the voucher.");
+                            return;
+                        }
+                        let response = xhr.responseJSON;
+                        alert(response ? response.message : "An error occurred while saving the voucher.");
                     }
                 });
             });
