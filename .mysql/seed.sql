@@ -546,6 +546,7 @@ INSERT INTO Permission (role_id, permission_url, permission_description) VALUES 
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/removeCartItem', 'Remove Cart Item (Postman)');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/removeCartItemById', 'Remove Cart Item by ID');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/clearCart', 'Clear All Cart Items');
+
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/cart', 'Cart Page');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/checkout', 'Checkout Page');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/getAvailableVouchers', 'Get Available Vouchers');
@@ -558,6 +559,7 @@ INSERT INTO Permission (role_id, permission_url, permission_description) VALUES 
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/removeCartItem', 'Remove Cart Item (Postman)');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/removeCartItemById', 'Remove Cart Item by ID');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/clearCart', 'Clear All Cart Items');
+
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/cart', 'Cart Page');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/checkout', 'Checkout Page');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/getAvailableVouchers', 'Get Available Vouchers');

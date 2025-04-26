@@ -61,6 +61,10 @@ public class OrderController extends ControllerBase {
     private productDAO productDAO = new productDAO();
 
     // #region ORDER INFO PAGE
+
+    // Order info page for users to view their order details
+    // This page is accessible only to logged-in users
+    // used in orderInfo.jsp
     @Authorization(accessUrls = "Order/orderInfo")
     @SyncCache(channel = "Order", message = "from order/orderInfo")
     @ActionAttribute(urlPattern= "orderInfo")
@@ -97,6 +101,9 @@ public class OrderController extends ControllerBase {
         return page();
     }
 
+    // Generate receipt for the order
+    // This method is called when the user clicks on "Generate Receipt" button
+    // used in orderInfo.jsp
     @Authorization(accessUrls = "Order/generateReceipt")
     @HttpRequest(HttpMethod.POST)
     public Result generateReceipt(int orderId) throws Exception {
@@ -216,6 +223,9 @@ public class OrderController extends ControllerBase {
 
     // #region STAFFORDER PAGE
 
+    // Order page for staff to manage orders
+    // This page is accessible only to staff and admin users
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/orders")
     @ActionAttribute(urlPattern = "orders")
     public Result orders() throws Exception {
@@ -228,6 +238,9 @@ public class OrderController extends ControllerBase {
         return page();
     }
 
+    // Get all orders by status and sort by date or order reference number
+    // This method is called when the staff filters orders by status and sorts them
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/getOrderByCategories")
     @ActionAttribute(urlPattern = "orders/Categories")
     @HttpRequest(HttpMethod.POST)
@@ -254,7 +267,9 @@ public class OrderController extends ControllerBase {
 
     }
 
-
+    // Update order status
+    // This method is called when the staff updates the status of an order
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/updateOrderStatus")
     @SyncCache(channel = "Order", message = "from order/updateOrderStatus")
     @ActionAttribute(urlPattern = "orders/updateStatus")
@@ -315,7 +330,9 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-
+    // Cancel order
+    // This method is called when the staff cancels an order
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/cancelOrder")
     @SyncCache(channel = "Order", message = "from order/cancelOrder")
     @ActionAttribute(urlPattern = "orders/cancelOrder")
@@ -360,6 +377,9 @@ public class OrderController extends ControllerBase {
     // #region CHECKOUT PAGE
 
     // Process payment
+    // This method is called when the user clicks on "Proceed To Payment" button
+    // creates payment, order, order transaction, and deletes cart items
+    // used in checkout.jsp
     @Authorization(accessUrls = "Order/processPayment")
     @SyncCache(channel = "Order", message = "from order/processPayment")
     @HttpRequest(HttpMethod.POST)
@@ -512,7 +532,8 @@ public class OrderController extends ControllerBase {
     // #endregion CHECKOUT PAGE
 
     // #region PAYMENT
-    @Authorization(accessUrls = "Order/addPayment")
+    // Add payment data for postman testing
+    //@Authorization(accessUrls = "Order/addPayment")
     @SyncCache(channel = "Payment", message = "from order/addPayment")
     @HttpRequest(HttpMethod.POST)
     public Result addPayment(Payment payment) throws Exception {
@@ -544,7 +565,8 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    @Authorization(accessUrls = "Order/getPaymentByOrder")
+    // Get payment by order for postman testing
+    //@Authorization(accessUrls = "Order/getPaymentByOrder")
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentByOrder(Order order) throws Exception{
 
@@ -577,7 +599,8 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @Authorization(accessUrls = "Order/getPaymentById")
+    // Get payment by id for postman testing
+    //@Authorization(accessUrls = "Order/getPaymentById")
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentById(int id) throws Exception{
 
@@ -610,7 +633,9 @@ public class OrderController extends ControllerBase {
     // #endregion PAYMENT
 
     // #region ORDER
-    @Authorization(accessUrls = "Order/addOrder")
+
+    // Add order data for postman testing
+    //@Authorization(accessUrls = "Order/addOrder")
     @SyncCache(channel = "Order", message = "from order/addOrder")
     @HttpRequest(HttpMethod.POST)
     public Result addOrder(Order order) throws Exception {
@@ -647,7 +672,8 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    @Authorization(accessUrls = "Order/getOrderById")
+    // Get order by id for postman testing
+    //@Authorization(accessUrls = "Order/getOrderById")
     @HttpRequest(HttpMethod.GET)
     public Result getOrder(int id) throws Exception {
     
@@ -687,6 +713,9 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
+    // Get all order info by order id
+    // This method is called when the staff views order details
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/getAllOrderInfo") // only admin/staff can access this
     @HttpRequest(HttpMethod.POST)
     public Result getAllOrderInfo(int orderId) throws Exception{
@@ -746,7 +775,9 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @Authorization(accessUrls = "Order/getOrdersByUser")
+
+    // Get all orders by user for postman testing
+    //@Authorization(accessUrls = "Order/getOrdersByUser")
     @HttpRequest(HttpMethod.POST)
     public Result getOrdersByUser(User user) throws Exception {
     
@@ -788,7 +819,9 @@ public class OrderController extends ControllerBase {
     // #endregion ORDER
 
     // #region ORDER TRANSACTION
-    @Authorization(accessUrls = "Order/addOrderTransaction")
+
+    // Add order transaction data for postman testing
+    //@Authorization(accessUrls = "Order/addOrderTransaction")
     @SyncCache(channel = "OrderTransaction", message = "from order/addOrderTransaction")
     @HttpRequest(HttpMethod.POST)
     public Result addOrderTransaction(OrderTransaction orderTransaction) throws Exception{
@@ -813,7 +846,8 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @Authorization(accessUrls = "Order/getOrderTransactionByOrderAndProduct")
+    // Get order transaction data for postman testing
+    //@Authorization(accessUrls = "Order/getOrderTransactionByOrderAndProduct")
     @HttpRequest(HttpMethod.POST)
     public Result getOrderTransaction(Order order, product product) throws Exception{
 
@@ -852,6 +886,7 @@ public class OrderController extends ControllerBase {
 
     }
 
+    // Get order transaction data for postman testing
     @Authorization(accessUrls = "Order/getAllOrderTransactionByOrder")
     @HttpRequest(HttpMethod.POST)
     public Result getOrderTransaction(Order order) throws Exception{
@@ -891,6 +926,9 @@ public class OrderController extends ControllerBase {
     // #endregion ORDER TRANSACTION
 
     // #region ORDER FEEDBACK
+
+    // Add order feedback data
+    // used in orderInfo.jsp
     @Authorization(accessUrls = "Order/addOrderFeedback")
     @SyncCache(channel = "Product_Feedback", message = "from order/addOrderFeedback")
     @HttpRequest(HttpMethod.POST)
