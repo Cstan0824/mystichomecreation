@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Cart</title>
 </head>
 
@@ -19,20 +20,17 @@
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
 
+        <%  List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
+            List<ShippingInformation> shippingAddresses = (List<ShippingInformation>) request.getAttribute("shippingAddresses");  
+        %>
     <div class="content-wrapper">
 
         <h1 class="font-poppins font-bold text-3xl my-8">Cart</h1>
 
         <div class="flex gap-8 items-start">
             <!-- LEFT: Cart Items -->
+            <% if(cartItems != null && !cartItems.isEmpty()){ %>
             <div class="basis-2/3" id="cart-items-container">
-            
-                <% 
-                    List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
-                    List<ShippingInformation> shippingAddresses = (List<ShippingInformation>) request.getAttribute("shippingAddresses");
-                
-
-                    if(cartItems != null && !cartItems.isEmpty()){ %>
                 <!-- Header Row -->
                 <div class="grid grid-cols-10 border-b border-grey3 text-lg font-dmSans font-semibold py-6">
                     <div class="col-span-5">Product</div>
@@ -48,7 +46,7 @@
               <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="<%= item.getProduct().getPrice() %>" data-product-id="<%= item.getProduct().getId() %>" data-cart-id="<%= item.getCart().getId() %>" data-variation="<%= StringEscapeUtils.escapeHtml4(item.getSelectedVariation()) %>">
                 <div class="col-span-5">
                     <div class="flex gap-4">
-                        <img src="<%= item.getProduct().getImageUrl() %>" alt="<%= item.getProduct().getTitle() %>" class="w-[100px] h-[100px] object-cover rounded-lg">
+                        <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= item.getProduct().getImage().getId() %>" alt="<%= item.getProduct().getTitle() %>" class="w-[100px] h-[100px] object-cover rounded-lg">
                         <div class="flex flex-col justify-between">
                             <div class="flex flex-col">
                                 <p class="font-medium text-md lineClamp-2"><%= item.getProduct().getTitle() %></p>
@@ -95,17 +93,22 @@
               </div>
                 <% 
                     } // end for loop
-                } else {
-                    
-                %>
-                    <div class="text-center py-6 text-gray-500">
-                        <p>No item in cart.</p>
-                    </div>
-                <% 
-                }
                 %>
               
             </div>
+            <% } else { %>
+                    
+                <div class="basis-2/3 h-[300px] flex justify-center items-center text-gray-500" id="cart-items-container">
+                    <div class="flex flex-col justify-center items-center gap-4">
+                        <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png"
+                            alt="empty-cart"
+                            class="w-[250px] h-[250px] object-cover" />
+                        <p class="text-gray-500 font-dmSans text-lg">Your cart is empty.</p>
+                    </div>
+                </div>
+                <% 
+                }
+                %>
           
             <!-- RIGHT: Cart Totals -->
             <div class="basis-1/3 p-8 border border-grey3 flex flex-col w-full sticky top-[30px]">
@@ -270,16 +273,6 @@
 
     </div>
     
-    <!-- Delete Product -->
-    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div id="modalContent" class="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md text-center">
-          <p class="text-lg font-semibold mb-4">Are you sure you want to remove this item?</p>
-          <div class="flex justify-center gap-4">
-            <button id="confirmDelete" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Yes</button>
-            <button onclick="closeDeleteModal()" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
-          </div>
-        </div>
-    </div>
 
     <!-- Change Address Modal -->
     <div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 select-none">
@@ -354,7 +347,10 @@
                         }
 
                         const container = document.querySelector('#cart-items-container');
-                        container.innerHTML = ''; // Clear old items
+                        container.innerHTML = ""; // clear existing content
+                        container.className = ""; // reset first
+                        container.classList.add("basis-2/3"); // preserve layout width
+
 
                         if (parsed.cart_items.length > 0) {
                             container.insertAdjacentHTML('beforeend', getCartHeaderRow());
@@ -366,9 +362,13 @@
                             watchQtyChanges();
                             updateCartSummary();
                         } else {
+                            container.className = "basis-2/3 h-[300px] flex justify-center items-center text-gray-500";
                             container.innerHTML = `
-                                <div class="text-center py-6 text-gray-500">
-                                    <p>No item in cart.</p>
+                                <div class="flex flex-col justify-center items-center gap-4">
+                                    <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png"
+                                        alt="empty-cart"
+                                        class="w-[250px] h-[250px] object-cover" />
+                                    <p class="text-gray-500 font-dmSans text-lg">Your cart is empty.</p>
                                 </div>`;
                             updateCartSummary();
                         }
@@ -395,29 +395,20 @@
 
         function showDeleteModal(icon) {
             itemToDelete = icon;
-            document.getElementById('deleteModal').classList.remove('hidden');
-            document.getElementById('deleteModal').classList.add('flex');
+            Swal.fire({
+                title: 'Are you sure to remove this product from cart?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    removeProduct(itemToDelete);
+                }
+            });
         }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('flex');
-            document.getElementById('deleteModal').classList.add('hidden');
-            itemToDelete = null;
-        }
-
-        document.getElementById('deleteModal').addEventListener('click', function (e) {
-            const modalBox = document.getElementById('modalContent');
-            if (!modalBox.contains(e.target)) {
-                closeDeleteModal();
-            }
-        });
-
-        document.getElementById('confirmDelete').addEventListener('click', () => {
-            if (itemToDelete) {
-                removeProduct(itemToDelete);
-                closeDeleteModal();
-            }
-        });
 
         function watchQtyChanges() {
             const qtyElements = document.querySelectorAll('.product-row .qty');
@@ -453,10 +444,27 @@
 
                     }),
                     success: function (response) {
-                        console.log('Item deleted successfully:', response);
-                        // Optionally, refresh the cart items after deletion
-                        row.remove();
-                        updateCartSummary();
+                        const parsedJson = JSON.parse(response.data);
+                        if (parsedJson.remove_success) {
+                            Swal.fire({
+                                title: 'Cart Item Deleted Successfully',
+                                text: 'The item has been removed from your cart.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            // Optionally, refresh the cart items after deletion
+                            row.remove();
+                            refreshCartItems();
+                            updateCartSummary();
+                        }else{
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Failed to remove the item from your cart.',
+                                icon: 'error',
+                                showConfirmButton: true,
+                            });
+                        }
                     },
                     error: function (error) {
                         console.error('Error deleting item:', error);
@@ -473,6 +481,8 @@
             const cartId = parseInt(row.dataset.cartId);
             const productId = parseInt(row.dataset.productId);
             const variation = row.dataset.variation;
+            
+            if (oldQty + delta < 1) return; // Don't allow
 
             console.log("variation", variation);
 
@@ -487,18 +497,40 @@
                     delta: delta
                 }),
                 success: function(response) {
-                    console.log('Quantity updated successfully:', response);
-                    console.log("qtyEl found?", qtyEl);
                     const parsedJson = JSON.parse(response.data);
-                    console.log("New quantity:", parsedJson.quantity);
-                    qtyEl.textContent = parsedJson.quantity; // Update displayed quantity
-
-                    updateCartSummary();
-
+                    if (parsedJson.update_success) {
+                        Swal.fire({
+                            title: 'Cart Item Updated Successfully',
+                            text: 'The item quantity has been updated.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 700
+                        });
+                        const newQty = oldQty + delta;
+                        if (newQty < 1) {
+                            newQty = 1; // Prevent negative or zero quantity
+                        }
+                        qtyEl.textContent = newQty; // Update the displayed quantity
+                        updateCartSummary();
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Failed to update the item quantity.',
+                            icon: 'error',
+                            showConfirmButton: true,
+                        });
+                        qtyEl.textContent = oldQty; // Revert to old quantity on error
+                        updateCartSummary();
+                    }
                 },
                 error: function(xhr, status, error) {
                     qtyEl.textContent = oldQty; // Revert to old quantity on error
-                    console.error('Error updating quantity:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to update the item quantity.',
+                        icon: 'error',
+                        showConfirmButton: true,
+                    });
                 }
             }); 
             
@@ -512,8 +544,10 @@
             const rows = document.querySelectorAll('.product-row');
 
             rows.forEach(row => {
+                
                 const unitPrice = parseFloat(row.dataset.price);
                 const qty = parseInt(row.querySelector('.qty').textContent);
+                console.log(row.dataset, qty)
                 const lineTotal = unitPrice * qty;
 
                 row.querySelector('.subtotal').textContent = "RM " + lineTotal.toFixed(2);
@@ -630,6 +664,14 @@
 
                 // Insert with same structure
                 selectedBlock.innerHTML = selectedAddressHTML;
+
+                Swal.fire({
+                    title: 'Shipping Address Updated!',
+                    text: 'The shipping address has been updated.',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 700
+                });
             }
 
             closeAddressModal();
@@ -667,7 +709,7 @@
                     ' data-price="' + item.product_price + '" data-product-id="' + item.product_id + '" data-cart-id="' + item.cart_id + '" data-variation="' + item.selected_variation + '">' +
                     '<div class="col-span-5">' +
                         '<div class="flex gap-4">' +
-                            '<img src="' + item.product_img + '" alt="Product" class="w-[100px] h-[100px] object-cover rounded-lg">' +
+                            '<img src="<%= request.getContextPath()%>/File/Content/product/retrieve?id=' + item.product_img_id + '" alt="Product" class="w-[100px] h-[100px] object-cover rounded-lg">' +
                             '<div class="flex flex-col justify-between">' +
                                 '<div class="flex flex-col">' +
                                     '<p class="font-medium text-md lineClamp-2">' + item.product_name + '</p>' +
@@ -718,11 +760,6 @@
 
             form.submit(); // 🔄 Submits like a normal POST that your controller maps
         }
-
-
-
-
-
 
         window.addEventListener('cart:changed', function () {
             refreshCartItems();

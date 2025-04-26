@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <%@ page import="java.util.List" %>
@@ -334,16 +335,16 @@
 
                     // Parse each product
                     const products = orderData.orderTransactions.map(function (t) {
-                        const product = JSON.parse(t.productJson);
+                        const product = JSON.parse(t.productJson); // Parse the product JSON string into an object
+                        const productImg = product.image ? product.image : {}; // Ensure image exists
                         return {
-                            imageUrl: product.imageUrl ? product.imageUrl : "https://placehold.co/100x100/png", // fallback if null
+                            imageUrl: productImg.id ? "<%= request.getContextPath() %>/File/Content/product/retrieve?id=" + productImg.id : "https://placehold.co/100x100/png",
                             title: product.title,
                             price: t.orderedProductPrice,
                             quantity: t.quantity,
-                            selectedVariations: JSON.parse(t.selectedVariations)
+                            selectedVariations: JSON.parse(t.selectedVariations) // Parse the selectedVariations JSON string
                         };
                     });
-
                     let html = "";
                     products.forEach(function (p) {
                         const variations = variationsToString(p.selectedVariations);
@@ -354,36 +355,72 @@
                     document.getElementById("updateOrderModal").classList.remove("hidden");
 
                 } else {
-                    alert("❌ Failed to fetch order details.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to fetch order details.',
+                        text: orderData.error_msg || 'Please try again later.',
+                        showConfirmButton: true
+                    });
                 }
             },
             error: function () {
-                alert("❌ Failed to fetch order details.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to fetch order details.',
+                    text: 'Please try again later.',
+                    showConfirmButton: true
+                });
             }
         });
     }
 
     function cancelOrder() {
-
-        const orderId = document.getElementById("updateOrderId").value;
-        $.ajax({
-            url: "<%= request.getContextPath() %>/Order/orders/cancelOrder",
-            type: "POST",
-            data: JSON.stringify({ orderId: orderId }),
-            contentType: "application/json",
-            success: function (response) {
-                const parsedResponse = JSON.parse(response.data);
-                if (!parsedResponse.cancelOrder_success) {
-                    alert("❌ Failed to cancel order - ajax success response.");
-                    return;
-                }else{
-                    alert("✅ Order cancelled successfully");
-                    closeUpdateModal();
-                    filterByCategory(); // refresh the filtered orders
-                }
-            },
-            error: function () {
-                alert("❌ Failed to cancel order - ajax error response.");
+        Swal.fire({
+            title: 'Are you sure you want cancel this order?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const orderId = document.getElementById("updateOrderId").value;
+                $.ajax({
+                    url: "<%= request.getContextPath() %>/Order/orders/cancelOrder",
+                    type: "POST",
+                    data: JSON.stringify({ orderId: orderId }),
+                    contentType: "application/json",
+                    success: function (response) {
+                        const parsedResponse = JSON.parse(response.data);
+                        if (!parsedResponse.cancelOrder_success) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed to cancel order.',
+                                text: parsedResponse.error_msg || 'Please try again later.',
+                                showConfirmButton: true
+                            });
+                            return;
+                        }else{
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Order cancelled successfully!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            closeUpdateModal();
+                            filterByCategory(); // refresh the filtered orders
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to cancel order.',
+                            text: 'Please try again later.',
+                            showConfirmButton: true
+                        });
+                    }
+                });
             }
         });
     }
@@ -409,16 +446,31 @@
                 success: function (response) {
                     const parsedResponse = JSON.parse(response.data);
                     if (!parsedResponse.updateStatus_success) {
-                        alert("❌ Failed to update status - ajax success response.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to update order status.',
+                            text: parsedResponse.errorMessage || 'Please try again later.',
+                            showConfirmButton: true
+                        });
                         return;
                     }else{
-                        alert("✅ Status updated successfully");
                         closeUpdateModal();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Order status updated successfully!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                         filterByCategory(); // refresh the filtered orders
                     }
                 },
                 error: function () {
-                    alert("❌ Failed to update status - ajax error response.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to update order status.',
+                        text: parsedResponse.errorMessage || 'Please try again later.',
+                        showConfirmButton: true
+                    });
                 }
             });
         });

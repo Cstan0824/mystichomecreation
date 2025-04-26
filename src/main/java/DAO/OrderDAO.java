@@ -140,8 +140,80 @@ public class OrderDAO {
         }
     }
 
+    public List<Order> filterAccountOrders(List<Integer> statusIds, String sortBy, String userKeyword, LocalDate startDate, LocalDate endDate, Double minPaid, Double maxPaid, int userId){
+        try{
+            // the 1=1 is to make the query always valid cuz 1=1 is always true and this help to reterieve all the products
+            StringBuilder jpql = new StringBuilder("SELECT o FROM Order o WHERE o.user.id = :userId");
 
-    // Get all orders by user ID from the database
+            if (statusIds != null && !statusIds.isEmpty()) {
+                jpql.append(" AND o.status.id IN :ids");
+            }
+            if (userKeyword != null && !userKeyword.isBlank()) {
+                jpql.append(" AND (LOWER(o.user.username) LIKE :kw )");
+            }
+            if (startDate != null) {
+                jpql.append(" AND o.orderDate >= :startDate");
+            }
+            if (endDate != null) {
+                jpql.append(" AND o.orderDate <= :endDate");
+            }
+            if (minPaid != null) {
+                jpql.append(" AND o.payment.totalPaid >= :minPaid");
+            }
+            if (maxPaid != null) {
+                jpql.append(" AND o.payment.totalPaid <= :maxPaid");
+            }
+            if (sortBy != null) {
+
+                switch (sortBy) {
+                    case "latest" -> jpql.append(" ORDER BY o.orderDate DESC");
+                    case "oldest" -> jpql.append(" ORDER BY o.orderDate ASC");
+                    case "lessPaid" -> jpql.append(" ORDER BY o.payment.totalPaid ASC");
+                    case "morePaid" -> jpql.append(" ORDER BY o.payment.totalPaid DESC");
+                    case "statusASC" -> jpql.append(" ORDER BY o.status.id ASC");
+                    case "statusDESC" -> jpql.append(" ORDER BY o.status.id DESC");
+                    case "" -> jpql.append(" ORDER BY o.orderDate DESC"); // default to latest if sortBy is empty
+                    default -> System.out.println("⚠ Unknown sortBy value: " + sortBy);
+                }
+            }
+
+            System.out.println("🛠 Final JPQL: " + jpql);
+
+            //So now we have the query and we need to set the params
+            TypedQuery<Order> query = db.createQuery(jpql.toString(), Order.class);
+
+            query.setParameter("userId", userId); // TODO: replace with actual user ID
+
+            if (statusIds != null && !statusIds.isEmpty()) {
+                System.out.println("🟡 Binding statusId: " + statusIds);
+                query.setParameter("ids", statusIds);
+            }
+
+            if (userKeyword != null && !userKeyword.isBlank()) {
+                System.out.println("🟡 Binding keyword: %" + userKeyword.toLowerCase() + "%");
+                query.setParameter("kw", "%" + userKeyword.toLowerCase() + "%");
+            }
+
+            if (startDate != null) query.setParameter("startDate", startDate);
+            if (endDate != null) query.setParameter("endDate", endDate);
+            if (minPaid != null) query.setParameter("minPaid", minPaid);
+            if (maxPaid != null) query.setParameter("maxPaid", maxPaid);
+            
+
+            // this is where we get the result
+            List<Order> result = query.getResultList(); // this is where we execute the query 
+            System.out.println("✅ Found orders: " + result.size());
+            return result;
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("❌ Error in filterOrders: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+
+    // Get all orders by user from the database
     public List<Order> getOrdersByUser(User user) {
         List<Order> orders = null;
         int userId = user.getId();
@@ -154,6 +226,20 @@ public class OrderDAO {
         }
         return orders;
     }
+
+    // Get all orders by user ID from the database
+    public List<Order> getOrdersByUserId(int userId) {
+        List<Order> orders = null;
+        TypedQuery<Order> query = db.createQuery("SELECT o FROM Order o WHERE o.user.id=:userId", Order.class)
+                .setParameter("userId", userId);
+        try {
+            orders = cache.getOrCreateList("orders-user-" + userId, Order.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            orders = query.getResultList();
+        }
+        return orders;
+    }
+    
 
     // Get all orders by status from the database
     public List<Order> getOrdersByStatus(OrderStatus status) {

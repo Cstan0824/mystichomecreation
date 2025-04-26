@@ -1,35 +1,39 @@
 package Controllers;
 
-import mvc.ControllerBase;
-import mvc.Result;
+import java.util.List;
+
+import DAO.AccountDA;
+import DAO.OrderDAO;
+import DAO.UserDA;
+import DTO.UserCredentials;
+import DTO.UserSession;
+import DTO.VoucherInfoDTO;
+import Models.Accounts.BankType;
+import Models.Accounts.PaymentCard;
+import Models.Accounts.ShippingInformation;
+import Models.Accounts.Voucher;
+import Models.Orders.Order;
+import Models.Orders.OrderStatus;
+import Models.Users.Role;
+import Models.Users.User;
+import Models.Users.UserImage;
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Cache.Redis;
+import mvc.ControllerBase;
 import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
 import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.SessionHelper;
 import mvc.Helpers.otps.OTPHelper;
 import mvc.Http.HttpMethod;
-
-import java.util.List;
-
-import DAO.AccountDA;
-import DAO.UserDA;
-import DTO.UserCredentials;
-import DTO.UserSession;
-import Models.Accounts.BankType;
-import Models.Accounts.PaymentCard;
-import Models.Accounts.ShippingInformation;
-import Models.Accounts.Voucher;
-import Models.Users.Role;
-import Models.Users.User;
-import Models.Users.UserImage;
+import mvc.Result;
 
 public class UserController extends ControllerBase {
     private AccountDA accountDA = new AccountDA();
     private UserDA userDA = new UserDA();
+    private OrderDAO orderDAO = new OrderDAO();
     private Redis redis = new Redis();
 
     // #region User Account
@@ -103,6 +107,13 @@ public class UserController extends ControllerBase {
     // @Authorization(permissions = "User/account/transactions")
     @ActionAttribute(urlPattern = "account/transactions")
     public Result transactions() throws Exception {
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        List<OrderStatus> orderStatuses = orderDAO.getAllOrderStatuses();
+        List<Order> orders = orderDAO.getOrdersByUserId(userId);
+        request.setAttribute("orders", orders);
+        request.setAttribute("orderStatuses", orderStatuses);
+
         // wait for product/order part to be done
         return page();
     }
@@ -340,10 +351,12 @@ public class UserController extends ControllerBase {
         return error("Failed to delete payment card");
     }
 
-    @Authorization(accessUrls = "User/account/vouchers")
+    //@Authorization(accessUrls = "User/account/vouchers")
     @ActionAttribute(urlPattern = "account/vouchers")
     public Result vouchers() throws Exception {
-        List<Voucher> vouchers = accountDA.getVouchers();
+        SessionHelper session = getSessionHelper(); // function from ControllerBase
+        int userId = session.getId();
+        List<VoucherInfoDTO> vouchers = accountDA.getAllVoucherInfo(userId);
         request.setAttribute("vouchers", vouchers);
         return page();
     }
