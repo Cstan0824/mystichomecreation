@@ -153,7 +153,7 @@
     <div class="content-wrapper">
         <div class="p-8 flex justify-between items-center bg-lightMidYellow rounded-lg">
             <h1 class="text-3xl font-poppins font-semibold">Enjoy 25% on your first order with us.</h1>
-            <button class="bg-white text-black hover:bg-darkYellow hover:text-white transition-colors duration-300 ease-in-out px-6 py-4 rounded-full text-poppins font-bold text-lg">SHOP NOW</button>
+            <button class="bg-white text-black hover:bg-darkYellow hover:text-white transition-colors duration-300 ease-in-out px-6 py-4 rounded-full text-poppins font-bold text-lg" onClick="redirectURL('<%= request.getContextPath()%>/product/productCatalog')">SHOP NOW</button>
         </div>
     </div>
 
@@ -287,7 +287,7 @@
 
             <div class="w-[calc(33.33%-1rem)] flex flex-col gap-2">
                 <div class="w-full h-[300px] rounded-lg overflow-hidden">
-                    <img src="https://placehold.co/500x300/png" class="w-full h-full object-cover" alt="pic"/>
+                    <img src="<%= request.getContextPath()%>/Content/assets/image/home/craft.jpeg" class="w-full h-full object-cover" alt="pic"/>
                 </div>
                 <div class="w-full h-[250px] flex flex-col">
                     <h1 class="text-xl font-semibold font-poppins py-2">Crafted with Sustainability</h1>
@@ -296,7 +296,7 @@
             </div>
             <div class="w-[calc(33.33%-1rem)] flex flex-col gap-2">
                 <div class="w-full h-[300px] rounded-lg overflow-hidden">
-                    <img src="https://placehold.co/500x300/png" class="w-full h-full object-cover" alt="pic"/>
+                    <img src="<%= request.getContextPath()%>/Content/assets/image/home/realLife.jpg" class="w-full h-full object-cover" alt="pic"/>
                 </div>
                 <div class="w-full h-[250px] flex flex-col">
                     <h1 class="text-xl font-semibold font-poppins py-2">Designed for Real Life</h1>
@@ -305,7 +305,7 @@
             </div>
             <div class="w-[calc(33.33%-1rem)] flex flex-col gap-2">
                 <div class="w-full h-[300px] rounded-lg overflow-hidden">
-                    <img src="https://placehold.co/500x300/png" class="w-full h-full object-cover" alt="pic"/>
+                    <img src="<%= request.getContextPath()%>/Content/assets/image/home/customer.jpg" class="w-full h-full object-cover" alt="pic"/>
                 </div>
                 <div class="w-full h-[250px] flex flex-col">
                     <h1 class="text-xl font-semibold font-poppins py-2">Customer-First Commitment</h1>
@@ -329,41 +329,41 @@
         </div>
         <div class="flex flex-col gap-2">
             <div class="flex items-center rounded-lg bg-grey2 border p-6 gap-52">
-                <h2 class="text-3xl font-semibold font-poppins">Our Mission: Crafting Homes, Protecting Nature</h2>
-                <p class="text-lg font-dmSans text-justify">We' re on a mission to create homes that are as sustainable as they are stylish. Every piece of furniture you purchase helps us support reforestation projects and eco-friendly practices that reduce our environmental impact.</p>
+                <h2 class="text-3xl font-semibold font-poppins">Craft Your Comfort, Define Your Home</h2>
+                <p class="text-lg font-dmSans text-justify">At MysticHome Creations, we believe that your home should be a reflection of your personality – warm, welcoming, and uniquely you. That's why we craft and curate high-quality furniture pieces that combine timeless design with everyday comfort. From modern minimalism to rustic charm, every item in our collection is thoughtfully chosen to help you create spaces that feel like home.</p>
             </div>
 
             <div class="flex gap-4">
                 <div class="w-[calc(25%-1rem)] h-[400px] flex flex-col gap-2 p-6 rounded-lg bg-lightYellow">
                     <div class="w-full h-[150px] rounded-lg overflow-hidden">
-                        <img src="https://placehold.co/380x150/png" class="w-full h-full object-cover" alt="pic"/>
+                        <img src="<%= request.getContextPath()%>/Content/assets/image/home/qualityCraft.jpeg" class="w-full h-full object-cover" alt="pic"/>
                     </div>
                     <div class="flex flex-col">
-                        <h2 class="text-lg font-semibold font-poppins py-2">Thoughtful Design for Every Home</h2>
-                        <p class="text-md font-dmSans">We believe furniture should be beautiful and functional. Our designs combine elegance, comfort, and practicality to elevate your living space without compromise.</p>
+                        <h2 class="text-lg font-semibold font-poppins py-2">Stylish & Versatile Designs</h2>
+                        <p class="text-md font-dmSans">From modern to classic styles, our pieces are designed to suit a wide range of tastes and seamlessly fit into any home.</p>
                     </div>
                 </div>
                 <div class="w-[calc(25%-1rem)] h-[400px] flex flex-col gap-2 p-6 rounded-lg bg-lightYellow">
                     <div class="w-full h-[150px] rounded-lg overflow-hidden">
-                        <img src="https://placehold.co/380x150/png" class="w-full h-full object-cover" alt="pic"/>
+                        <img src="<%= request.getContextPath()%>/Content/assets/image/home/stylish.jpg" class="w-full h-full object-cover" alt="pic"/>
                     </div>
                     <div class="flex flex-col">
-                        <h2 class="text-lg font-semibold font-poppins py-2">Affordability Without Sacrificing Quality</h2>
-                        <p class="text-md font-dmSans">By cutting out the middleman, we pass the savings directly to you, offering quality furniture at prices you can feel good about.</p>
+                        <h2 class="text-lg font-semibold font-poppins py-2">Reliable Delivery & Support</h2>
+                        <p class="text-md font-dmSans">Enjoy a smooth shopping experience with fast delivery, secure packaging, and responsive customer service that truly cares.</p>
                     </div>
                 </div>
                 <div class="w-[calc(25%-1rem)] h-[400px] flex flex-col gap-2 p-6 rounded-lg bg-lightYellow">
                     <div class="w-full h-[150px] rounded-lg overflow-hidden">
-                        <img src="https://placehold.co/380x150/png" class="w-full h-full object-cover" alt="pic"/>
+                        <img src="<%= request.getContextPath()%>/Content/assets/image/home/delivery.jpg" class="w-full h-full object-cover" alt="pic"/>
                     </div>
                     <div class="flex flex-col">
-                        <h2 class="text-lg font-semibold font-poppins py-2">Seamless Shopping Experience</h2>
-                        <p class="text-md font-dmSans">Enjoy easy shopping with our fast delivery, simple assembly, and a satisfaction guarantee—120 nights to love your purchase or return it for a full refund.</p>
+                        <h2 class="text-lg font-semibold font-poppins py-2">Sustainable Commitment</h2>
+                        <p class="text-md font-dmSans">We believe in creating beautiful homes without compromising the planet – many of our products are eco-conscious and responsibly made.</p>
                     </div>
                 </div>
                 <div class="w-[calc(25%-1rem)] h-[400px] flex flex-col gap-2 p-6 rounded-lg bg-lightYellow">
                     <div class="w-full h-[150px] rounded-lg overflow-hidden">
-                        <img src="https://placehold.co/380x150/png" class="w-full h-full object-cover" alt="pic"/>
+                        <img src="<%= request.getContextPath()%>/Content/assets/image/home/sustainable.jpg" class="w-full h-full object-cover" alt="pic"/>
                     </div>
                     <div class="flex flex-col">
                         <h2 class="text-lg font-semibold font-poppins py-2">Commitment to Sustainability</h2>

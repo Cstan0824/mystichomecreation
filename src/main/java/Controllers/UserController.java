@@ -439,7 +439,7 @@ public class UserController extends ControllerBase {
         return error("Failed to add voucher");
     }
 
-    @Authorization(accessUrls = "User/account/vouchers/status")
+    //@Authorization(accessUrls = "User/account/vouchers/status")
     @ActionAttribute(urlPattern = "account/voucher/status")
     @SyncCache(channel = "Voucher", message = "updateVoucherStatus")
     @HttpRequest(HttpMethod.POST)

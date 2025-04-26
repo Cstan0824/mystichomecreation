@@ -11,13 +11,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+<%@ page import="mvc.Helpers.SessionHelper" %>
+<%@ page import="DTO.UserSession" %>
 <body class="font-poppins overflow-x-hidden">
+    <% 
+        SessionHelper sessionHelper = new SessionHelper(request.getSession());
+    %>
+
     <!-- Header -->
     <div class="flex max-w-vw w-full p-4 items-center sticky top-0 z-[300] bg-white" id="nav-bar">
 
         <!--logo-->
         <div class="basis-1/5 flex justify-center w-full">
-            <img src="https://placehold.co/50x50/png" class="object-cover rounded-full" alt="logo">
+            <img src="<%= request.getContextPath()%>/Content/assets/image/MystichomeCreationLogo.jpg" onClick="redirectUrl('<%= request.getContextPath()%>/Landing')" class="w-[50px] h-[50px] object-cover rounded-full" alt="logo">
         </div>
 
         <!--nav-->
@@ -27,7 +33,7 @@
                     <a href="<%= request.getContextPath() %>/product/productCatalog" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Products</a>
                 </li>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                    <a href="<%= request.getContextPath() %>/Landing" class="    -semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
+                    <a href="<%= request.getContextPath() %>/Landing" class="hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
                 </li>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                     <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
@@ -53,7 +59,7 @@
                                             <i class="fa-solid fa-arrows-rotate"></i>
                                         </div>
                                     </div>
-                                    <a href="<%= request.getContextPath() %>/Cart/cart" class="text-sm font-semibold text-darkYellow underline">View All</a>
+                                    <p onClick="goToCart()" class="text-sm font-semibold text-darkYellow underline cursor-pointer">View All</p>
                                 </div>
 
                                 <div id="cart-items" class="flex flex-col justify-center items-center h-full"></div>
@@ -66,7 +72,7 @@
                 </li>
                 <li>
                     <div class="relative inline-block">
-                        <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button" onClick="window.location.href='<%= request.getContextPath() %>/User/account#notifications'">
+                        <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button" onClick="goToNotification()">
                             <i class="fa-solid fa-bell fa-lg"></i>
                         </div>
                     </div>  
@@ -80,15 +86,21 @@
                         <!-- Popover User Menu -->
                         <div class="hidden absolute right-0 top-full mt-3 min-w-40 w-fit z-[1000] bg-white border border-gray-200 rounded-md mhc-box-shadow opacity-0" id="user-menu">
                             <ul class="flex flex-col gap-2 p-2">
-                                <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
-                                    <a href="<%= request.getContextPath() %>/User/account" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Profile</a>
-                                </li>
-                                <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
-                                    <a href="<%= request.getContextPath() %>/User/account#transactions" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Purchases</a>
-                                </li>
-                                <li class="hover:bg-gray-50 rounded-full px-2 py-1 transition-all duration-[500] ease-in-out">
-                                    <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Logout</a>
-                                </li>
+                                <% if (sessionHelper.isAuthenticated()) { %>
+                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/User/account')">
+                                        <p class="font-semibold transition-all duration-[500] ease-in-out">Profile</p>
+                                    </li>
+                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer " onClick="redirectUrl('<%= request.getContextPath() %>/User/account#notifications')">
+                                        <p class="font-semibold transition-all duration-[500] ease-in-out">Purchases</p>
+                                    </li>
+                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/User/account#notifications')">
+                                        <a href="#" class="font-semibold transition-all duration-[500] ease-in-out">Logout</a>
+                                    </li>
+                                <% } else { %>
+                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/Landing/login')">
+                                        <p class="font-semibold transition-all duration-[500] ease-in-out">Login</p>
+                                    </li>
+                                <% } %>
                             </ul>
                         </div>
                     </div>
@@ -101,6 +113,21 @@
     <!-- Content -->
     <script>
         function fetchCartItems() {
+            const isAuthenticated = <%= sessionHelper.isAuthenticated() %>;
+
+            if (!isAuthenticated) {
+                const cartContainer = document.getElementById('cart-items');
+                // User not logged in, show a "please login" message inside cart popup
+                cartContainer.className = "flex flex-col justify-center items-center h-full w-full p-4 text-center gap-4";
+                cartContainer.innerHTML = `
+                    <h2 class="text-lg font-semibold text-gray-700">Please log in to view your cart</h2>
+                    <button onclick="window.location.href='<%= request.getContextPath() %>/Landing/login'" class="px-4 py-2 rounded-full bg-darkYellow text-white hover:bg-yellow-600 transition">
+                        Log In
+                    </button>
+                `;
+                return; // 🔥 Stop here, don't continue to AJAX
+            }
+
             $.ajax({
                 url: '<%= request.getContextPath() %>/Cart/getCartItems',
                 type: 'POST',
@@ -319,6 +346,51 @@
                     });
                 }
             });
+        }
+
+        function goToCart() {
+
+            const isAuthenticated = <%= sessionHelper.isAuthenticated() %>;
+            if (isAuthenticated) {
+                window.location.href = '<%= request.getContextPath() %>/Cart/cart';
+            } else {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Please log in to view your cart.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Log In',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '<%= request.getContextPath() %>/Landing/login'; // Adjust to your actual login URL
+                    }
+                    // If canceled, do nothing
+                });
+            }
+        }
+
+        function goToNotification() {
+            const isAuthenticated = <%= sessionHelper.isAuthenticated() %>;
+            console.log("isAuthenticated", isAuthenticated);
+            if (isAuthenticated) {
+                redirectUrl('<%= request.getContextPath() %>/User/account#notifications');
+            } else {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Please log in to view your notifications.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Log In',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        redirectUrl('<%= request.getContextPath() %>/Landing/login'); 
+                    }
+                });
+            }
+        }
+
+        function redirectUrl(url) {
+            window.location.href = url;
         }
 
         $(document).ready(function() {
