@@ -56,6 +56,7 @@ public class AccountDA {
         if (shippingInformations == null) {
             shippingInformations = new ArrayList<>();
         }
+        ShippingAddress.setId(shippingInformations.size() + 1);
         shippingInformations.add(ShippingAddress);
 
         try {

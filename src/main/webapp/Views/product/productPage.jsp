@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <%@ include file="/Views/Shared/Header.jsp" %>
@@ -321,13 +322,18 @@
             }
 
             if (!allKeysSelected) {
-                alert("Please select a value for all variations.");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Please select all variation options!',
+                    text: 'You need to select at least one option for each variation type.'
+                    showConfirmButton: true,
+                    confirmButtonText: 'OK'
+                });
                 return false;
             }
+
             return true;
         }
-
-
 
         function changeQty(delta) {
             
@@ -361,16 +367,29 @@
                 success: function(response) {
                     const parsedJson = JSON.parse(response.data);
                     if (parsedJson.addToCart_success) {
-                        alert('✅ Product added to cart successfully!');
-                        window.location.href = "<%= request.getContextPath() %>/Cart/cart";
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Product added to cart!',
+                            text: 'You can view your cart now.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Go to Cart',
+                            cancelButtonText: 'Continue Shopping'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "<%= request.getContextPath() %>/Cart/cart";
+                            }
+                        });
                     } else {
-                        alert('❌ Failed to add product to cart: ' + parsedJson.error_msg);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to add product to cart',
+                            text: 'Please try again later.'
+                        });
                     }
 
                 },
                 error: function(xhr, status, error) {
                     console.error('Error adding to cart:', error);
-                    alert('❌ An error occurred while adding the product to the cart.');
                 }
             });
 

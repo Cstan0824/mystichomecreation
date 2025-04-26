@@ -6,12 +6,12 @@
 @tailwind utilities;
 
 .mhc-box-shadow {
-    box-shadow: 0px 7px 27px rgba(75, 54, 0, 0.05),
-        0px 2.92443px 11.28px rgba(75, 54, 0, 0.0359427),
-        0px 1.56354px 6.0308px rgba(75, 54, 0, 0.0298054),
-        0px 0.876509px 3.38082px rgba(48, 34, 0, 0.025),
-        0px 0.465507px 1.79553px rgba(75, 54, 0, 0.0201946),
-        0px 0.193708px 0.747159px rgba(75, 54, 0, 0.0140573);
+    box-shadow: 0 7px 27px rgb(18 14 6 / 5%), 
+    0 2.92443px 11.28px rgb(34 27 11 / 4%), 
+    0 1.56354px 6.0308px rgba(75, 54, 0, .03), 
+    0 .876509px 3.38082px rgba(48, 34, 0, .025), 
+    0 .465507px 1.79553px rgba(75, 54, 0, .02), 
+    0 .193708px .747159px rgba(75, 54, 0, .014);
 }
 
 .content-wrapper {
@@ -36,12 +36,21 @@
 
 @layer utilities {
     .lineClamp-2 {
-        -webkit-line-clamp: 2;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      -webkit-line-clamp: 2;
     }
     .lineClamp-3 {
-        -webkit-line-clamp: 3;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      -webkit-line-clamp: 3;
     }
     .lineClamp-5 {
-        -webkit-line-clamp: 5;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      -webkit-line-clamp: 5;
     }
-}
+  }

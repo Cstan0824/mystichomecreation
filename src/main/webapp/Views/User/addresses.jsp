@@ -3,6 +3,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="Models.Accounts.ShippingInformation" %>
 <%@ page import="mvc.Helpers.Helpers" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+
 
 <head>
 	<meta charset="UTF-8" />
@@ -39,9 +41,9 @@
 		<div class="relative bg-gray-50 p-4 rounded shadow mb-4">
 			<div class="flex items-start justify-between">
 				<div class="text-sm">
-					<p class="font-semibold text-gray-700"><%= address.getLabel() %></p>
+					<p class="font-semibold text-gray-700"><%= StringEscapeUtils.escapeHtml4(address.getLabel()) %></p>
 					<p class="text-xs text-gray-500">
-						<%= address.getReceiverName() %> &middot; <%= address.getPhoneNumber() %>
+						<%= StringEscapeUtils.escapeHtml4(address.getReceiverName()) %> &middot; <%= StringEscapeUtils.escapeHtml4(address.getPhoneNumber()) %>
 					</p>
 				</div>
 				<% if(address.isDefault()) { %>
@@ -57,17 +59,24 @@
 			</div>
 
 			<div class="text-sm text-gray-600 space-y-1 pl-1 mt-2">
-				<p><%= address.getAddressLine1() %></p>
+				<p><%= StringEscapeUtils.escapeHtml4(address.getAddressLine1()) %></p>
 
 				<% if(address.getAddressLine2() != null && !address.getAddressLine2().isEmpty()) { %>
-				<p><%= address.getAddressLine2() %></p>
+				<p><%= StringEscapeUtils.escapeHtml4(address.getAddressLine2()) %></p>
 				<% } %>
 
 				<div class="flex justify-between items-center">
-					<p><%= address.getPostCode() %> <%= address.getState() %></p>
+					<p><%= StringEscapeUtils.escapeHtml4(address.getPostCode()) %> <%= StringEscapeUtils.escapeHtml4(address.getState()) %></p>
 					<div class="space-x-3 text-xs">
 						<button
-							onclick="editAddress(<%= address.getId() %>, '<%= Helpers.escapeString(address.getLabel()) %>', '<%= Helpers.escapeString(address.getReceiverName()) %>', '<%= address.getPhoneNumber() %>', '<%= address.getState() %>', '<%= address.getPostCode() %>', '<%= Helpers.escapeString(address.getAddressLine1()) %>', '<%= address.getAddressLine2() != null ? Helpers.escapeString(address.getAddressLine2()) : "" %>')"
+							onclick="editAddress(<%= address.getId() %>, 
+							'<%= StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getLabel())) %>', 
+							'<%= StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getReceiverName())) %>', 
+							'<%= StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getPhoneNumber())) %>', 
+							'<%= StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getState())) %>', 
+							'<%= StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getPostCode())) %>', 
+							'<%= StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getAddressLine1())) %>', 
+							'<%= address.getAddressLine2() != null ? StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(address.getAddressLine2())) : "" %>')"
 							class="text-blue-500 hover:underline">Edit</button>
 						<button onclick="deleteAddress(<%= address.getId() %>)"
 							class="text-red-500 hover:underline">Delete</button>
@@ -116,11 +125,18 @@
 						}, 500); // 300ms delay
 
 					} else {
-						alert(response.message);
+						alert(response.message || "An error occurred while set the address to default status.");
 					}
 				},
-				error: function(xhr, status, error) {
-					alert("An error occurred while setting the default address.");
+				error: function (xhr, status, error) {
+					// Check if we got redirected to a login page or error page
+					if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+						alert("An error occurred while set the address to default status.");
+						return;
+					}
+					
+					let response = xhr.responseJSON;
+					alert(response ? response.message : "An error occurred while set the address to default status.");
 				}
 			});
 		}
@@ -168,11 +184,18 @@
 								location.reload();
 							}, 500); // 300ms delay
 						} else {
-							alert(response.message);
+							alert(response.message || "An error occurred while delete the address.");
 						}
 					},
-					error: function(xhr, status, error) {
-						alert("Something went wrong while deleting the address.");
+					error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+						if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+							alert("An error occurred while delete the address.");
+							return;
+						}
+						
+						let response = xhr.responseJSON;
+						alert(response ? response.message : "An error occurred while delete the address.");
 					}
 				});
 
@@ -219,17 +242,28 @@
 					method: "POST",
 					data: JSON.stringify({shippingInformation : shippingInformation}),
 					contentType: "application/json",
+					dataType: "json", // Explicitly specify expected data type
 					success: function(response) {
-						if (response.status == 200) {
+						if (response && response.status == 200) {
 							setTimeout(() => {
 								location.reload();
-							}, 500); // 300ms delay
-						} else {
+							}, 500);
+						} else if (response && response.message) {
 							alert(response.message);
+						} else {
+							alert("Unknown response from server");
+							console.log("Unexpected response:", response);
 						}
 					},
-					error: function(xhr, status, error) {
-						alert("Something went wrong while saving the address.");
+					error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+						if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+							alert("An error occurred while saving the address.");
+							return;
+						}
+						
+						let response = xhr.responseJSON;
+						alert(response ? response.message : "An error occurred while saving the address.");
 					}
 				});
 			});

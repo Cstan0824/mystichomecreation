@@ -9,7 +9,7 @@ public class UserSession {
     private String email;
     private String role;
     private List<String> accessUrls;
-    private boolean isAuthenticated;
+    private boolean isAuthenticated = false;
 
     public int getId() {
         return id;

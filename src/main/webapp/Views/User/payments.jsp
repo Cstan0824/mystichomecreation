@@ -5,6 +5,8 @@
 <%@ page import="java.time.LocalDate" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
 <%@ page import="java.time.format.DateTimeParseException" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,61 +39,61 @@
 		%>
 			<!-- Payments Card -->
 			<div class="bg-gray-50 p-4 rounded shadow mb-4 flex flex-col space-y-2 relative">
-				<div class="flex items-start justify-between">
-					<!-- Card Logo + Info -->
-					<div class="flex space-x-3 items-start">
-					<img 
-						src="<%= request.getContextPath() + "/Content" + payment.getBankType().getLogoPath() %>" 
-						alt="Bank Logo" 
-						class="w-12 h-12 object-contain rounded-full" 
-					/>
-					<div>
-						<p class="font-semibold text-gray-700 text-sm"><%= payment.getName() %></p>
-						<p class="text-gray-500 text-xs"> **** **** **** <%= payment.getCardNumber().substring(12) %></p>
-					</div>
-				</div>
-				<!-- Label: Default -->
-				<% if(payment.isDefault()) { %>
-					<span class="border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md">
-						Default
-					</span>
-				<% } else { %>
-					<button onclick="setDefaultCard(<%= payment.getId() %>)"
-						class="border border-blue-500 text-blue-500 text-xs px-3 py-1 rounded-md hover:bg-blue-50">
-						Set as default
-					</button>
-				<% } %>
-				</div>
-					<%
-						String expiryStr = payment.getExpiryDate(); // e.g. "2026-08-31"
-						LocalDate today = LocalDate.now();
-						LocalDate expiryDate = null;
-						boolean isOngoing = false;
+			    <div class="flex items-start justify-between">
+			        <!-- Card Logo + Info -->
+			        <div class="flex space-x-3 items-start">
+			        <img 
+			            src="<%= request.getContextPath() + "/Content" + StringEscapeUtils.escapeHtml4(payment.getBankType().getLogoPath()) %>" 
+			            alt="<%= StringEscapeUtils.escapeHtml4(payment.getBankType().getDescription()) %>" 
+			            class="w-12 h-12 object-contain rounded-full" 
+			        />
+			        <div>
+			            <p class="font-semibold text-gray-700 text-sm"><%= StringEscapeUtils.escapeHtml4(payment.getName()) %></p>
+			            <p class="text-gray-500 text-xs"> **** **** **** <%= StringEscapeUtils.escapeHtml4(payment.getCardNumber().substring(12)) %></p>
+			        </div>
+			    </div>
+			    <!-- Label: Default -->
+			    <% if(payment.isDefault()) { %>
+			        <span class="border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md">
+			            Default
+			        </span>
+			    <% } else { %>
+			        <button onclick="setDefaultCard(<%= payment.getId() %>)"
+			            class="border border-blue-500 text-blue-500 text-xs px-3 py-1 rounded-md hover:bg-blue-50">
+			            Set as default
+			        </button>
+			    <% } %>
+			    </div>
+			        <%
+			            String expiryStr = payment.getExpiryDate(); // e.g. "2026-08-31"
+			            LocalDate today = LocalDate.now();
+			            LocalDate expiryDate = null;
+			            boolean isOngoing = false;
 
-						try {
-							expiryDate = LocalDate.parse(expiryStr); // assumes yyyy-MM-dd
-							isOngoing = expiryDate.isAfter(today);
-						} catch (DateTimeParseException e) {
-							// Optional: log or handle parse failure
-						}
-					%>
-					<div>
-						<p class="text-gray-400 text-xs uppercase">
-							<%= isOngoing ? "Ongoing" : "Expired" %>
-						</p>
-						
-					</div>
+			            try {
+			                expiryDate = LocalDate.parse(expiryStr); // assumes yyyy-MM-dd
+			                isOngoing = expiryDate.isAfter(today);
+			            } catch (DateTimeParseException e) {
+			                // Optional: log or handle parse failure
+			            }
+			        %>
+			        <div>
+			            <p class="text-gray-400 text-xs uppercase">
+			                <%= isOngoing ? "Ongoing" : "Expired" %>
+			            </p>
+			            
+			        </div>
 
-					<div class="flex justify-between items-center">
-					<p class="text-gray-700 text-sm"><%= expiryStr %></p>
-					<div class="space-x-3 text-xs">
-						<button
-							onclick="editPaymentCard(<%= payment.getId() %>, '<%= payment.getName() %>', '<%= payment.getCardNumber() %>', '<%= payment.getExpiryDate() %>', '<%= payment.getBankTypeId() %>')"
-							class="text-blue-500 hover:underline">Edit</button>
-						<button onclick="deletePaymentCard(<%= payment.getId() %>)"
-							class="text-red-500 hover:underline">Delete</button>
-					</div>
-				</div>
+			        <div class="flex justify-between items-center">
+			        <p class="text-gray-700 text-sm"><%= StringEscapeUtils.escapeHtml4(expiryStr) %></p>
+			        <div class="space-x-3 text-xs">
+			            <button
+			                onclick="editPaymentCard(<%= payment.getId() %>, '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getName())) %>', '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getCardNumber())) %>', '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getExpiryDate())) %>', <%= payment.getBankTypeId() %>)"
+			                class="text-blue-500 hover:underline">Edit</button>
+			            <button onclick="deletePaymentCard(<%= payment.getId() %>)"
+			                class="text-red-500 hover:underline">Delete</button>
+			        </div>
+			    </div>
 			</div>
 		<%
 			}
@@ -130,8 +132,15 @@
 					alert(response.message);
 				}
 			},
-			error: function () {
-				alert("An error occurred while setting the default card.");
+			error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+				if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+					alert("An error occurred while saving the card.");
+					return;
+				}
+				
+				let response = xhr.responseJSON;
+				alert(response ? response.message : "An error occurred while saving the card.");
 			}
 		});
 	}
@@ -160,12 +169,23 @@
 					if (response.status == 200) {
 						setTimeout(() => location.reload(), 500);
 					} else {
-						alert(response.message);
+						alert(response.message || "An error occurred while delete the card.");
 					}
 				},
-				error: function () {
-					alert("Something went wrong while deleting the card.");
+				error: function (xhr, status, error) {
+					let response = xhr.responseJSON;
+					alert(response.message || "An error occurred while delete the card.");
+				},
+				error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+				if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+					alert("An error occurred while delete the card.");
+					return;
 				}
+				
+				let response = xhr.responseJSON;
+				alert(response ? response.message : "An error occurred while delete the card.");
+			}
 			});
 		}
 	}
@@ -228,8 +248,15 @@
 						alert(response.message);
 					}
 				},
-				error: function () {
-					alert("Something went wrong while saving the card.");
+				error: function (xhr, status, error) {
+						// Check if we got redirected to a login page or error page
+					if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+						alert("An error occurred while saving the card.");
+						return;
+					}
+					
+					let response = xhr.responseJSON;
+					alert(response ? response.message : "An error occurred while saving the card.");
 				}
 			});
 		});
