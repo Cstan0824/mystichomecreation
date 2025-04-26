@@ -532,3 +532,87 @@ INSERT INTO `Order_Transaction` (`order_id`, `product_id`, `order_quantity`, `or
 -- Product Feedback Data
 INSERT INTO `Product_Feedback` (`product_id`, `order_id`, `created_at`, `rating`, `comment`, `reply`, `feedback_date`, `reply_date`) VALUES
 (1, 2, '2025-04-23T19:28:54.824185914', 3, NULL, NULL, '2025-04-23', NULL);
+
+-- Cart Permission Data
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/cart', 'Cart Page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/checkout', 'Checkout Page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/getAvailableVouchers', 'Get Available Vouchers');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/addCart', 'Add Cart for New User');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/getCart', 'Get Cart by User ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/getCartItems', 'Get Cart Items by User ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/addToCart', 'Add Cart Item (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/addToCartById', 'Add Cart Item by Product ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/updateQuantity', 'Update Cart Item Quantity');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/removeCartItem', 'Remove Cart Item (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/removeCartItemById', 'Remove Cart Item by ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Cart/clearCart', 'Clear All Cart Items');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/cart', 'Cart Page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/checkout', 'Checkout Page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/getAvailableVouchers', 'Get Available Vouchers');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/addCart', 'Add Cart for New User');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/getCart', 'Get Cart by User ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/getCartItems', 'Get Cart Items by User ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/addToCart', 'Add Cart Item (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/addToCartById', 'Add Cart Item by Product ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/updateQuantity', 'Update Cart Item Quantity');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/removeCartItem', 'Remove Cart Item (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/removeCartItemById', 'Remove Cart Item by ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Cart/clearCart', 'Clear All Cart Items');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/cart', 'Cart Page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/checkout', 'Checkout Page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/getAvailableVouchers', 'Get Available Vouchers');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/addCart', 'Add Cart for New User');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/getCart', 'Get Cart by User ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/getCartItems', 'Get Cart Items by User ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/addToCart', 'Add Cart Item (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/addToCartById', 'Add Cart Item by Product ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/updateQuantity', 'Update Cart Item Quantity');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/removeCartItem', 'Remove Cart Item (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/removeCartItemById', 'Remove Cart Item by ID');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Cart/clearCart', 'Clear All Cart Items');
+
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/orderInfo', 'View Single Order Info');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/generateReceipt', 'Generate Order Receipt PDF');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/orders', 'View Orders Page (Staff)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getOrderByCategories', 'Filter Orders by Status (Staff/Admin)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/updateOrderStatus', 'Update Order Status (Staff/Admin)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/cancelOrder', 'Cancel Order');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/processPayment', 'Process Payment (Checkout)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/addPayment', 'Add Payment Info (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getPaymentByOrder', 'Get Payment Info by Order (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getPaymentById', 'Get Payment by ID (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/addOrder', 'Add Order (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getOrderById', 'Get Order by ID (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getAllOrderInfo', 'Get Full Order Info (Admin/Staff) (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getOrdersByUser', 'Get Orders List by User (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/addOrderTransaction', 'Add Order Transaction (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getOrderTransactionByOrderAndProduct', 'Get Order Transaction by Order and Product (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/getAllOrderTransactionByOrder', 'Get All Transactions for an Order (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'Order/addOrderFeedback', 'Add Order Feedback');
+
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Order/orderInfo', 'View Single Order Info');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Order/generateReceipt', 'Generate Order Receipt PDF');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Order/cancelOrder', 'Cancel Order');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (2, 'Order/processPayment', 'Process Payment (Checkout)');
+
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/orderInfo', 'View Single Order Info');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/generateReceipt', 'Generate Order Receipt PDF');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/orders', 'View Orders Page (Staff)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getOrderByCategories', 'Filter Orders by Status (Staff/Admin)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/updateOrderStatus', 'Update Order Status (Staff/Admin)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/cancelOrder', 'Cancel Order');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/processPayment', 'Process Payment (Checkout)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/addPayment', 'Add Payment Info (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getPaymentByOrder', 'Get Payment Info by Order (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getPaymentById', 'Get Payment by ID (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/addOrder', 'Add Order (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getOrderById', 'Get Order by ID (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getAllOrderInfo', 'Get Full Order Info (Admin/Staff) (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getOrdersByUser', 'Get Orders List by User (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/addOrderTransaction', 'Add Order Transaction (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getOrderTransactionByOrderAndProduct', 'Get Order Transaction by Order and Product (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getAllOrderTransactionByOrder', 'Get All Transactions for an Order (Postman)');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/addOrderFeedback', 'Add Order Feedback');
+
+
+

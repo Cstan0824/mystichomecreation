@@ -493,6 +493,31 @@ public class AccountDA {
         }
     }
 
+    public List<VoucherInfoDTO> getAllVoucherInfo(int userId) {
+        User user = userDA.getUserById(userId);
+        List<Voucher> vouchers = getVouchers();
+        List<VoucherInfoDTO> voucherInfoList = null;
+        if (vouchers == null || user == null) {
+            return null;
+        }
+        for(Voucher voucher : vouchers) {
+            VoucherInfoDTO voucherInfo = getVoucherInfo(voucher.getId(), user);
+            if (voucherInfo == null) {
+                continue;
+            }
+            if (voucherInfoList == null) {
+                voucherInfoList = new ArrayList<>();
+            }
+            voucherInfoList.add(voucherInfo);
+        }
+
+        if (voucherInfoList == null) {
+            return null;
+        }else {
+            return voucherInfoList;
+        }
+    }
+
     public List<Notification> getNotifications(int id) {
         List<Notification> notifications = null;
         TypedQuery<Notification> typedQuery = this.db.createQuery("SELECT n FROM Notification n WHERE n.user.id = :id",
