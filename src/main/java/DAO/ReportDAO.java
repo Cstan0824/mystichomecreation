@@ -43,26 +43,7 @@ public class ReportDAO {
         return count == null ? 0 : count.intValue();
     }
 
-    // public List<product> getLowStockProducts(int threshold) {
-    //     TypedQuery<product> q = db.createQuery(
-    //         "SELECT p FROM product p WHERE p.stock <= :th ORDER BY p.stock ASC",
-    //         product.class
-    //     );
-    //     q.setParameter("th", threshold);
-    //     return q.getResultList();
-    // }
-
-    // public List<Object[]> getFeedbackRatings() {
-    //     String jpql = """
-    //         SELECT pf.product.title, AVG(pf.rating)
-    //         FROM productFeedback pf
-    //         GROUP BY pf.product.title
-    //         ORDER BY AVG(pf.rating) DESC
-    //         """;
-    //     return db.createQuery(jpql, Object[].class)
-    //              .getResultList();
-    // }
-
+    // Payment Preferences
     public List<Object[]> getPaymentPreferences() {
         String jpql = """
             SELECT pm.methodDesc, COUNT(p)
@@ -75,7 +56,8 @@ public class ReportDAO {
                  .getResultList();
     }
 
-    public List<Object[]> getSalesByCategoryNative() {  
+    // Sales by Category (chart)
+    public List<Object[]> getSalesByCategory() {  
         String sql = 
             "SELECT pt.product_type AS category, " +
             "       SUM(ot.order_quantity * ot.ordered_product_price) AS total " +
@@ -116,6 +98,25 @@ public class ReportDAO {
         return n.intValue();
     }
 
+    public int getOrdersLastMonth() {
+        String sql = """
+            SELECT COUNT(*) 
+            FROM Orders o
+            WHERE STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')
+              BETWEEN DATE_FORMAT(
+                        DATE_SUB(CURDATE(), INTERVAL 1 MONTH), 
+                        '%Y-%m-01'
+                      )
+                  AND LAST_DAY(
+                        DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+                      )
+        """;
+        Number n = (Number) db
+          .createNativeQuery(sql)
+          .getSingleResult();
+        return n.intValue();
+    }
+
     public double getTotalRevenue() {
         Double sum = db.createQuery(
             "SELECT COALESCE(SUM(p.totalPaid), 0) FROM Payment p",
@@ -144,7 +145,7 @@ public class ReportDAO {
         return results;
     }
 
-
+    // filter product
     public List<product> filterProducts( List<Integer> categoryIds, Double priceMin, Double priceMax, Integer stockMin, Integer stockMax, Double ratingMin, LocalDate dateFrom, LocalDate dateTo) 
     {
         StringBuilder jpql = new StringBuilder("SELECT p FROM product p WHERE 1=1");
@@ -212,7 +213,7 @@ public class ReportDAO {
         return q.getResultList();
     }
 
-
+    // Daily Revenue (chart)
     public List<Object[]> getDailyRevenue(int days) {
         String sql = """
             SELECT 
@@ -235,7 +236,7 @@ public class ReportDAO {
         return rows;
     }
 
-
+    // Monthly Revenue (chart)
     public List<Object[]> getMonthlyRevenue(int months) {
         String sql = """
             SELECT
@@ -261,8 +262,6 @@ public class ReportDAO {
         List<Object[]> rows = q.getResultList();
         return rows;
     }
-
-
 
 
     //#region display purpose only
@@ -333,19 +332,6 @@ public class ReportDAO {
         }
         return result;
     }
-
-
-
-
-    
-
-
-
-    
-  
-
-        
-
 
 
 }

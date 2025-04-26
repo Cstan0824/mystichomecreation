@@ -427,5 +427,30 @@ public class productDAO implements Serializable {
         return topFeedbacks;
     }
     
+    public List<product> getFeaturedProducts(){
+        List<product> featuredProducts = null;
+    
+        String queryStr = """
+                SELECT p
+                FROM product p
+                WHERE p.featured  = 1
+                ORDER BY FUNCTION('RAND')
+            """;
+    
+        TypedQuery<product> query = db.createQuery(queryStr, product.class)
+                                      .setMaxResults(4);
+    
+        try {
+            featuredProducts = cache.getOrCreateList(
+                    "featured-products",
+                    product.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            featuredProducts = query.getResultList(); // fallback
+        }
+    
+        return featuredProducts;
+    }
+
+
     
 }

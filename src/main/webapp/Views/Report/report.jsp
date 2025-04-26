@@ -27,38 +27,86 @@
 
     <!-- === Upper 4-column Section === -->
     <%  
-        Integer ordersThisMonth = (Integer) request.getAttribute("ordersThisMonth");
-        List<Object[]> sales = (List<Object[]>) request.getAttribute("salesByCategory");
-        List<Object[]> prefs = (List<Object[]>) request.getAttribute("paymentPreferences");
-        double totalRevenue = (double) request.getAttribute("totalRevenue");
+      Integer ordersThisMonth = (Integer) request.getAttribute("ordersThisMonth");
+      String changeLabel    = (String)  request.getAttribute("orderChangeLabel");
+      boolean changeUp      = (Boolean) request.getAttribute("orderChangeUp");
+      List<Object[]> sales = (List<Object[]>) request.getAttribute("salesByCategory");
+      List<Object[]> prefs = (List<Object[]>) request.getAttribute("paymentPreferences");
+      double totalRevenue = (double) request.getAttribute("totalRevenue");
     %>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- 1. Number of Orders Each Month -->
-      <div class="bg-white rounded-2xl p-5 shadow">
-        <div class="flex justify-between items-center">
-          <h3 class="text-sm font-medium text-gray-500">Total Orders <%= java.time.YearMonth.now() .format(java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy"))%></h3>
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-shadow duration-300">
+        <div class="flex items-center mb-4">
+          <div class="p-3 bg-blue-100 rounded-full mr-4 flex items-center justify-center w-12 h-12">
+            <i class="fas fa-shopping-bag text-blue-600"></i>
+          </div>
+          <h3 class="text-sm font-medium text-gray-500">Orders | <%= java.time.YearMonth.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM yyyy"))%></h3>
         </div>
-        <div class="text-sm text-gray-500 font-medium mb-2"><%= ordersThisMonth %></div>
-
+        <div class="flex items-baseline">
+          <div class="text-3xl font-extrabold text-gray-900 mr-2"><%= ordersThisMonth %></div>
+          <div class="text-sm font-medium 
+            <%= changeUp ? "text-green-600" : "text-red-600" %>">
+            <i class="fas fa-arrow-<%= changeUp ? "up" : "down" %> mr-1"></i>
+            <%= changeLabel %>
+          </div>
+        </div>
+        <div class="mt-4 text-xs text-gray-500">Compared to last month</div>
       </div>
 
-
-      <!-- 3. Payment Preferences -->
-      <div class="bg-white rounded-2xl p-5 shadow">
-        <h3 class="text-sm font-medium text-gray-500">Top Payment Method</h3>
-         <% for (Object[] row : prefs) {
-              String method = (String) row[0];
-              long  count    = ((Number)row[1]).longValue();
+      <!-- 2. Payment Preferences -->
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-shadow duration-300">
+        <div class="flex items-center mb-4">
+          <div class="p-3 bg-purple-100 rounded-full mr-4 flex items-center justify-center w-12 h-12">
+            <i class="fas fa-money-check-alt text-purple-600"></i>
+          </div>
+          <h3 class="text-sm font-medium text-gray-500">Top Payment Methods</h3>
+        </div>
+        <div class="space-y-3">
+          <% for (Object[] row : prefs) {
+            String method = (String) row[0];
+            long count = ((Number)row[1]).longValue();
           %>
-              <p class="mt-2 text-2xl font-bold text-gray-900"><%= count %> x  <%= method %> </p>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center 
+                <%= 
+                  method.toLowerCase().contains("cash") ? "bg-yellow-100 text-yellow-600" :
+                  method.toLowerCase().contains("online") ? "bg-blue-100 text-blue-600" : 
+                  method.toLowerCase().contains("credit") ? "bg-red-100 text-red-600" : 
+                  "bg-green-100 text-green-600" %>">
+                <i class="fas <%= 
+                  method.toLowerCase().contains("cash") ? "fa-money-bill" :
+                  method.toLowerCase().contains("online") ? "fa-globe" : 
+                  method.toLowerCase().contains("credit") ? "fa-credit-card" : 
+                  "fa-money-bill-wave" %>"></i>
+              </div>
+              <span class="ml-3 font-medium text-gray-700">
+                <%= 
+                  method.toLowerCase().contains("cash") ? "Cash On Delivery" : 
+                  method.toLowerCase().contains("online") ? "Online Banking" : 
+                  method.toLowerCase().contains("credit") ? "Credit Card" : 
+                  "Cash on Delivery" %>
+              </span>
+            </div>
+            <span class="font-bold text-gray-900"><%= count %></span>
+          </div>
           <% } %>
+        </div>
       </div>
 
-      <!-- 4. Total Revenue -->
-      <div class="bg-white rounded-2xl p-5 shadow">
-        <h3 class="text-sm font-medium text-gray-500">Total Revenue</h3>
-        <p class="mt-2 text-2xl font-bold text-gray-900"><%= String.format("%.2f", totalRevenue) %></p>
+      <!-- 3. Total Revenue -->
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-shadow duration-300">
+        <div class="flex items-center mb-4">
+          <div class="p-3 bg-green-100 rounded-full mr-4 flex items-center justify-center w-12 h-12">
+            <i class="fas fa-chart-line text-green-600"></i>
+          </div>
+          <h3 class="text-sm font-medium text-gray-500">Total Revenue Of All Time</h3>
+        </div>
+        <div class="flex items-baseline">
+          <div class="text-3xl font-extrabold text-gray-900 mr-2">RM <%= String.format("%,.2f", totalRevenue) %></div>
+        </div>
       </div>
     </div>
 
@@ -67,56 +115,52 @@
       <!-- Left Column: Customer, Staff, and Sales by Category -->
       <div class="col-span-4 space-y-4">
         <!-- Total Customer -->
-        <div class="bg-white border rounded-2xl p-5 shadow-sm">
-          <div class="text-sm text-gray-500 font-medium mb-2">Total Customer</div>
+        <div class="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm text-gray-500 font-medium">Total Customer</div>
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-users text-blue-600"></i>
+            </div>
+          </div>
           <div class="flex items-baseline">
             <% int totalCustomers = (int) request.getAttribute("totalCustomers"); %>
-            <span class="text-5xl font-bold text-gray-900"><%= totalCustomers %></span>
-            <span class="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs font-medium rounded-md">+18.7%</span>
+            <span class="text-4xl font-bold text-gray-900"><%= totalCustomers %></span>
           </div>
         </div>
-        
+
         <!-- Total Staff -->
-        <div class="bg-white border rounded-2xl p-5 shadow-sm">
-          <div class="text-sm text-gray-500 font-medium mb-2">Total Staff</div>
+        <div class="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm text-gray-500 font-medium">Total Staff</div>
+            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-user-tie text-purple-600"></i>
+            </div>
+          </div>
           <div class="flex items-baseline">
             <% int totalStaff = (int) request.getAttribute("totalStaff"); %>
-            <span class="text-5xl font-bold text-gray-900"><%= totalStaff %></span>
-            <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-500 text-xs font-medium rounded-md">+2.7%</span>
+            <span class="text-4xl font-bold text-gray-900"><%= totalStaff %></span>
           </div>
         </div>
-        
+
         <!-- Sales by Category -->
-        <div class="bg-white border rounded-2xl p-5 shadow-sm">
-          <h3 class="text-sm font-medium text-gray-500 mb-4">Sales by Category</h3>
-            <div class="w-full h-64">
-              <canvas id="salesByCategoryChart" class="w-full h-full"></canvas>
-            </div>
-          
-          <%-- <% for (Object[] row : sales) {
-            String category = (String) row[0];
-            double amount = ((Number)row[1]).doubleValue();
-          %>
-          <div class="py-2 border-b border-gray-100">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-700"><%= category %></span>
-              <span class="font-medium">RM <%= String.format("%.2f", amount) %></span>
-            </div>
+        <div class="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-medium text-gray-500">Sales by Category</h3>
           </div>
-          <% } %> --%>
+          <div class="w-full h-64">
+            <canvas id="salesByCategoryChart" class="w-full h-full"></canvas>
+          </div>
         </div>
       </div>
-      
+
       <!-- Right Column: Revenue Chart -->
       <div class="col-span-8">
-        <div class="h-full bg-white border rounded-2xl p-5 shadow-sm">
+        <div class="h-full bg-white border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
           <!-- Header Section -->
           <div class="flex justify-between items-center mb-4">
             <div>
               <h3 class="text-base font-medium text-gray-700">Revenue</h3>
-              <p class="text-xs text-gray-400 mt-1">Sales performance overview</p>
             </div>
-            
             <!-- Controls Container -->
             <div class="flex gap-3 items-center">
               <select id="rangePreset" class="w-48 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all">
@@ -127,7 +171,7 @@
             </div>
           </div>
           <!-- Chart Area -->
-          <div class="flex-1 bg-gray-50 min-h-[500px] rounded-xl">
+          <div class="flex-1 bg-gray-50 min-h-[500px] rounded-xl p-4">
             <!-- Daily Chart -->
             <div id="dailyChartContainer" class="block h-[500px] w-full">
               <canvas id="dailyRevenueChart"></canvas>
@@ -142,12 +186,12 @@
 
     <!-- === Bottom Section: Product List with Sort Menu === -->
     <% List<productDTO> products = (List<productDTO>) request.getAttribute("productDTOs"); %>
-    <div class="bg-white rounded-2xl p-6 shadow">
+    <div class="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-shadow duration-300">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-900">Product List</h2>
         <div class="relative">
           <button onclick="openFilterModal()" class="p-2 rounded-full hover:text-yellow-300 focus:outline-none"> 
-              <i class="fa-solid fa-filter"></i>
+            <i class="fa-solid fa-filter"></i>
           </button>
         </div>
       </div>
@@ -162,7 +206,10 @@
                 <th class="w-2/12 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price(RM)</th>
                 <th class="w-1/12 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                 <th class="w-2/12 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Rating</th>
-                <th class="w-2/12 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sold</th>
+                <th id="th-totalSold" class="w-2/12 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onclick="sortTotalSold()">
+                  Total Sold
+                  <i id="icon-totalSold" class="fa-solid fa-sort ml-1"></i>
+                </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -171,11 +218,11 @@
                   <td class="px-4 py-3 text-sm text-gray-900 align-middle whitespace-nowrap"><%= p.title %></td>
                   <td class="px-4 py-3 text-sm text-gray-700 align-middle"><%= p.type %></td>
                   <td class="px-4 py-3 text-sm text-gray-900 text-right align-middle"><%= String.format("%.2f", p.price) %></td>
-                    <td class="px-4 py-3 text-sm text-gray-900 text-right align-middle"><%= p.stock %>
+                  <td class="px-4 py-3 text-sm text-gray-900 text-right align-middle"><%= p.stock %>
                     <% if (p.stock < 10) { %>
                       <i class="fa-solid fa-exclamation-circle text-red-500 ml-2" title="Low stock"></i>
                     <% } %>
-                    </td>
+                  </td>
                   <td class="px-4 py-3 text-sm text-gray-900 text-right align-middle"><%= String.format("%.1f", p.avgRating) %></td>
                   <td class="px-4 py-3 text-sm text-gray-900 text-right align-middle"><%= p.totalSold %></td>
                 </tr>
@@ -190,11 +237,9 @@
             </tbody>
           </table>
         </div>
-        </div>
       </div>
     </div>
   </div>
-
 </body>
 
   <%@ include file="/Views/Report/sortModal.jsp" %>
@@ -202,6 +247,8 @@
 
 <script>
   const ctx = '<%= request.getContextPath() %>';
+
+  // ==================== Filter Modal ====================
 
   function openFilterModal() {
     document.getElementById('filterModal').classList.remove('hidden');
@@ -280,289 +327,25 @@
     });
   }
 
-  // ================= Chart.js ===================
+  // ==================== Sorting total sold ====================
+  function sortTotalSold() {
+    let asc = false; // Set to false for sorting from largest to smallest
+    const tbody = document.querySelector('#productTable tbody');
+    const rows  = Array.from(tbody.rows);
+    rows.sort((a, b) => {
+      // Grab the 6th cell of the table
+      const vA = parseInt(a.cells[5].textContent, 10) || 0;
+      const vB = parseInt(b.cells[5].textContent, 10) || 0;
+      return asc ? vA - vB : vB - vA;
+    });
+    rows.forEach(r => tbody.appendChild(r));
 
-//   gather the parameter for line chart 
-// Global chart instances
-// let dailyChart = null;
-// let monthlyChart = null;
-// let salesPieChart = null;
-
-// // Enhanced unwrapEnvelope
-// function unwrapEnvelope(payload) {
-//   console.log("🔍 Unwrapping payload:", payload);
-//   if (Array.isArray(payload)) {
-//     console.log("✅ Payload is already an array:", payload);
-//     return payload;
-//   }
-//   if (payload && payload.data) {
-//     if (typeof payload.data === 'string') {
-//       try {
-//         const cleanedData = payload.data.replace(/\\"/g, '"').replace(/\\+/g, '\\');
-//         const inner = JSON.parse(cleanedData);
-//         console.log("🔄 Parsed inner data:", inner);
-//         // Check if inner has a data field (double-nested)
-//         if (inner && inner.data) {
-//           return inner.data;
-//         }
-//         return inner;
-//       } catch (e) {
-//         console.error("❌ Failed to parse envelope.data:", payload.data, e);
-//         return [];
-//       }
-//     }
-//     console.log("🔄 Returning payload.data:", payload.data);
-//     return payload.data; // Direct data for fixed responses
-//   }
-//   console.warn("⚠️ Unexpected payload shape, returning empty array:", payload);
-//   return [];
-// }
-
-// // Toggle daily/monthly charts
-// function onPresetChange() {
-//   const sel = document.getElementById('rangePreset');
-//   const count = parseInt(sel.value, 10);
-//   const unit = sel.selectedOptions[0].dataset.unit;
-
-//   if (unit === 'days') {
-//     document.getElementById('dailyChartContainer').classList.remove('hidden');
-//     document.getElementById('monthlyChartContainer').classList.add('hidden');
-//     fetchDailyRevenue(count);
-//   } else {
-//     document.getElementById('monthlyChartContainer').classList.remove('hidden');
-//     document.getElementById('dailyChartContainer').classList.add('hidden');
-//     fetchMonthlyRevenue(count);
-//   }
-// }
-
-// // Fetch daily revenue
-// function fetchDailyRevenue(days) {
-//   console.log("🔄 fetchDailyRevenue, days =", days);
-//   fetch(ctx + '/Report/report/dailyRevenue?days=' + days)
-//     .then(res => {
-//       if (!res.ok) throw new Error(res.statusText);
-//       return res.text();
-//     })
-//     .then(text => {
-//       console.log("⬅️ Raw dailyRevenue response:", text);
-//       let envelope;
-//       try {
-//         envelope = JSON.parse(text);
-//       } catch (e) {
-//         console.error("❌ Failed to parse response as JSON:", text, e);
-//         return [];
-//       }
-//       const rows = unwrapEnvelope(envelope);
-//       console.log("📊 Parsed rows:", rows);
-//       const labels = rows.map(d => d.day || 'Unknown');
-//       const values = rows.map(d => Number(d.total) || 0);
-//       if (rows.length === 0) {
-//         document.getElementById('dailyRevenueChart').parentElement.innerHTML +=
-//           '<p class="text-red-500">No data available</p>';
-//       } else {
-//         updateDailyChart(labels, values);
-//       }
-//     })
-//     .catch(err => {
-//       console.error('🔥 Error fetching daily revenue:', err);
-//       document.getElementById('dailyRevenueChart').parentElement.innerHTML +=
-//         '<p class="text-red-500">Error loading chart</p>';
-//     });
-// }
-
-// // Fetch monthly revenue
-// function fetchMonthlyRevenue(months) {
-//   console.log("🔄 fetchMonthlyRevenue, months =", months);
-//   fetch(ctx + '/Report/report/monthlyRevenue?months=' + months)
-//     .then(res => {
-//       if (!res.ok) throw new Error(res.statusText);
-//       return res.text();
-//     })
-//     .then(text => {
-//       console.log("⬅️ Raw monthlyRevenue response:", text);
-//       let envelope;
-//       try {
-//         envelope = JSON.parse(text);
-//       } catch (e) {
-//         console.error("❌ Failed to parse response as JSON:", text, e);
-//         return [];
-//       }
-//       const rows = unwrapEnvelope(envelope);
-//       console.log("📊 Parsed rows:", rows);
-//       const labels = rows.map(d => d.month || 'Unknown');
-//       const values = rows.map(d => Number(d.total) || 0);
-//       if (rows.length === 0) {
-//         document.getElementById('monthlyRevenueChart').parentElement.innerHTML +=
-//           '<p class="text-red-500">No data available</p>';
-//       } else {
-//         updateMonthlyChart(labels, values);
-//       }
-//     })
-//     .catch(err => {
-//       console.error('🔥 Error fetching monthly revenue:', err);
-//       document.getElementById('monthlyRevenueChart').parentElement.innerHTML +=
-//         '<p class="text-red-500">Error loading chart</p>';
-//     });
-// }
-
-// // Fetch sales by category
-// function fetchSalesByCategory() {
-//   console.log("🔄 fetchSalesByCategory()");
-//   fetch(ctx + '/Report/report/salesByCategory')
-//     .then(res => {
-//       if (!res.ok) throw new Error(res.statusText);
-//       return res.text();
-//     })
-//     .then(text => {
-//       console.log("⬅️ Raw salesByCategory response:", text);
-//       let envelope;
-//       try {
-//         envelope = JSON.parse(text);
-//       } catch (e) {
-//         console.error("❌ Failed to parse response as JSON:", text, e);
-//         return [];
-//       }
-//       console.group("🏷️ Raw salesByCategory envelope");
-//       console.log(envelope);
-//       console.groupEnd();
-
-//       const rows = unwrapEnvelope(envelope);
-//       console.log("📊 Unwrapped rows:", rows);
-//       const labels = rows.map(r => r[0] || 'Unknown');
-//       const values = rows.map(r => Number(r[1]) || 0);
-
-//       console.log("🏷️ Pie chart labels:", labels);
-//       console.log("🏷️ Pie chart values:", values);
-
-
-//       if (rows.length === 0) {
-//         document.getElementById('salesByCategoryChart').parentElement.innerHTML +=
-//           '<p class="text-red-500">No data available</p>';
-//       } else {
-//         updatePieChart(labels, values);
-//       }
-//     })
-//     .catch(err => {
-//       console.error("🔥 Error fetching sales by category:", err);
-//       document.getElementById('salesByCategoryChart').parentElement.innerHTML +=
-//         '<p class="text-red-500">Error loading chart</p>';
-//     });
-// }
-
-// // Update daily chart
-// function updateDailyChart(labels, values) {
-//   if (!dailyChart) {
-//     console.error("❌ dailyChart not initialized");
-//     return;
-//   }
-//   dailyChart.data.labels = labels;
-//   dailyChart.data.datasets[0].data = values;
-//   dailyChart.update();
-// }
-
-// // Update monthly chart
-// function updateMonthlyChart(labels, values) {
-//   if (!monthlyChart) {
-//     console.error("❌ monthlyChart not initialized");
-//     return;
-//   }
-//   monthlyChart.data.labels = labels;
-//   monthlyChart.data.datasets[0].data = values;
-//   monthlyChart.update();
-// }
-
-// // Update pie chart
-// function updatePieChart(labels, values) {
-//   const canvas = document.getElementById('salesByCategoryChart');
-//   if (!canvas) {
-//     console.error("❌ Canvas 'salesByCategoryChart' not found");
-//     return;
-//   }
-
-//   const ctx2d = canvas.getContext('2d');
-//   if (!salesPieChart) {
-//     salesPieChart = new Chart(ctx2d, {
-//       type: 'pie',
-//       data: { labels, datasets: [{ data: values }] },
-//       options: {
-//         responsive: true,
-//         maintainAspectRatio: false,
-//         plugins: {
-//           legend: { position: 'right' },
-//           tooltip: {
-//             enabled: true, // Explicitly enable tooltips
-//             callbacks: {
-//               label: function(ctx) {     
-//                 console.log("🔍 Tooltip context:", ctx); // Debug tooltip data           
-//                 const label = ctx.label || 'Unknown';                
-//                 const value = ctx.parsed !== undefined ? ctx.parsed : (ctx.dataset.data[ctx.index] || 0);                
-//                   minimumFractionDigits: 2
-//                 })}`;
-//               }
-//             }
-//           }
-//         }
-//       }
-//     });
-//   } else {
-//     salesPieChart.data.labels = labels;
-//     salesPieChart.data.datasets[0].data = values;
-//     salesPieChart.update();
-//   }
-// }
-
-// // Single DOMContentLoaded listener
-// document.addEventListener('DOMContentLoaded', function() {
-//   const preset = document.getElementById('rangePreset');
-//   preset.addEventListener('change', onPresetChange);
-
-//   dailyChart = new Chart(document.getElementById('dailyRevenueChart'), {
-//     type: 'line',
-//     data: {
-//       labels: [],
-//       datasets: [{
-//         label: 'Revenue (RM)',
-//         data: [],
-//         fill: false,
-//         borderWidth: 2
-//       }]
-//     },
-//     options: {
-//       responsive: true,
-//       maintainAspectRatio: false,
-//       scales: {
-//         x: { title: { display: true, text: 'Date' } },
-//         y: { title: { display: true, text: 'Revenue (RM)' } }
-//       }
-//     }
-//   });
-
-//   monthlyChart = new Chart(document.getElementById('monthlyRevenueChart'), {
-//     type: 'line',
-//     data: {
-//       labels: [],
-//       datasets: [{
-//         label: 'Revenue (RM)',
-//         data: [],
-//         fill: false,
-//         borderWidth: 2
-//       }]
-//     },
-//     options: {
-//       responsive: true,
-//       maintainAspectRatio: false,
-//       scales: {
-//         x: { title: { display: true, text: 'Date' } },
-//         y: { title: { display: true, text: 'Revenue (RM)' } }
-//       }
-//     }
-//   });
-
-//   preset.dispatchEvent(new Event('change'));
-//   setTimeout(() => fetchSalesByCategory(), 500);
-//   console.log(Chart.version);
-// });
-
+    const icon = document.getElementById('icon-totalSold');
+    icon.classList.toggle('fa-sort-up',  asc);
+    icon.classList.toggle('fa-sort-down', !asc);
+    icon.classList.toggle('fa-sort',      false);
+    asc = !asc;
+  }
 
 //#region testing
 // ==========================Testing ==========================

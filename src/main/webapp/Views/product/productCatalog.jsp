@@ -14,7 +14,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Furniture Shop</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/swiper.css"/>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
 </head>
 
 
@@ -96,61 +99,200 @@
             <!-- Main content -->
             <div class="flex-1 rounded-lg bg-white p-6 shadow-lg">
                 <div class="mb-6">
-                    <!-- Search Results header with tabs on same line -->
+                    <!-- Header Section -->
                     <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                         <h2 class="text-xl font-bold">Searched Result</h2>
                         <div class="flex gap-2 w-full md:w-auto">
-                            <!-- List View Button -->
-                            <button id="btnList"
-                                class="bg-white text-gray-700 rounded-md py-2 px-4 flex items-center justify-center shadow w-1/2 md:w-auto"
-                                onclick="toggleView('list')">
-                                <i class="fas fa-list text-lg"></i>
+                            <!-- View Toggle Buttons -->
+                            <button id="btnList" onclick="toggleView('list')" 
+                                class="view-toggle bg-gray-100 text-gray-600 px-4 py-2 rounded-md flex items-center gap-2">
+                                <i class="fas fa-list"></i>
+                                <span>List</span>
                             </button>
-                            <!-- Card View Button -->
-                            <button id="btnCard"
-                                class="bg-yellow-400 text-white rounded-md py-2 px-4 flex items-center justify-center shadow w-1/2 md:w-auto"
-                                onclick="toggleView('card')">
-                                <i class="fas fa-th text-lg"></i>
+                            <button id="btnCard" onclick="toggleView('card')" 
+                                class="view-toggle bg-yellow-400 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                                <i class="fas fa-th"></i>
+                                <span>Grid</span>
                             </button>
                         </div>
                     </div>
 
-                    <div id="cardView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-                        <%
-                            List<product> products = (List<product>) request.getAttribute("products");
-                            if (products != null && !products.isEmpty()) {
-                                for (product p : products) {
-                        %>
-                            <a href="productPage?id=<%= p.getId() %>" class="block hover:shadow-lg transition-shadow duration-200">
-                                <div class="bg-white rounded-lg overflow-hidden shadow relative">
+                    <% 
+                        List<product> products = (List<product>) request.getAttribute("products");
+                        boolean hasProducts = products != null && !products.isEmpty();
+                        int itemsPerPage = 9; // Items per page
+                    %>
 
-                                <img loading="lazy" src="<%=request.getContextPath()%>/File/Content/product/retrieve?id=<%=p.getImage().getId()%>"
-                                     alt="<%=p.getTitle()%>" class="w-full h-40 object-cover rounded-md mb-2"/> 
-
-                                <div class="p-3">
-                                        <h3 class="font-medium"><%= p.getTitle() %></h3>
-                                        <p class="text-xs text-gray-500"><%= p.getRetailInfo() %></p>
-                                        <div class="flex justify-between items-center mt-2">
-                                            <span class="font-bold">RM <%= String.format("%.2f", p.getPrice()) %></span>
-                                            <div class="flex items-center text-xs text-gray-500">
-                                                <i class="fas fa-box mr-1"></i>
-                                                <span><%= p.getStock() %> left</span>
+                    <!-- Card View -->
+                    <div id="cardView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        <% if (hasProducts) { 
+                            //
+                            for (int i=0; i<products.size(); i++) { 
+                                product p = products.get(i); %>
+                                <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">
+                                    <a href="productPage?id=<%= p.getId() %>" class="block h-full hover:shadow-lg transition-shadow duration-200">
+                                        <div class="bg-white rounded-lg overflow-hidden shadow h-full">
+                                            <img loading="lazy" src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" 
+                                                alt="<%= p.getTitle() %>" class="w-full h-48 object-cover rounded-t-md" />
+                                            <div class="p-4">
+                                                <h3 class="font-semibold text-lg truncate"><%= p.getTitle() %></h3>
+                                                <p class="text-sm text-gray-500 mt-2 line-clamp-2"><%= p.getRetailInfo() %></p>
+                                                <div class="flex justify-between items-center mt-4">
+                                                    <span class="text-lg font-bold text-yellow-600">RM <%= String.format("%.2f", p.getPrice()) %></span>
+                                                    <div class="flex items-center text-sm text-gray-500">
+                                                        <i class="fas fa-box mr-2"></i>
+                                                        <span><%= p.getStock() %> left</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </a>
                                 </div>
-                            </a>
-                        <% } } else { %>
-                            <p>No products found.</p>
+                            <% } 
+                        } else { %>
+                            <p class="text-center text-gray-500 col-span-full">No products found.</p>
                         <% } %>
                     </div>
+
+                    <!-- List View -->
+                    <div id="listView" class="hidden space-y-4 mb-6">
+                        <% if (hasProducts) { 
+                            
+                            for (int i=0; i<products.size(); i++) { 
+                                product p = products.get(i); %>
+                                <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">
+                                    <a href="productPage?id=<%= p.getId() %>" class="flex flex-col sm:flex-row bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
+                                        <div class="sm:w-1/3">
+                                            <img loading="lazy" src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" 
+                                                alt="<%= p.getTitle() %>" class="w-full h-48 object-cover rounded-t-md sm:rounded-l-md sm:rounded-tr-none" />
+                                        </div>
+                                        <div class="p-4 sm:w-2/3">
+                                            <h3 class="font-semibold text-xl truncate"><%= p.getTitle() %></h3>
+                                            <p class="text-gray-500 mt-2"><%= p.getTypeId().gettype() %></p>
+                                            <div class="flex justify-between items-center mt-4">
+                                                <span class="text-2xl font-bold text-yellow-600">RM <%= String.format("%.2f", p.getPrice()) %></span>
+                                                <div class="flex items-center text-sm text-gray-500">
+                                                    <i class="fas fa-box mr-2"></i>
+                                                    <span><%= p.getStock() %> left</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mt-3 line-clamp-3"><%= p.getRetailInfo() %></p>
+                                        </div>
+                                    </a>
+                                </div>
+                            <% } 
+                        } else { %>
+                            <p class="text-center text-gray-500">No products found.</p>
+                        <% } %>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <% if (hasProducts) { 
+                        int totalPages = (int) Math.ceil((double)products.size() / itemsPerPage); %>
+                        <div class="pagination-controls mt-6 flex justify-center items-center gap-2">
+                            <button onclick="changePage(currentPage - 1)" 
+                                class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200">
+                                &laquo; Previous
+                            </button>
+                            
+                            <% for(int i=1; i<=totalPages; i++) { %>
+                                <button onclick="changePage(<%= i %>)" 
+                                    class="page-btn px-4 py-2 rounded-md <%= i==1 ? "bg-yellow-400 text-white" : "bg-gray-100 hover:bg-gray-200" %>">
+                                    <%= i %>
+                                </button>
+                            <% } %>
+                            
+                            <button onclick="changePage(currentPage + 1)" 
+                                class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200">
+                                Next &raquo;
+                            </button>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </div>
 
-        <!-- JavaScript for toggling the mobile filter modal -->
     </div>
+
+
+
+
     <script>
+
+    let currentPage = 1;
+    const itemsPerPage = <%= itemsPerPage %>;
+
+function toggleView(view) {
+    const cardView = document.getElementById('cardView');
+    const listView = document.getElementById('listView');
+    const btnCard = document.getElementById('btnCard');
+    const btnList = document.getElementById('btnList');
+    
+    if(view === 'card') {
+        cardView.classList.remove('hidden');
+        listView.classList.add('hidden');
+        btnCard.classList.add('bg-yellow-400', 'text-white');
+        btnList.classList.remove('bg-yellow-400', 'text-white');
+        btnList.classList.add('bg-gray-100', 'text-gray-600');
+    } else {
+        listView.classList.remove('hidden');
+        cardView.classList.add('hidden');
+        btnList.classList.add('bg-yellow-400', 'text-white');
+        btnCard.classList.remove('bg-yellow-400', 'text-white');
+        btnCard.classList.add('bg-gray-100', 'text-gray-600');
+    }
+    changePage(1); 
+}
+
+function changePage(newPage) {
+    const totalProducts = <%= hasProducts ? products.size() : 0 %>;
+    const totalPages = Math.ceil(totalProducts / itemsPerPage);
+    
+    if(newPage < 1 || newPage > totalPages) return;
+    
+    currentPage = newPage;
+    
+    // Update product visibility
+    document.querySelectorAll('.product-item').forEach(item => {
+        item.style.display = item.dataset.page == currentPage ? 'block' : 'none';
+    });
+    
+    // Update pagination buttons
+    document.querySelectorAll('.page-btn').forEach(btn => {
+        btn.classList.toggle('bg-yellow-400', Number(btn.textContent) === currentPage);
+        btn.classList.toggle('text-white', Number(btn.textContent) === currentPage);
+    });
+}
+
+        
+
+        function toggleView(view) {
+                const cardView = document.getElementById('cardView');
+                const listView = document.getElementById('listView');
+                const btnCard = document.getElementById('btnCard');
+                const btnList = document.getElementById('btnList');
+
+                if (view === 'card') {
+                    cardView.classList.remove('hidden');
+                    listView.classList.add('hidden');
+
+                    // Update button styles for card view
+                    btnCard.classList.add('bg-yellow-400', 'text-white');
+                    btnCard.classList.remove('bg-white', 'text-gray-700');
+                    btnList.classList.add('bg-white', 'text-gray-700');
+                    btnList.classList.remove('bg-yellow-400', 'text-white');
+                } else if (view === 'list') {
+                    cardView.classList.add('hidden');
+                    listView.classList.remove('hidden');
+                    
+                    // Update button styles for list view
+                    btnList.classList.add('bg-yellow-400', 'text-white');
+                    btnList.classList.remove('bg-white', 'text-gray-700');
+                    btnCard.classList.add('bg-white', 'text-gray-700');
+                    btnCard.classList.remove('bg-yellow-400', 'text-white');
+                }
+        }
+
         function clearAllFilters() {
             // Reset the form to its initial state
             document.getElementById('filterForm').reset();

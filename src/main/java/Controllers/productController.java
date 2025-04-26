@@ -52,6 +52,7 @@ public class productController extends ControllerBase {
         System.out.println("📦 Product Created Date: " + p.getCreatedDate());
         // System.out.println("📦 Product Image URL: " + p.getImageUrl());
         System.out.println("📦 Product Featured: " + p.getFeatured());
+        
 
         productVariationOptions options = null;
 
@@ -88,6 +89,10 @@ public class productController extends ControllerBase {
 
         List<productType> types = productDAO.getAllProductTypes();
         request.setAttribute("productTypes", types);
+
+        List<product> productsFeatured = productDAO.getFeaturedProducts();
+        System.out.println("📦 Featured Products: " + productsFeatured.size());
+        request.setAttribute("featuredProducts", productsFeatured);
 
         request.setAttribute("product", p);
         request.setAttribute("variationOptions", options);
@@ -266,14 +271,9 @@ public class productController extends ControllerBase {
         newProduct.setImage(pi); // link the image
 
         try {
-
-            if (productDAO.isProductNameExists(title) == true) {
-                System.out.println("❌ Product name already exists: " + title);
-                return error("Product name already exists");
-            } else {
-                productDAO.addProduct(newProduct);
-                System.out.println("✅ product persisted, id=" + newProduct.getId());
-            }
+            
+            productDAO.addProduct(newProduct);
+            System.out.println("✅ product persisted, id=" + newProduct.getId());
 
         } catch (Exception ex) {
             ex.printStackTrace();
