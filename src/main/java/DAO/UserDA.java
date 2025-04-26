@@ -9,9 +9,9 @@ import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import mvc.DataAccess;
 import mvc.Cache.Redis;
 import mvc.Cache.Redis.CacheLevel;
+import mvc.DataAccess;
 
 public class UserDA {
     private EntityManager db = DataAccess.getEntityManager();
@@ -88,13 +88,20 @@ public class UserDA {
         db.persist(user);
         db.getTransaction().commit();
 
-        return !db.getTransaction().getRollbackOnly();
+        if (!db.getTransaction().getRollbackOnly()) {
+            CartDAO cartDAO = new CartDAO();
+            return cartDAO.createCart(user);
+        }
+
+        return false;
     }
 
     public boolean updateUser(User user) {
         db.getTransaction().begin();
         db.merge(user);
         db.getTransaction().commit();
+
+        
 
         return !db.getTransaction().getRollbackOnly();
     }
