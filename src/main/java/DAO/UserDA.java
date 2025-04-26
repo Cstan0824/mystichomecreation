@@ -67,6 +67,22 @@ public class UserDA {
         return user;
     }
 
+    public User getUserByEmail(String email) {
+        User user = null;
+        TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE u.email=:email", User.class)
+                .setParameter("email", email);
+        try {
+            user = cache.getOrCreate("user-" + email, User.class, query, CacheLevel.LOW);
+        } catch (Exception e) {
+            List<User> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
+            user = resultList.get(0);
+        }
+        return user;
+    }
+
     public boolean createUser(User user) {
         db.getTransaction().begin();
         db.persist(user);

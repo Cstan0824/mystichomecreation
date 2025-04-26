@@ -10,7 +10,6 @@ import Models.Products.productImage;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.annotation.WebServlet;
 import mvc.ControllerBase;
 import mvc.DataAccess;
@@ -30,17 +29,13 @@ public class FileController extends ControllerBase {
     private UserDA userDA = new UserDA();
     private productDAO productDAO = new productDAO();
 
-
     // #region Product
     @ActionAttribute(urlPattern = "product/upload")
     @HttpRequest(HttpMethod.POST)
-    @SyncCache(channel = "ProductImage")
     public Result uploadProduct(byte[][] files) throws Exception {
         // get file from request and save it to the server
         // byte[] files1 = file[0];
         // byte[] files2 = file[1];
- 
-        
 
         return success();
     }
@@ -53,58 +48,28 @@ public class FileController extends ControllerBase {
     }
 
     @ActionAttribute(urlPattern = "product/retrieve")
-    @SyncCache(channel="ProductImage")
     public Result retrieveProduct(int id) throws Exception {
-
-        // 1) Log the requested ID
-        System.out.println("🔍 FileController.retrieveProduct → id = " + id);
-
-        // 2) Load the image entity
         productImage pi = productDAO.findImageById(id);
         if (pi == null) {
-            System.out.println("⚠ No productImage found for id = " + id);
-            return error(HttpStatusCode.NOT_FOUND, "Image not found");
+            return source(null, "product-image-" + id, FileType.PNG);
         }
-        System.out.println("✅ Loaded productImage: " + pi);
 
-            // 3) Convert Blob → byte[]
-            byte[] imgBytes;
-            try {
-                imgBytes = Helpers.convertToByte2(pi.getData());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return error(HttpStatusCode.INTERNAL_SERVER_ERROR, "Failed to read image blob");
-            }
+        byte[] imgBytes;
 
-            if (imgBytes == null || imgBytes.length == 0) {
-                System.out.println("⚠ productImage.data was empty for id = " + id);
-                return error(HttpStatusCode.NO_CONTENT, "Empty image");
-            }
-            System.out.println("📦 Image byte length = " + imgBytes.length);
+        try {
+            imgBytes = Helpers.convertToByte2(pi.getData());
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            return source(null, "product-image-" + id, FileType.PNG);
+        }
 
-            // 4) (Optional) sniff PNG vs JPEG, or hard‑code
-            String contentType = "image/png"; 
-            // you could do header checks here if you expect JPEGs
+        if (imgBytes == null || imgBytes.length == 0) {
+            return source(null, "product-image-" + id, FileType.PNG);
+        }
 
-            // 5) Stream it back
-            response.setHeader("Content-Type", contentType);
-            response.setHeader("Cache-Control", "public, max-age=86400");
-
-            try (ServletOutputStream out = response.getOutputStream()) {
-                out.write(imgBytes);
-                out.flush();
-            }
-
-            // tell the framework we’ve written the response
-            return null;
-
+        FileType fileType = Helpers.getFileTypeFromBytes(imgBytes);
+        return source(imgBytes, "product-image-" + id, fileType);
     }
-
-
-    
-
-
-
 
     // #endregion
 
@@ -164,8 +129,9 @@ public class FileController extends ControllerBase {
         if (userImage != null) {
             file = Helpers.convertToByte(userImage.getImage());
         }
+        FileType fileType = Helpers.getFileTypeFromBytes(file);
 
-        return file(file, "user-image-" + id, FileType.PNG);
+        return file(file, "user-image-" + id, fileType);
     }
 
     @ActionAttribute(urlPattern = "user/retrieve")
@@ -175,7 +141,9 @@ public class FileController extends ControllerBase {
         if (userImage != null) {
             file = Helpers.convertToByte(userImage.getImage());
         }
-        return source(file, "user-image-" + id, FileType.PNG);
+        FileType fileType = Helpers.getFileTypeFromBytes(file);
+
+        return source(file, "user-image-" + id, fileType);
     }
     // #endregion
 

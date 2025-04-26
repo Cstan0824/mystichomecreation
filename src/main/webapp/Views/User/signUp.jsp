@@ -23,6 +23,19 @@
 
 <body class="bg-grey1 font-poppins leading-normal tracking-normal min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden p-8 space-y-6">
+        <!-- Add this navigation link at the top -->
+        <div class="flex justify-between items-center mb-2">
+            <a href="<%= request.getContextPath() %>/Landing/login"
+                class="text-grey4 flex items-center hover:text-darkYellow transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Login
+            </a>
+        </div>
+
         <div class="text-center">
             <h1 id="formTitle" class="text-3xl font-bold text-grey5">Sign Up</h1>
             <p id="formSubtitle" class="mt-2 text-grey4">Create your account</p>
@@ -95,6 +108,7 @@
                         class="text-sm text-blue-600 underline hover:text-blue-800 hidden">
                         Resend OTP
                     </button>
+                    <span id="resendTimer" class="text-sm text-red-600 hover:text-red-800 hidden"></span>
                 </p>
             </div>
         </form>
@@ -102,21 +116,60 @@
 
     <script>
         $(document).ready(function() {
+            // Step tracking variable
+            var currentStep = <%= request.getAttribute("signUpState") %>;
+            console.log(currentStep); // Log the current step for debugging
             var resendCooldown = 600; // seconds (10 minutes)
             var resendTimer; // to hold the timer interval
+            // Function to show a specific step
+            function showStep(stepNum) {
+                currentStep = stepNum;
+                // Hide all steps
+                $(".step").removeClass("active-step");
+                // Show current step
+                if (stepNum === 1) {
+                    $("#userDetailsForm").addClass("active-step");
+                    $("#formTitle").text("Sign Up");
+                    $("#formSubtitle").text("Create your account");
+                } else if (stepNum === 2) {
+                    $("#completeSignUpForm").addClass("active-step");
+                    $("#formTitle").text("Verify OTP");
+                    $("#formSubtitle").text("Enter the OTP sent to your email and complete your registration.");
+                    // After 5 seconds, display the Resend OTP timer
+                    setTimeout(function() {
+                        // Show the timer first
+                        $("#resendOTPLink").removeClass("hidden");
+                        $("#resendTimer").removeClass("hidden");
+                        startResendCooldown();
+                    }, 5000);
+                }
+                // You can easily add more steps here using additional else if statements
+            }
+
             function startResendCooldown() {
-                $("#resendOTPLink").css("pointer-events", "none").text("Resend OTP (" + resendCooldown + "s)");
+                $("#resendTimer").css("pointer-events", "none");
+                // Format the time in minutes and seconds
+                function formatTime(seconds) {
+                    var m = Math.floor(seconds / 60);
+                    var s = seconds % 60;
+                    return m + "m " + (s < 10 ? "0" : "") + s + "s";
+                }
+                $("#resendTimer").text(formatTime(resendCooldown));
                 resendTimer = setInterval(function() {
                     resendCooldown--;
                     if (resendCooldown <= 0) {
                         clearInterval(resendTimer);
-                        $("#resendOTPLink").css("pointer-events", "auto").text("Resend OTP");
+                        // Hide the timer and show the clickable link
+                        $("#resendTimer").addClass("hidden");
+                        $("#resendOTPLink").removeClass("hidden");
                         resendCooldown = 600; // reset for future clicks
                     } else {
-                        $("#resendOTPLink").text("Resend OTP (" + resendCooldown + "s)");
+                        $("#resendTimer").text(formatTime(resendCooldown));
                     }
                 }, 1000);
             }
+            // Initialize to first step
+            showStep(1);
             // Step 1: Send OTP Handler
             $("#sendOTPButton").click(function() {
                 // Retrieve all details from Step 1
@@ -139,31 +192,30 @@
                 $.ajax({
                     url: "<%= request.getContextPath() %>/User/signUp",
                     type: "POST",
+                    dataType: "json",
                     data: JSON.stringify({
                         username: username,
                         email: email
                     }),
                     contentType: "application/json",
                     success: function(response) {
-                        alert("An OTP has been sent to: " + email);
-                        // Store all details from Step 1 into hidden fields for Step 2.
-                        $("#signupUsername").val(username);
-                        $("#signupEmail").val(email);
-                        $("#signupBirthdate").val(birthdate);
-                        $("#signupPassword").val(password);
-                        $("#signupConfirmPassword").val(confirmPassword);
-                        // Transition to Step 2
-                        $("#userDetailsForm").removeClass("active-step");
-                        $("#completeSignUpForm").addClass("active-step");
-                        $("#formTitle").text("Verify OTP");
-                        $("#formSubtitle").text(
-                            "Enter the OTP sent to your email and complete your registration."
-                        );
-                        // Start cooldown on the resend link.
-                        startResendCooldown();
+                        if (response.status == 200) {
+                            alert("An OTP has been sent to: " + email);
+                            // Store all details from Step 1 into hidden fields for Step 2.
+                            $("#signupUsername").val(username);
+                            $("#signupEmail").val(email);
+                            $("#signupBirthdate").val(birthdate);
+                            $("#signupPassword").val(password);
+                            $("#signupConfirmPassword").val(confirmPassword);
+                            // Move to step 2
+                            showStep(2);
+                        } else {
+                            alert(response.message);
+                        }
                     },
-                    error: function() {
-                        alert("Unable to send OTP. Please try again.");
+                    error: function(xhr, status, error) {
+                        let response = xhr.responseJSON;
+                        alert(response.message);
                     }
                 });
             });
@@ -191,12 +243,16 @@
                     data: JSON.stringify(signupData),
                     contentType: "application/json",
                     success: function(response) {
-                        alert("Sign up successful!");
-                        // Redirect to the login or home page.
-                        window.location.href = "<%= request.getContextPath() %>/Landing";
+                        if (response.status == 200) {
+                            window.location.href =
+                            "<%= request.getContextPath() %>/Landing";
+                        } else {
+                            alert(response.message);
+                        }
                     },
-                    error: function(response) {
-                        alert("Sign up failed. Please check your OTP and try again.");
+                    error: function(xhr, status, error) {
+                        let response = xhr.responseJSON;
+                        alert(response.message);
                     }
                 });
             });
@@ -207,15 +263,35 @@
                 $.ajax({
                     type: "POST",
                     url: resendUrl,
+                    contentType: "application/json",
                     success: function(response) {
-                        alert("OTP resent successfully!");
-                        // Start the cooldown again after resending.
-                        startResendCooldown();
+                        if (response.status == 200) {
+                            alert("OTP resent successfully!");
+                            // Reset cooldown to full 10 minutes (600 seconds)
+                            resendCooldown = 600;
+                            // Hide the resend link and show the timer again
+                            $("#resendOTPLink").removeClass("hidden");
+                            $("#resendTimer").removeClass("hidden");
+                            // Clear any existing timer before starting a new one
+                            if (resendTimer) {
+                                clearInterval(resendTimer);
+                            }
+                            startResendCooldown();
+                        } else {
+                            alert(response.message);
+                        }
                     },
                     error: function(xhr, status, error) {
-                        alert("Failed to resend OTP. Please try again.");
+                        let response = xhr.responseJSON;
+                        alert(response.message);
                     }
                 });
+            });
+            // Added functionality to go back to previous step
+            $("#backButton").click(function() {
+                if (currentStep > 1) {
+                    showStep(currentStep - 1);
+                }
             });
         });
     </script>
