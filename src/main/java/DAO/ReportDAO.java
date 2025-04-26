@@ -1,8 +1,12 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -39,26 +43,7 @@ public class ReportDAO {
         return count == null ? 0 : count.intValue();
     }
 
-    // public List<product> getLowStockProducts(int threshold) {
-    //     TypedQuery<product> q = db.createQuery(
-    //         "SELECT p FROM product p WHERE p.stock <= :th ORDER BY p.stock ASC",
-    //         product.class
-    //     );
-    //     q.setParameter("th", threshold);
-    //     return q.getResultList();
-    // }
-
-    // public List<Object[]> getFeedbackRatings() {
-    //     String jpql = """
-    //         SELECT pf.product.title, AVG(pf.rating)
-    //         FROM productFeedback pf
-    //         GROUP BY pf.product.title
-    //         ORDER BY AVG(pf.rating) DESC
-    //         """;
-    //     return db.createQuery(jpql, Object[].class)
-    //              .getResultList();
-    // }
-
+    // Payment Preferences
     public List<Object[]> getPaymentPreferences() {
         String jpql = """
             SELECT pm.methodDesc, COUNT(p)
@@ -71,33 +56,65 @@ public class ReportDAO {
                  .getResultList();
     }
 
-    public List<Object[]> getSalesByCategory() {
-        String jpql = """
-                SELECT pt.type, 
-                SUM(ot.orderQuantity * ot.orderedProductPrice)
-                FROM OrderTransaction ot
-                JOIN ot.product p
-                JOIN p.type pt
-                GROUP BY pt.type
-                ORDER BY SUM(ot.orderQuantity * ot.orderedProductPrice) DESC
-                """;
-        return db.createQuery(jpql, Object[].class)
-                 .getResultList();
+    // Sales by Category (chart)
+    public List<Object[]> getSalesByCategory() {  
+        String sql = 
+            "SELECT pt.product_type AS category, " +
+            "       SUM(ot.order_quantity * ot.ordered_product_price) AS total " +
+            "FROM Order_Transaction ot " +
+            "JOIN Product p ON ot.product_id = p.product_id " +
+            "JOIN Product_Type pt ON p.product_type_id = pt.product_type_id " +
+            "GROUP BY pt.product_type " +
+            "ORDER BY total DESC";
+    
+        // JPA EM, no unwrap, no scalars — raw Object[] per row
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = db.createNativeQuery(sql).getResultList();
+    
+        // Let’s log them so you can see exactly what types arrive
+        System.out.println("---- DB native salesByCategory ----");
+        for (Object[] r : rows) {
+            System.out.printf("category=%s (%s), total=%s (%s)%n",
+                r[0], r[0] == null ? "null" : r[0].getClass().getSimpleName(),
+                r[1], r[1] == null ? "null" : r[1].getClass().getSimpleName()
+            );
+        }
+    
+        return rows;
     }
 
-    public List<Object[]> getOrdersPerMonth() {
+    public int getOrdersThisMonth() {
         String sql = """
-           SELECT
-                YEAR(STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')) AS yr,
-                MONTH(STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')) AS mon,
-                COUNT(*)                                         AS cnt
+            SELECT COUNT(*) 
             FROM Orders o
-            GROUP BY yr, mon
-            ORDER BY yr DESC, mon DESC
+            WHERE STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')
+                  BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                      AND LAST_DAY(CURDATE())
         """;
-        @SuppressWarnings("unchecked")
-        List<Object[]> results = db.createNativeQuery(sql).getResultList();
-        return results;
+    
+        Number n = (Number) db
+          .createNativeQuery(sql)
+          .getSingleResult();
+        return n.intValue();
+    }
+
+    public int getOrdersLastMonth() {
+        String sql = """
+            SELECT COUNT(*) 
+            FROM Orders o
+            WHERE STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')
+              BETWEEN DATE_FORMAT(
+                        DATE_SUB(CURDATE(), INTERVAL 1 MONTH), 
+                        '%Y-%m-01'
+                      )
+                  AND LAST_DAY(
+                        DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+                      )
+        """;
+        Number n = (Number) db
+          .createNativeQuery(sql)
+          .getSingleResult();
+        return n.intValue();
     }
 
     public double getTotalRevenue() {
@@ -128,7 +145,7 @@ public class ReportDAO {
         return results;
     }
 
-
+    // filter product
     public List<product> filterProducts( List<Integer> categoryIds, Double priceMin, Double priceMax, Integer stockMin, Integer stockMax, Double ratingMin, LocalDate dateFrom, LocalDate dateTo) 
     {
         StringBuilder jpql = new StringBuilder("SELECT p FROM product p WHERE 1=1");
@@ -196,7 +213,7 @@ public class ReportDAO {
         return q.getResultList();
     }
 
-
+    // Daily Revenue (chart)
     public List<Object[]> getDailyRevenue(int days) {
         String sql = """
             SELECT 
@@ -204,7 +221,7 @@ public class ReportDAO {
               SUM(p.total_paid)   AS total
             FROM Orders o
             JOIN Payment p ON o.payment_id = p.payment_id
-            WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+             WHERE CAST(o.order_date AS DATE) >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
             GROUP BY DATE(o.order_date)
             ORDER BY DATE(o.order_date)
         """;
@@ -219,21 +236,22 @@ public class ReportDAO {
         return rows;
     }
 
-
+    // Monthly Revenue (chart)
     public List<Object[]> getMonthlyRevenue(int months) {
         String sql = """
-            SELECT 
-              YEAR(o.order_date)  AS yr,
-              MONTH(o.order_date) AS mth,
-              SUM(p.total_paid)   AS total
+            SELECT
+            YEAR(cast(o.order_date AS DATE))  AS yr,
+            MONTH(cast(o.order_date AS DATE)) AS mth,
+            SUM(p.total_paid)                  AS total
             FROM Orders o
             JOIN Payment p ON o.payment_id = p.payment_id
-            WHERE o.order_date >= DATE_SUB(
-                DATE_FORMAT(CURDATE(), '%Y-%m-01'),
-                INTERVAL :months-1 MONTH
-            )
-            GROUP BY YEAR(o.order_date), MONTH(o.order_date)
-            ORDER BY YEAR(o.order_date), MONTH(o.order_date)
+            WHERE cast(o.order_date AS DATE)
+                >= DATE_SUB(
+                    DATE_FORMAT(CURDATE(), '%Y-%m-01'),
+                    INTERVAL :months-1 MONTH
+                )
+            GROUP BY yr, mth
+            ORDER BY yr, mth
         """;
     
         var q = db.createNativeQuery(sql)
@@ -244,8 +262,6 @@ public class ReportDAO {
         List<Object[]> rows = q.getResultList();
         return rows;
     }
-
-
 
 
     //#region display purpose only
@@ -316,19 +332,6 @@ public class ReportDAO {
         }
         return result;
     }
-
-
-
-
-    
-
-
-
-    
-  
-
-        
-
 
 
 }
