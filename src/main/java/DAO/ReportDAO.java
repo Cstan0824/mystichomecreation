@@ -6,6 +6,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -74,7 +75,7 @@ public class ReportDAO {
                  .getResultList();
     }
 
-    public List<Object[]> getSalesByCategoryNative() {
+    public List<Object[]> getSalesByCategoryNative() {  
         String sql = 
             "SELECT pt.product_type AS category, " +
             "       SUM(ot.order_quantity * ot.ordered_product_price) AS total " +
@@ -100,19 +101,19 @@ public class ReportDAO {
         return rows;
     }
 
-    public List<Object[]> getOrdersPerMonth() {
+    public int getOrdersThisMonth() {
         String sql = """
-           SELECT
-                YEAR(STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')) AS yr,
-                MONTH(STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')) AS mon,
-                COUNT(*)                                         AS cnt
+            SELECT COUNT(*) 
             FROM Orders o
-            GROUP BY yr, mon
-            ORDER BY yr DESC, mon DESC
+            WHERE STR_TO_DATE(o.order_date, '%Y-%m-%d %H:%i:%s')
+                  BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                      AND LAST_DAY(CURDATE())
         """;
-        @SuppressWarnings("unchecked")
-        List<Object[]> results = db.createNativeQuery(sql).getResultList();
-        return results;
+    
+        Number n = (Number) db
+          .createNativeQuery(sql)
+          .getSingleResult();
+        return n.intValue();
     }
 
     public double getTotalRevenue() {

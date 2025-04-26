@@ -6,6 +6,8 @@ import mvc.Annotations.ActionAttribute;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -35,6 +37,8 @@ public class ReportController extends ControllerBase{
 
         //#region accept parameter 
 
+        
+
 
 
         // #variable declaration
@@ -44,8 +48,9 @@ public class ReportController extends ControllerBase{
         // List<Object[]> feedbackRatings = reportDAO.getFeedbackRatings();
         List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
         // List<Object[]> salesByCategory = reportDAO.getSalesByCategory();
-        List<Object[]> ordersByMonth = reportDAO.getOrdersPerMonth();
-        double totalRevenue = reportDAO.getTotalRevenue();
+        int thisMonthCount = reportDAO.getOrdersThisMonth();
+        request.setAttribute("ordersThisMonth", thisMonthCount);       
+         double totalRevenue = reportDAO.getTotalRevenue();
         // List<Object[]> topSelling = reportDAO.getTopSellingProductsEachMonth();
         List<productType> productTypes = productDAO.getAllProductTypes();
 
@@ -124,7 +129,7 @@ public class ReportController extends ControllerBase{
         // request.setAttribute("lowStock", lowStock);
         // request.setAttribute("feedbackRatings", feedbackRatings);
         request.setAttribute("paymentPreferences", paymentPreferences);
-        request.setAttribute("ordersByMonth", ordersByMonth);
+        // request.setAttribute("ordersByMonth", ordersByMonth);
         request.setAttribute("totalRevenue", totalRevenue);
         // request.setAttribute("topSelling", topSelling);
         // request.setAttribute("salesByCategory", salesByCategory);
@@ -247,20 +252,13 @@ public class ReportController extends ControllerBase{
         }
 
         var dailylist = daily.stream()
-            .map(r -> Map.of(
-                "day", r[0].toString(),
-                "total", ((Number)r[1]).doubleValue()
+            .map(r -> Arrays.asList(
+                r[0].toString(),
+                ((Number)r[1]).doubleValue()
             ))
             .toList();
 
-        Map<String, Object> envelope = Map.of(
-            "status", 200,
-            "timestamp", System.currentTimeMillis(),
-            "message", "success",
-            "data", dailylist
-        );
-
-        return json(envelope);
+        return json(dailylist);
     }
 
     @ActionAttribute(urlPattern = "report/monthlyRevenue")
@@ -284,23 +282,12 @@ public class ReportController extends ControllerBase{
                 int m = ((Number)r[1]).intValue();
                 double tot = ((Number)r[2]).doubleValue();
                 String label = String.format("%d-%02d", y, m);
-                return Map.<String, Object>of(
-                    "month", label,
-                    "total", tot
-                );
+                return Arrays.asList(label, tot);
             })
             .toList();
     
-        Map<String, Object> envelope = Map.of(
-            "status", 200,
-            "timestamp", System.currentTimeMillis(),
-            "message", "success",
-            "data", monthlyList
-        );
-    
-        return json(envelope);
+        return json(monthlyList);
     }
-
 
     @ActionAttribute(urlPattern = "report/salesByCategory")
     public Result salesByCategory() throws Exception {
@@ -320,14 +307,7 @@ public class ReportController extends ControllerBase{
             ))
             .toList();
 
-            Map<String, Object> envelope = Map.of(
-                "status", 200,
-                "timestamp", System.currentTimeMillis(),
-                "message", "success",
-                "data", salesList
-            );
-
-        return json(envelope);
+        return json(salesList);
     }
 
     @ActionAttribute(urlPattern = "report/topSellingProducts")

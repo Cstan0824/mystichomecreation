@@ -31,7 +31,6 @@ public class productDTO {
         this.stock          = p.getStock();
         this.retailInfo     = p.getRetailInfo();
         this.type           = p.getTypeId().gettype();
-        // populate new fields:
         this.avgRating      = avgRating;
         this.totalSold      = totalSold;
     }

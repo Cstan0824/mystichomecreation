@@ -17,6 +17,8 @@
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans p-6">
   <div class="max-w-7xl mx-auto space-y-8">
@@ -25,33 +27,20 @@
 
     <!-- === Upper 4-column Section === -->
     <%  
-        List<Object[]> ordersByMonth = (List<Object[]>) request.getAttribute("ordersByMonth");  
+        Integer ordersThisMonth = (Integer) request.getAttribute("ordersThisMonth");
         List<Object[]> sales = (List<Object[]>) request.getAttribute("salesByCategory");
         List<Object[]> prefs = (List<Object[]>) request.getAttribute("paymentPreferences");
         double totalRevenue = (double) request.getAttribute("totalRevenue");
-      
-        int defaultCount = 0;
-        if (ordersByMonth != null && !ordersByMonth.isEmpty()) {
-            defaultCount = Integer.parseInt(ordersByMonth.get(0)[2].toString());
-        }
     %>
+
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- 1. Number of Orders Each Month -->
       <div class="bg-white rounded-2xl p-5 shadow">
         <div class="flex justify-between items-center">
-          <h3 class="text-sm font-medium text-gray-500">Total Orders </h3>
-          <select class="text-sm text-gray-700 border border-gray-300 rounded px-2 py-1">
-            <% 
-              for (Object[] row : ordersByMonth) {
-              int yr  = Integer.parseInt(row[0].toString());
-              int mo  = Integer.parseInt(row[1].toString());
-              int ct  = Integer.parseInt(row[2].toString());            
-            %>
-            <option value="<%= yr %>-<%= mo %>"></option>
-           <% } %>
-          </select>
+          <h3 class="text-sm font-medium text-gray-500">Total Orders <%= java.time.YearMonth.now() .format(java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy"))%></h3>
         </div>
-        <p class="mt-2 text-2xl font-bold text-gray-900"><%= defaultCount %></p>
+        <div class="text-sm text-gray-500 font-medium mb-2"><%= ordersThisMonth %></div>
+
       </div>
 
 
@@ -152,7 +141,7 @@
     </div>
 
     <!-- === Bottom Section: Product List with Sort Menu === -->
-    <%List<productDTO> products = (List<productDTO>) request.getAttribute("productDTOs");%>
+    <% List<productDTO> products = (List<productDTO>) request.getAttribute("productDTOs"); %>
     <div class="bg-white rounded-2xl p-6 shadow">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-900">Product List</h2>
@@ -293,13 +282,295 @@
 
   // ================= Chart.js ===================
 
-  // gather the parameter for line chart 
+//   gather the parameter for line chart 
 // Global chart instances
+// let dailyChart = null;
+// let monthlyChart = null;
+// let salesPieChart = null;
+
+// // Enhanced unwrapEnvelope
+// function unwrapEnvelope(payload) {
+//   console.log("🔍 Unwrapping payload:", payload);
+//   if (Array.isArray(payload)) {
+//     console.log("✅ Payload is already an array:", payload);
+//     return payload;
+//   }
+//   if (payload && payload.data) {
+//     if (typeof payload.data === 'string') {
+//       try {
+//         const cleanedData = payload.data.replace(/\\"/g, '"').replace(/\\+/g, '\\');
+//         const inner = JSON.parse(cleanedData);
+//         console.log("🔄 Parsed inner data:", inner);
+//         // Check if inner has a data field (double-nested)
+//         if (inner && inner.data) {
+//           return inner.data;
+//         }
+//         return inner;
+//       } catch (e) {
+//         console.error("❌ Failed to parse envelope.data:", payload.data, e);
+//         return [];
+//       }
+//     }
+//     console.log("🔄 Returning payload.data:", payload.data);
+//     return payload.data; // Direct data for fixed responses
+//   }
+//   console.warn("⚠️ Unexpected payload shape, returning empty array:", payload);
+//   return [];
+// }
+
+// // Toggle daily/monthly charts
+// function onPresetChange() {
+//   const sel = document.getElementById('rangePreset');
+//   const count = parseInt(sel.value, 10);
+//   const unit = sel.selectedOptions[0].dataset.unit;
+
+//   if (unit === 'days') {
+//     document.getElementById('dailyChartContainer').classList.remove('hidden');
+//     document.getElementById('monthlyChartContainer').classList.add('hidden');
+//     fetchDailyRevenue(count);
+//   } else {
+//     document.getElementById('monthlyChartContainer').classList.remove('hidden');
+//     document.getElementById('dailyChartContainer').classList.add('hidden');
+//     fetchMonthlyRevenue(count);
+//   }
+// }
+
+// // Fetch daily revenue
+// function fetchDailyRevenue(days) {
+//   console.log("🔄 fetchDailyRevenue, days =", days);
+//   fetch(ctx + '/Report/report/dailyRevenue?days=' + days)
+//     .then(res => {
+//       if (!res.ok) throw new Error(res.statusText);
+//       return res.text();
+//     })
+//     .then(text => {
+//       console.log("⬅️ Raw dailyRevenue response:", text);
+//       let envelope;
+//       try {
+//         envelope = JSON.parse(text);
+//       } catch (e) {
+//         console.error("❌ Failed to parse response as JSON:", text, e);
+//         return [];
+//       }
+//       const rows = unwrapEnvelope(envelope);
+//       console.log("📊 Parsed rows:", rows);
+//       const labels = rows.map(d => d.day || 'Unknown');
+//       const values = rows.map(d => Number(d.total) || 0);
+//       if (rows.length === 0) {
+//         document.getElementById('dailyRevenueChart').parentElement.innerHTML +=
+//           '<p class="text-red-500">No data available</p>';
+//       } else {
+//         updateDailyChart(labels, values);
+//       }
+//     })
+//     .catch(err => {
+//       console.error('🔥 Error fetching daily revenue:', err);
+//       document.getElementById('dailyRevenueChart').parentElement.innerHTML +=
+//         '<p class="text-red-500">Error loading chart</p>';
+//     });
+// }
+
+// // Fetch monthly revenue
+// function fetchMonthlyRevenue(months) {
+//   console.log("🔄 fetchMonthlyRevenue, months =", months);
+//   fetch(ctx + '/Report/report/monthlyRevenue?months=' + months)
+//     .then(res => {
+//       if (!res.ok) throw new Error(res.statusText);
+//       return res.text();
+//     })
+//     .then(text => {
+//       console.log("⬅️ Raw monthlyRevenue response:", text);
+//       let envelope;
+//       try {
+//         envelope = JSON.parse(text);
+//       } catch (e) {
+//         console.error("❌ Failed to parse response as JSON:", text, e);
+//         return [];
+//       }
+//       const rows = unwrapEnvelope(envelope);
+//       console.log("📊 Parsed rows:", rows);
+//       const labels = rows.map(d => d.month || 'Unknown');
+//       const values = rows.map(d => Number(d.total) || 0);
+//       if (rows.length === 0) {
+//         document.getElementById('monthlyRevenueChart').parentElement.innerHTML +=
+//           '<p class="text-red-500">No data available</p>';
+//       } else {
+//         updateMonthlyChart(labels, values);
+//       }
+//     })
+//     .catch(err => {
+//       console.error('🔥 Error fetching monthly revenue:', err);
+//       document.getElementById('monthlyRevenueChart').parentElement.innerHTML +=
+//         '<p class="text-red-500">Error loading chart</p>';
+//     });
+// }
+
+// // Fetch sales by category
+// function fetchSalesByCategory() {
+//   console.log("🔄 fetchSalesByCategory()");
+//   fetch(ctx + '/Report/report/salesByCategory')
+//     .then(res => {
+//       if (!res.ok) throw new Error(res.statusText);
+//       return res.text();
+//     })
+//     .then(text => {
+//       console.log("⬅️ Raw salesByCategory response:", text);
+//       let envelope;
+//       try {
+//         envelope = JSON.parse(text);
+//       } catch (e) {
+//         console.error("❌ Failed to parse response as JSON:", text, e);
+//         return [];
+//       }
+//       console.group("🏷️ Raw salesByCategory envelope");
+//       console.log(envelope);
+//       console.groupEnd();
+
+//       const rows = unwrapEnvelope(envelope);
+//       console.log("📊 Unwrapped rows:", rows);
+//       const labels = rows.map(r => r[0] || 'Unknown');
+//       const values = rows.map(r => Number(r[1]) || 0);
+
+//       console.log("🏷️ Pie chart labels:", labels);
+//       console.log("🏷️ Pie chart values:", values);
+
+
+//       if (rows.length === 0) {
+//         document.getElementById('salesByCategoryChart').parentElement.innerHTML +=
+//           '<p class="text-red-500">No data available</p>';
+//       } else {
+//         updatePieChart(labels, values);
+//       }
+//     })
+//     .catch(err => {
+//       console.error("🔥 Error fetching sales by category:", err);
+//       document.getElementById('salesByCategoryChart').parentElement.innerHTML +=
+//         '<p class="text-red-500">Error loading chart</p>';
+//     });
+// }
+
+// // Update daily chart
+// function updateDailyChart(labels, values) {
+//   if (!dailyChart) {
+//     console.error("❌ dailyChart not initialized");
+//     return;
+//   }
+//   dailyChart.data.labels = labels;
+//   dailyChart.data.datasets[0].data = values;
+//   dailyChart.update();
+// }
+
+// // Update monthly chart
+// function updateMonthlyChart(labels, values) {
+//   if (!monthlyChart) {
+//     console.error("❌ monthlyChart not initialized");
+//     return;
+//   }
+//   monthlyChart.data.labels = labels;
+//   monthlyChart.data.datasets[0].data = values;
+//   monthlyChart.update();
+// }
+
+// // Update pie chart
+// function updatePieChart(labels, values) {
+//   const canvas = document.getElementById('salesByCategoryChart');
+//   if (!canvas) {
+//     console.error("❌ Canvas 'salesByCategoryChart' not found");
+//     return;
+//   }
+
+//   const ctx2d = canvas.getContext('2d');
+//   if (!salesPieChart) {
+//     salesPieChart = new Chart(ctx2d, {
+//       type: 'pie',
+//       data: { labels, datasets: [{ data: values }] },
+//       options: {
+//         responsive: true,
+//         maintainAspectRatio: false,
+//         plugins: {
+//           legend: { position: 'right' },
+//           tooltip: {
+//             enabled: true, // Explicitly enable tooltips
+//             callbacks: {
+//               label: function(ctx) {     
+//                 console.log("🔍 Tooltip context:", ctx); // Debug tooltip data           
+//                 const label = ctx.label || 'Unknown';                
+//                 const value = ctx.parsed !== undefined ? ctx.parsed : (ctx.dataset.data[ctx.index] || 0);                
+//                   minimumFractionDigits: 2
+//                 })}`;
+//               }
+//             }
+//           }
+//         }
+//       }
+//     });
+//   } else {
+//     salesPieChart.data.labels = labels;
+//     salesPieChart.data.datasets[0].data = values;
+//     salesPieChart.update();
+//   }
+// }
+
+// // Single DOMContentLoaded listener
+// document.addEventListener('DOMContentLoaded', function() {
+//   const preset = document.getElementById('rangePreset');
+//   preset.addEventListener('change', onPresetChange);
+
+//   dailyChart = new Chart(document.getElementById('dailyRevenueChart'), {
+//     type: 'line',
+//     data: {
+//       labels: [],
+//       datasets: [{
+//         label: 'Revenue (RM)',
+//         data: [],
+//         fill: false,
+//         borderWidth: 2
+//       }]
+//     },
+//     options: {
+//       responsive: true,
+//       maintainAspectRatio: false,
+//       scales: {
+//         x: { title: { display: true, text: 'Date' } },
+//         y: { title: { display: true, text: 'Revenue (RM)' } }
+//       }
+//     }
+//   });
+
+//   monthlyChart = new Chart(document.getElementById('monthlyRevenueChart'), {
+//     type: 'line',
+//     data: {
+//       labels: [],
+//       datasets: [{
+//         label: 'Revenue (RM)',
+//         data: [],
+//         fill: false,
+//         borderWidth: 2
+//       }]
+//     },
+//     options: {
+//       responsive: true,
+//       maintainAspectRatio: false,
+//       scales: {
+//         x: { title: { display: true, text: 'Date' } },
+//         y: { title: { display: true, text: 'Revenue (RM)' } }
+//       }
+//     }
+//   });
+
+//   preset.dispatchEvent(new Event('change'));
+//   setTimeout(() => fetchSalesByCategory(), 500);
+//   console.log(Chart.version);
+// });
+
+
+//#region testing
+// ==========================Testing ==========================
 let dailyChart = null;
 let monthlyChart = null;
 let salesPieChart = null;
 
-// Enhanced unwrapEnvelope
+// Simplified unwrapEnvelope
 function unwrapEnvelope(payload) {
   console.log("🔍 Unwrapping payload:", payload);
   if (Array.isArray(payload)) {
@@ -309,21 +580,16 @@ function unwrapEnvelope(payload) {
   if (payload && payload.data) {
     if (typeof payload.data === 'string') {
       try {
-        const cleanedData = payload.data.replace(/\\"/g, '"').replace(/\\+/g, '\\');
-        const inner = JSON.parse(cleanedData);
-        console.log("🔄 Parsed inner data:", inner);
-        // Check if inner has a data field (double-nested)
-        if (inner && inner.data) {
-          return inner.data;
-        }
-        return inner;
+        const parsed = JSON.parse(payload.data);
+        console.log("🔄 Parsed inner data:", parsed);
+        return parsed;
       } catch (e) {
         console.error("❌ Failed to parse envelope.data:", payload.data, e);
         return [];
       }
     }
     console.log("🔄 Returning payload.data:", payload.data);
-    return payload.data; // Direct data for fixed responses
+    return payload.data;
   }
   console.warn("⚠️ Unexpected payload shape, returning empty array:", payload);
   return [];
@@ -334,6 +600,7 @@ function onPresetChange() {
   const sel = document.getElementById('rangePreset');
   const count = parseInt(sel.value, 10);
   const unit = sel.selectedOptions[0].dataset.unit;
+  console.log("🔄 onPresetChange, count =", count, "unit =", unit);
 
   if (unit === 'days') {
     document.getElementById('dailyChartContainer').classList.remove('hidden');
@@ -352,22 +619,17 @@ function fetchDailyRevenue(days) {
   fetch(ctx + '/Report/report/dailyRevenue?days=' + days)
     .then(res => {
       if (!res.ok) throw new Error(res.statusText);
-      return res.text();
+      return res.json();
     })
-    .then(text => {
-      console.log("⬅️ Raw dailyRevenue response:", text);
-      let envelope;
-      try {
-        envelope = JSON.parse(text);
-      } catch (e) {
-        console.error("❌ Failed to parse response as JSON:", text, e);
-        return [];
-      }
+    .then(envelope => {
+      console.log("⬅️ Raw dailyRevenue response:", envelope);
       const rows = unwrapEnvelope(envelope);
       console.log("📊 Parsed rows:", rows);
-      const labels = rows.map(d => d.day || 'Unknown');
-      const values = rows.map(d => Number(d.total) || 0);
-      if (rows.length === 0) {
+      const labels = rows.map(d => d[0] || 'Unknown');
+      const values = rows.map(d => Number(d[1]) || 0);
+      console.log("🏷️ Daily chart labels:", labels);
+      console.log("🏷️ Daily chart values:", values);
+      if (rows.length === 0 || values.every(v => v === 0)) {
         document.getElementById('dailyRevenueChart').parentElement.innerHTML +=
           '<p class="text-red-500">No data available</p>';
       } else {
@@ -387,22 +649,17 @@ function fetchMonthlyRevenue(months) {
   fetch(ctx + '/Report/report/monthlyRevenue?months=' + months)
     .then(res => {
       if (!res.ok) throw new Error(res.statusText);
-      return res.text();
+      return res.json();
     })
-    .then(text => {
-      console.log("⬅️ Raw monthlyRevenue response:", text);
-      let envelope;
-      try {
-        envelope = JSON.parse(text);
-      } catch (e) {
-        console.error("❌ Failed to parse response as JSON:", text, e);
-        return [];
-      }
+    .then(envelope => {
+      console.log("⬅️ Raw monthlyRevenue response:", envelope);
       const rows = unwrapEnvelope(envelope);
       console.log("📊 Parsed rows:", rows);
-      const labels = rows.map(d => d.month || 'Unknown');
-      const values = rows.map(d => Number(d.total) || 0);
-      if (rows.length === 0) {
+      const labels = rows.map(d => d[0] || 'Unknown');
+      const values = rows.map(d => Number(d[1]) || 0);
+      console.log("🏷️ Monthly chart labels:", labels);
+      console.log("🏷️ Monthly chart values:", values);
+      if (rows.length === 0 || values.every(v => v === 0)) {
         document.getElementById('monthlyRevenueChart').parentElement.innerHTML +=
           '<p class="text-red-500">No data available</p>';
       } else {
@@ -422,31 +679,19 @@ function fetchSalesByCategory() {
   fetch(ctx + '/Report/report/salesByCategory')
     .then(res => {
       if (!res.ok) throw new Error(res.statusText);
-      return res.text();
+      return res.json();
     })
-    .then(text => {
-      console.log("⬅️ Raw salesByCategory response:", text);
-      let envelope;
-      try {
-        envelope = JSON.parse(text);
-      } catch (e) {
-        console.error("❌ Failed to parse response as JSON:", text, e);
-        return [];
-      }
+    .then(envelope => {
       console.group("🏷️ Raw salesByCategory envelope");
       console.log(envelope);
       console.groupEnd();
-
       const rows = unwrapEnvelope(envelope);
       console.log("📊 Unwrapped rows:", rows);
       const labels = rows.map(r => r[0] || 'Unknown');
       const values = rows.map(r => Number(r[1]) || 0);
-
       console.log("🏷️ Pie chart labels:", labels);
       console.log("🏷️ Pie chart values:", values);
-
-
-      if (rows.length === 0) {
+      if (rows.length === 0 || values.every(v => v === 0)) {
         document.getElementById('salesByCategoryChart').parentElement.innerHTML +=
           '<p class="text-red-500">No data available</p>';
       } else {
@@ -462,6 +707,7 @@ function fetchSalesByCategory() {
 
 // Update daily chart
 function updateDailyChart(labels, values) {
+  console.log("🎨 updateDailyChart with labels:", labels, "values:", values);
   if (!dailyChart) {
     console.error("❌ dailyChart not initialized");
     return;
@@ -473,6 +719,7 @@ function updateDailyChart(labels, values) {
 
 // Update monthly chart
 function updateMonthlyChart(labels, values) {
+  console.log("🎨 updateMonthlyChart with labels:", labels, "values:", values);
   if (!monthlyChart) {
     console.error("❌ monthlyChart not initialized");
     return;
@@ -484,6 +731,7 @@ function updateMonthlyChart(labels, values) {
 
 // Update pie chart
 function updatePieChart(labels, values) {
+  console.log("🎨 updatePieChart with labels:", labels, "values:", values);
   const canvas = document.getElementById('salesByCategoryChart');
   if (!canvas) {
     console.error("❌ Canvas 'salesByCategoryChart' not found");
@@ -493,29 +741,43 @@ function updatePieChart(labels, values) {
   const ctx2d = canvas.getContext('2d');
   if (!salesPieChart) {
     salesPieChart = new Chart(ctx2d, {
-      type: 'pie',
-      data: { labels, datasets: [{ data: values }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right' },
-          tooltip: {
-            enabled: true, // Explicitly enable tooltips
-            callbacks: {
-              label: function(ctx) {     
-                console.log("🔍 Tooltip context:", ctx); // Debug tooltip data           
-                const label = ctx.label || 'Unknown';                
-                const value = ctx.parsed !== undefined ? ctx.parsed : (ctx.dataset.data[ctx.index] || 0);                
-                return `${cat}: RM ${val.toLocaleString(undefined, {
-                  minimumFractionDigits: 2
-                })}`;
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: values,
+              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+              borderColor: ['#FFFFFF'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'right' },
+              tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#FFFFFF',
+                bodyColor: '#FFFFFF',
+                titleFont: { size: 14 },
+                bodyFont: { size: 12 },
+                callbacks: {
+                  label: function(ctx) {
+                    console.log("🔍 Tooltip context:", ctx);
+                    const label = ctx.label || 'Unknown';
+                    const value = ctx.parsed || 0;
+                    const formatted = value.toLocaleString('en-MY', { minimumFractionDigits: 2 });
+                    const result = label + ': RM' + formatted;
+                    console.log("🔍 Tooltip output:", result);
+                    return result;
+                  }
+                }
               }
             }
           }
-        }
-      }
-    });
+        });
   } else {
     salesPieChart.data.labels = labels;
     salesPieChart.data.datasets[0].data = values;
@@ -525,9 +787,9 @@ function updatePieChart(labels, values) {
 
 // Single DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', function() {
-  const preset = document.getElementById('rangePreset');
-  preset.addEventListener('change', onPresetChange);
-
+  console.log("🔄 Initializing charts, Chart.js version:", Chart.version);
+  
+  // Initialize daily chart
   dailyChart = new Chart(document.getElementById('dailyRevenueChart'), {
     type: 'line',
     data: {
@@ -535,7 +797,9 @@ document.addEventListener('DOMContentLoaded', function() {
       datasets: [{
         label: 'Revenue (RM)',
         data: [],
-        fill: false,
+        borderColor: '#36A2EB',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        fill: true,
         borderWidth: 2
       }]
     },
@@ -545,35 +809,71 @@ document.addEventListener('DOMContentLoaded', function() {
       scales: {
         x: { title: { display: true, text: 'Date' } },
         y: { title: { display: true, text: 'Revenue (RM)' } }
+      },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(ctx) {
+              const value = ctx.parsed.y || 0;
+              return 'RM' + value.toLocaleString('en-MY', { minimumFractionDigits: 2 });
+            }
+          }
+        }
       }
     }
   });
 
+  // Initialize monthly chart (bar chart, change to 'line' if preferred)
   monthlyChart = new Chart(document.getElementById('monthlyRevenueChart'), {
-    type: 'line',
+    type: 'bar', // Or 'line' to match your previous code
     data: {
       labels: [],
       datasets: [{
         label: 'Revenue (RM)',
         data: [],
-        fill: false,
-        borderWidth: 2
+        backgroundColor: '#FF6384',
+        borderColor: '#FFFFFF',
+        borderWidth: 1
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { title: { display: true, text: 'Date' } },
+        x: { title: { display: true, text: 'Month' } },
         y: { title: { display: true, text: 'Revenue (RM)' } }
+      },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(ctx) {
+              const value = ctx.parsed.y || 0;
+              return 'RM' + value.toLocaleString('en-MY', { minimumFractionDigits: 2 });
+            }
+          }
+        }
       }
     }
   });
 
+  // Add preset listener and trigger initial fetch
+  const preset = document.getElementById('rangePreset');
+  preset.addEventListener('change', onPresetChange);
   preset.dispatchEvent(new Event('change'));
-  setTimeout(() => fetchSalesByCategory(), 500);
-  console.log(Chart.version);
+  
+  // Fetch salesByCategory with delay
+  setTimeout(function() {
+    fetchSalesByCategory();
+  }, 500);
 });
+
+
+
+
 
 
 
