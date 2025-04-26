@@ -59,13 +59,14 @@ public class productDAO implements Serializable {
 
     // Catalog use this method to get all products (dont touch this method)
     public List<product> getAllProducts() {
+        
         try {
             TypedQuery<product> query = db.createQuery(
                     "SELECT p FROM product p JOIN FETCH p.image ORDER BY p.createdDate DESC",
                     product.class);
             return query.getResultList();
         } catch (Exception e) {
-            e.printStackTrace(); // Handle exception
+            e.printStackTrace(System.err); // Handle exception
         }
         return null;
     }
@@ -76,7 +77,7 @@ public class productDAO implements Serializable {
             TypedQuery<productType> query = db.createQuery("SELECT pt FROM productType pt", productType.class);
             return query.getResultList();
         } catch (Exception e) {
-            e.printStackTrace(); // Handle exception
+            e.printStackTrace(System.err); // Handle exception
         }
         return null;
     }
@@ -426,5 +427,30 @@ public class productDAO implements Serializable {
         return topFeedbacks;
     }
     
+    public List<product> getFeaturedProducts(){
+        List<product> featuredProducts = null;
+    
+        String queryStr = """
+                SELECT p
+                FROM product p
+                WHERE p.featured  = 1
+                ORDER BY FUNCTION('RAND')
+            """;
+    
+        TypedQuery<product> query = db.createQuery(queryStr, product.class)
+                                      .setMaxResults(4);
+    
+        try {
+            featuredProducts = cache.getOrCreateList(
+                    "featured-products",
+                    product.class, query, Redis.CacheLevel.LOW);
+        } catch (Exception e) {
+            featuredProducts = query.getResultList(); // fallback
+        }
+    
+        return featuredProducts;
+    }
+
+
     
 }

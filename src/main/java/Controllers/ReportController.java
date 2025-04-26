@@ -5,10 +5,14 @@ import mvc.Result;
 import mvc.Annotations.ActionAttribute;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
 
 import DAO.ReportDAO;
 import DAO.productDAO;
@@ -29,22 +33,50 @@ public class ReportController extends ControllerBase{
     @ActionAttribute(urlPattern = "report")
     public Result report() throws Exception {
 
-        //#region accept parameter 
 
-
-
-        // #variable declaration
+        // #region total customer and staff
         int totalCustomers = reportDAO.getTotalCustomers();
         int totalStuff = reportDAO.getTotalStaff();
-        // List<product> lowStock = reportDAO.getLowStockProducts(5);
-        // List<Object[]> feedbackRatings = reportDAO.getFeedbackRatings();
-        List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
-        List<Object[]> salesByCategory = reportDAO.getSalesByCategory();
-        List<Object[]> ordersByMonth = reportDAO.getOrdersPerMonth();
-        double totalRevenue = reportDAO.getTotalRevenue();
-        List<Object[]> topSelling = reportDAO.getTopSellingProductsEachMonth();
-        List<productType> productTypes = productDAO.getAllProductTypes();
 
+        System.out.println("✅ Total Customers: " + totalCustomers);
+        System.out.println("✅ Total Staff: " + totalStuff);
+
+
+        request.setAttribute("totalCustomers", totalCustomers);
+        request.setAttribute("totalStaff", totalStuff);
+
+
+        // #region payment preferences
+        List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
+       
+        request.setAttribute("paymentPreferences", paymentPreferences);
+
+
+
+        // #region total revenue of all time 
+        double totalRevenue = reportDAO.getTotalRevenue();
+        request.setAttribute("totalRevenue", totalRevenue);
+
+
+
+
+        // #region Order comparison 
+        int thisMonthCount = reportDAO.getOrdersThisMonth();
+        int lastMonthCount = reportDAO.getOrdersLastMonth();
+
+        // if lastMonthCount == 0, then pctChange = 100 if thisMonthCount > 0, else 0
+        double pctChange = lastMonthCount == 0 ? (thisMonthCount == 0 ? 0 : 100) : ((thisMonthCount - lastMonthCount) * 100.0 / lastMonthCount);
+        String changeLabel = String.format("%+,.0f%%", pctChange);
+
+        request.setAttribute("orderChangeLabel", changeLabel);
+        request.setAttribute("orderChangeUp", pctChange >= 0);
+        request.setAttribute("ordersThisMonth", thisMonthCount); 
+
+
+        
+        
+        // #region product list
+        List<productType> productTypes = productDAO.getAllProductTypes();
         List<product> products = reportDAO.getAllProducts();
 
         List<Integer> ids = products.stream()
@@ -61,72 +93,6 @@ public class ReportController extends ControllerBase{
                 soldMap.getOrDefault(p.getId(), 0)
             ))
             .toList();
-
-
-
-
-
-
-        // #Debugging output
-        System.out.println("✅ Total Customers: " + totalCustomers);
-        System.out.println("✅ Total Staff: " + totalStuff);
-        // System.out.println("✅ Low Stock Products: " + lowStock.size() + " items found.");
-        // System.out.println("✅ Feedback Ratings: " + feedbackRatings.size() + " items found.");
-        System.out.println("✅ productList count = " + products.size());
-
-        for (Object[] row : paymentPreferences) {
-            String method = (String) row[0];
-            long   count  = ((Number) row[1]).longValue();
-            System.out.printf("🔹 %d × %s%n", count, method);
-        }
-
-        System.out.printf(
-            "✅ salesByCategory count=%d categories: %s%n",
-            salesByCategory.size(),
-            salesByCategory.stream()
-                            .map(r -> String.format("%s=RM%.2f", r[0], ((Number)r[1]).doubleValue()))
-                            .toList()
-        );
-
-        System.out.printf("✅ months=%d → %s%n",
-            ordersByMonth.size(),
-            ordersByMonth.stream()
-                .map(r -> String.format("%d-%02d=%d",
-                    ((Number)r[0]).intValue(),
-                    ((Number)r[1]).intValue(),
-                    ((Number)r[2]).intValue()))
-                .toList()
-            );
-                    
-            System.out.printf("✅ totalRevenue=RM%.2f%n", totalRevenue);
-
-
-            // System.out.printf(
-            // "✅ topSelling count=%d months: %s%n",
-            // topSelling.size(),
-            // topSelling.stream()
-            //     .map(r -> String.format("%d-%02d→%s(%d)",
-            //     ((Number)r[0]).intValue(),
-            //     ((Number)r[1]).intValue(),
-            //     r[2],
-            //     ((Number)r[3]).intValue()))
-            //     .toList()
-            // );
-
-
-
-
-        // #Set attributes for the view
-        request.setAttribute("totalCustomers", totalCustomers);
-        request.setAttribute("totalStaff", totalStuff);
-        // request.setAttribute("lowStock", lowStock);
-        // request.setAttribute("feedbackRatings", feedbackRatings);
-        request.setAttribute("paymentPreferences", paymentPreferences);
-        request.setAttribute("ordersByMonth", ordersByMonth);
-        request.setAttribute("totalRevenue", totalRevenue);
-        request.setAttribute("topSelling", topSelling);
-        request.setAttribute("salesByCategory", salesByCategory);
-
 
         // display purpose only 
         request.setAttribute("productList", products);
@@ -226,79 +192,84 @@ public class ReportController extends ControllerBase{
 
     }
 
-
     @ActionAttribute(urlPattern = "report/dailyRevenue")
     public Result dailyRevenue() throws Exception {
-
-        // remember to accept the parameter from the request 
         int days = Integer.parseInt(request.getParameter("days"));
+        System.out.println("🔍 [dailyRevenue] raw daysParam = " + days);
 
+        List<Object[]> daily = reportDAO.getDailyRevenue(days);
 
-
-        List<Object[]> daily  = reportDAO.getDailyRevenue(days);
-
-
-        System.out.println("---- Daily Revenue (last 7 days) ----");
+        System.out.println("---- Daily Revenue (last " + days + " days) ----");
         for (Object[] r : daily) {
-            java.sql.Date day     = (java.sql.Date) r[0];
-            Number      totalPaid = (Number)    r[1];   // use Number
+            java.sql.Date day = (java.sql.Date) r[0];
+            Number totalPaid = (Number) r[1];
             System.out.printf(
-              "%s → RM%.2f%n",
-              day.toString(),
-              totalPaid.doubleValue()           // doubleValue()
+                "%s → RM%.2f%n",
+                day.toString(),
+                totalPaid.doubleValue()
             );
         }
 
-
         var dailylist = daily.stream()
-        // For each Object[] r, build a Map with two entries:
-        .map(r -> Map.of(
-            // “day” → the first column, r[0], as a String
-            "day",   r[0].toString(),
-            // “total” → the second column, r[1], as a double
-            "total", ((Number)r[1]).doubleValue()
-        ))
-        // Collect into a List<Map<String,Object>>
-        .toList();
+            .map(r -> Arrays.asList(
+                r[0].toString(),
+                ((Number)r[1]).doubleValue()
+            ))
+            .toList();
 
-     
-
-
-       
         return json(dailylist);
     }
 
-
     @ActionAttribute(urlPattern = "report/monthlyRevenue")
     public Result monthlyRevenue() throws Exception {
-
-        // remember to accept the parameter from the request    
         int months = Integer.parseInt(request.getParameter("months"));
-
-
-
-        List<Object[]> monthly  = reportDAO.getMonthlyRevenue(months);
-
-
-        System.out.println("---- Monthly Revenue (last 12 months) ----");
+        System.out.println("🔍 [monthlyRevenue] raw monthsParam = " + months);
+    
+        List<Object[]> monthly = reportDAO.getMonthlyRevenue(months);
+    
+        System.out.println("---- Monthly Revenue (last " + months + " months) ----");
         for (Object[] r : monthly) {
-            java.sql.Date month     = (java.sql.Date) r[0];
-            Number      totalPaid = (Number)    r[1];   // use Number
-            System.out.printf(
-              "%s → RM%.2f%n",
-              month.toString(),
-              totalPaid.doubleValue()           // doubleValue()
-            );
+            int y = ((Number) r[0]).intValue();
+            int m = ((Number) r[1]).intValue();
+            double tot = ((Number) r[2]).doubleValue();
+            System.out.printf("%d-%02d → RM%.2f%n", y, m, tot);
         }
-
-     
-
-
-       
-        return page();
+    
+        var monthlyList = monthly.stream()
+            .map(r -> {
+                int y = ((Number)r[0]).intValue();
+                int m = ((Number)r[1]).intValue();
+                double tot = ((Number)r[2]).doubleValue();
+                String label = String.format("%d-%02d", y, m);
+                return Arrays.asList(label, tot);
+            })
+            .toList();
+    
+        return json(monthlyList);
     }
 
+    @ActionAttribute(urlPattern = "report/salesByCategory")
+    public Result salesByCategory() throws Exception {
+        List<Object[]> sales = reportDAO.getSalesByCategory();
 
+        System.out.println("---- Sales by Category ----");
+        for (Object[] r : sales) {
+            String catName = (String) r[0];
+            double total = ((Number) r[1]).doubleValue();
+            System.out.printf("%s → RM%.2f%n", catName, total);
+        }
+
+        var salesList = sales.stream()
+            .map(r -> Arrays.asList(
+                r[0].toString(),
+                ((Number)r[1]).doubleValue()
+            ))
+            .toList();
+
+        return json(salesList);
+    }
+
+    
 
 
     
