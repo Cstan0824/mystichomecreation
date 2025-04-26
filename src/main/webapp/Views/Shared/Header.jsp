@@ -133,7 +133,7 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    userId: 1 // Replace with actual user ID with session data
+                    userId: <%= sessionHelper.getUserSession().getId() %> // Replace with actual user ID with session data
                 }), 
                 success: function (response) {
                     const cartContainer = document.getElementById('cart-items');

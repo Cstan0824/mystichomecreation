@@ -15,12 +15,16 @@
 <%@ page import="Models.Users.CartItem" %>
 <%@ page import="Models.Accounts.ShippingInformation" %>
 <%@ page import="mvc.Helpers.Helpers" %>
+<%@ page import="mvc.Helpers.SessionHelper" %>
+<%@ page import="DTO.UserSession" %>
 <%@ page import="org.apache.commons.text.StringEscapeUtils" %>
 
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
 
-        <%  List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
+        <%  
+            SessionHelper session = new SessionHelper(request.getSession());
+            List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
             List<ShippingInformation> shippingAddresses = (List<ShippingInformation>) request.getAttribute("shippingAddresses");  
         %>
     <div class="content-wrapper">
@@ -325,7 +329,7 @@
 
 
     <script>
-        const userId = 1; // change to session userId
+        const userId = <%= session.getUserSession().getId() %>  ; // change to session userId
 
         function refreshCartItems() {
             console.log("Refreshing cart items...");
