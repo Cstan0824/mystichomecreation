@@ -44,7 +44,7 @@
 				<!-- Container A: Sidebar (20%) -->
 				<aside class="basis-[20%] bg-white border p-6 rounded mhc-box-shadow ">
 					<div class="mb-8">
-						<p class="text-xl font-semibold text-gray-800">Tan Choon Shen</p>
+						<p class="text-xl font-semibold text-gray-800"><%= request.getAttribute("username") %></p>
 						<a href="#profile"
 							class="text-sm hover:underline hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative text-gray-500">✎
 							Edit Profile</a>
