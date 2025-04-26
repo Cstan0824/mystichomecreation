@@ -66,8 +66,8 @@ public abstract class HttpBase extends HttpServlet {
 
     private static final String DEFAULT_CONTROLLER = "LandingController";
     private static final String DEFAULT_ACTION = "index";
-    private static final String NOT_FOUND_URL = "/web/Views/Error/notFound.jsp";
-    private static final String INTERNAL_ERROR_URL = "/web/Views/Error/internalError.jsp";
+    private static final String NOT_FOUND_URL = System.getenv("NOT_FOUND_PAGE");
+    private static final String INTERNAL_ERROR_URL = System.getenv("INTERNAL_ERROR_PAGE");
 
     // #region SERVER RESPONSE METHODS
     protected abstract Result page() throws Exception;
@@ -270,8 +270,10 @@ public abstract class HttpBase extends HttpServlet {
             }
             localContext.setRequestCancelled(false);
             localContext.getResult().setRedirect(false);
-            localRequest.getRequestDispatcher(localContext.getResult().getPath()).forward(localRequest,
-                    localResponse);
+
+            System.out.println("Http Status Code: " + localContext.getResult().getStatusCode().get());
+            localResponse.setStatus(localContext.getResult().getStatusCode().get());
+            localResponse.sendRedirect(localContext.getResult().getPath());
             return;
         }
 
@@ -311,7 +313,6 @@ public abstract class HttpBase extends HttpServlet {
                     }
                 }
                 default -> {
-                    System.out.println("FileType: " + actionResult.getContentType());
                     if (FileType.contains(actionResult.getContentType())) {
                         streamFileContent(actionResult.getData());
                     } else {

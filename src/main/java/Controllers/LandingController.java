@@ -68,9 +68,17 @@ public class LandingController extends ControllerBase {
         userSession.setAccessUrls(accessUrls);
 
         session.setUserSession(userSession);
-        System.out.println(session.getUserSession().getUsername());
 
-        return page("index");
+        switch (userSession.getRole().toUpperCase()) {
+            case "ADMIN":
+                return page("index", "Admin/Dashboard");
+            case "CUSTOMER":
+                return page("index");
+            case "STAFF":
+                return page("index");
+            default:
+                return page("index");
+        }
     }
 
     @HttpRequest(HttpMethod.POST)
