@@ -1,7 +1,6 @@
 package Controllers;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -24,9 +23,7 @@ import DAO.OrderDAO;
 import DAO.PaymentDAO;
 import DAO.UserDAO;
 import DAO.productDAO;
-import DAO.ReportDAO;
 import DTO.OrderDTO;
-
 import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
 import Models.Orders.Order;
@@ -48,9 +45,9 @@ import mvc.ControllerBase;
 import mvc.FileType;
 import mvc.Helpers.Helpers;
 import mvc.Helpers.JsonConverter;
-import mvc.Helpers.Mail.OrderMailService;
 import mvc.Helpers.Mail.MailService;
 import mvc.Helpers.Mail.MailType;
+import mvc.Helpers.Mail.OrderMailService;
 import mvc.Helpers.Notify.Notification;
 import mvc.Helpers.Notify.NotificationService;
 import mvc.Helpers.SessionHelper;
@@ -368,17 +365,17 @@ public class OrderController extends ControllerBase {
                 } else {
                     System.out.println("Failed to update order status");
                     ((ObjectNode) jsonResponse).put("updateStatus_success", false);
-                    ((ObjectNode) jsonResponse).put("error msg", "Failed to update order status");
+                    ((ObjectNode) jsonResponse).put("error_msg", "Failed to update order status");
                 }
 
             } else {
                 ((ObjectNode) jsonResponse).put("updateStatus_success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Order not found");
             }
 
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("updateStatus_success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         }
         return json(jsonResponse);
     }
@@ -435,17 +432,17 @@ public class OrderController extends ControllerBase {
                 } else {
                     System.out.println("Failed to cancel order");
                     ((ObjectNode) jsonResponse).put("cancelOrder_success", false);
-                    ((ObjectNode) jsonResponse).put("error msg", "Failed to cancel order");
+                    ((ObjectNode) jsonResponse).put("error_msg", "Failed to cancel order");
                 }
 
             } else {
                 ((ObjectNode) jsonResponse).put("cancelOrder_success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Order not found");
             }
 
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("cancelOrder_success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         }
         return json(jsonResponse);
     }
@@ -608,6 +605,9 @@ public class OrderController extends ControllerBase {
 
                             } else {
                                 System.out.println("Order Transaction Creation Failed");
+                                ((ObjectNode) jsonResponse).put("orderTransaction_success", false);
+                                ((ObjectNode) jsonResponse).put("error_msg", "Order transaction creation failed");
+                                return json(jsonResponse);
                             }
                         }
 
@@ -616,27 +616,37 @@ public class OrderController extends ControllerBase {
                         if (mail.generateOrderPDF()){
                             mail.send();
                         }
+                        
+                        ((ObjectNode) jsonResponse).put("process_success", true);
+                        ((ObjectNode) jsonResponse).put("processDone_orderId", createdOrder.getId());
+                        return json(jsonResponse);
     
                     } else {
                         System.out.println("Order Creation Failed");
+                        ((ObjectNode) jsonResponse).put("order_success", false);
+                        ((ObjectNode) jsonResponse).put("error_msg", "Order creation failed");
+                        return json(jsonResponse);
                     }
     
                 } catch (Exception e) {
                     ((ObjectNode) jsonResponse).put("order_success", false);
-                    ((ObjectNode) jsonResponse).put("error msg", "order creation failed: " + e.getMessage());
+                    ((ObjectNode) jsonResponse).put("error_msg", "order creation failed: " + e.getMessage());
+                    return json(jsonResponse);
                 }
     
             } else {
+                ((ObjectNode) jsonResponse).put("payment_success", false);
+                ((ObjectNode) jsonResponse).put("error_msg", "Payment creation failed");
                 System.out.println("Payment Creation Failed");
+                return json(jsonResponse);
             }
     
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("process_failed", true);
             ((ObjectNode) jsonResponse).put("error", "Unexpected error: " + e.getMessage());
+            return json(jsonResponse);
         }
 
-        //return page("orderInfo", "Order", orderIdJson);
-        return json(jsonResponse);
     }
     
     // #endregion CHECKOUT PAGE
@@ -669,7 +679,7 @@ public class OrderController extends ControllerBase {
             } 
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
         return json(jsonResponse);
@@ -696,11 +706,11 @@ public class OrderController extends ControllerBase {
 
             } else {
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Payment not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Payment not found");
             }
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
@@ -729,11 +739,11 @@ public class OrderController extends ControllerBase {
 
             } else {
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Payment not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Payment not found");
             }
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
         return json(jsonResponse);
@@ -775,7 +785,7 @@ public class OrderController extends ControllerBase {
             } 
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
@@ -811,12 +821,12 @@ public class OrderController extends ControllerBase {
             } else {
                 System.out.println("here #11");
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Order not found");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
@@ -872,12 +882,12 @@ public class OrderController extends ControllerBase {
 
             } else {
                 ((ObjectNode) jsonResponse).put("getOrder_success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Order not found");
             }
            
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("getOrder_success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
@@ -915,11 +925,11 @@ public class OrderController extends ControllerBase {
                 }
             } else {
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Orders not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Orders not found");
             }
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
@@ -948,7 +958,7 @@ public class OrderController extends ControllerBase {
             } 
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
         return json(jsonResponse);
@@ -982,11 +992,11 @@ public class OrderController extends ControllerBase {
 
             } else {
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order Transaction not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Order Transaction not found");
             }
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
@@ -1022,11 +1032,11 @@ public class OrderController extends ControllerBase {
                 }
             } else {
                 ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Order Transaction not found");
+                ((ObjectNode) jsonResponse).put("error_msg", "Order Transaction not found");
             }
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
+            ((ObjectNode) jsonResponse).put("error_msg", e.getMessage());
         
         }
 
