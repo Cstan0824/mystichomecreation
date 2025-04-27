@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS `Payment` (
   `payment_id` INT AUTO_INCREMENT,
   `method_id` INT NOT NULL,
   `voucher_id` INT,
-  `total_paid` DECIMAL NOT NULL,
+  `total_paid` DECIMAL(10,2) NOT NULL,
+  `payment_info` JSON,
   INDEX (`method_id`),
   PRIMARY KEY (`payment_id`),
   FOREIGN KEY (`method_id`) REFERENCES `Payment_Method`(`method_id`),
@@ -198,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `Order_Transaction` (
   PRIMARY KEY (`order_id`,`product_id`,`created_at`),
   FOREIGN KEY (`order_id`) REFERENCES `Orders` (`order_id`),
   FOREIGN KEY (`product_id`) REFERENCES `Product` (`product_id`) ON DELETE CASCADE
-) 
+);
 
 CREATE TABLE IF NOT EXISTS `Audit_Trail` (
   `id` INT AUTO_INCREMENT,
