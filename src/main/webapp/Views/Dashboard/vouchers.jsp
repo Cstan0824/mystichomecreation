@@ -28,15 +28,15 @@
                         <p class="font-semibold text-gray-700">
                             <%= StringEscapeUtils.escapeHtml4(voucher.getName()) %> &middot; 
                             <%= voucher.getType().equals("Percent") ? 
-                                StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getAmount())) + "%" : 
-                                "RM" + StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getAmount())) %>
+                                String.format("%.2f", voucher.getAmount()) + "%" : 
+                                "RM" + String.format("%.2f", voucher.getAmount()) %>
                         </p>
                         <p class="text-xs text-gray-500"><%= StringEscapeUtils.escapeHtml4(voucher.getDescription()) %></p>
                         <p class="text-xs text-gray-400">
-                            MIN: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getMinSpent())) %> &middot; 
-                            MAX: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getMaxCoverage())) %>
+                            MIN: RM<%= String.format("%.2f", voucher.getMinSpent()) %> &middot; 
+                            MAX: RM<%= String.format("%.2f", voucher.getMaxCoverage()) %>
                         </p>
-                        <p class="text-xs text-gray-400">Usage: 2/3</p>
+                        <p class="text-xs text-gray-400">Usage: <%= voucher.getUsagePerMonth() %></p>
                     </div>
                     <div class="flex space-x-2 items-start">
                         <% if(voucher.getStatus() == 1) { %>

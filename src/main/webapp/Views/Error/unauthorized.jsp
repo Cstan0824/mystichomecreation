@@ -73,8 +73,8 @@
                         Go Back
                     </a>
                     
-                    <a href="<%= request.getContextPath() %>" class="text-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
-                        Return to Homepage
+                    <a href="<%= request.getContextPath() %>/Landing" class="text-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
+                        Return to Home
                     </a>
                 </div>
             </div>
