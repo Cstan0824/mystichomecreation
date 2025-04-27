@@ -13,6 +13,10 @@ import mvc.Http.HttpMethod;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import DAO.AccountDA;
 import DAO.OrderDAO;
 import DAO.UserDA;
@@ -183,8 +187,11 @@ public class UserController extends ControllerBase {
     @Authorization(accessUrls = "User/account/transactions/details")
     @ActionAttribute(urlPattern = "account/transactions/details")
     public Result orderDetails(String id) throws Exception {
-        // return page("details", "Order", id);
-        return page("index", "dev");
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.createObjectNode();
+        ((ObjectNode) jsonNode).put("orderId", id);
+
+        return page("orderInfo", "Order", jsonNode);
     }
 
     @Authorization(accessUrls = "User/account/password")

@@ -1,6 +1,7 @@
 package Controllers;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -23,7 +24,9 @@ import DAO.OrderDAO;
 import DAO.PaymentDAO;
 import DAO.UserDA;
 import DAO.productDAO;
+import DAO.ReportDAO;
 import DTO.OrderDTO;
+
 import Models.Accounts.ShippingInformation;
 import Models.Accounts.Voucher;
 import Models.Orders.Order;
@@ -228,7 +231,7 @@ public class OrderController extends ControllerBase {
         }
     }
 
-
+    
     // #endregion ORDER INFO PAGE
 
     // #region STAFFORDER PAGE
@@ -339,7 +342,7 @@ public class OrderController extends ControllerBase {
                         default -> notification.setContent("Update regarding your order " + order.getOrderRefNo() + ". Please check for more details.");
                     }
                     notification.setUser(user);
-                    notification.setUrl("");
+                    notification.setUrl("/User/account#transactions/details?id=" + order.getId());
                     notificationService.setNotification(notification);
                     notificationService.inform();
 
@@ -550,7 +553,7 @@ public class OrderController extends ControllerBase {
                         Notification notification = new Notification();
                         notification.setCreatedAt(currentDateTime);
                         notification.setTitle("Order placed");
-                        notification.setContent("Thank you! 🎉 We have received " + String.format(".2f", createdPayment.getTotalPaid()) + " for your order " + createdOrder.getOrderRefNo() + ". Your order has been placed successfully!");
+                        notification.setContent("Thank you! 🎉 We have received RM " + String.format("%.2f", createdPayment.getTotalPaid()) + " for your order " + createdOrder.getOrderRefNo() + ". Your order has been placed successfully!");
                         notification.setUser(user);
                         notification.setUrl("");
                         notificationService.setNotification(notification);
@@ -591,6 +594,18 @@ public class OrderController extends ControllerBase {
                                 } else {
                                     System.out.println("Cart Item Deletion Failed");
                                 }
+
+                                int initialStock = prod.getStock();
+                                int newStock = initialStock - quantity;
+                                prod.setStock(newStock);
+
+                                if (productDAO.updateProductWithBoolean(prod)){
+                                    System.out.println("Stock is deducted successfully");
+                                    Redis.getSignalHub().publish("Product", "invalidate feedback cache for Product " + prod.getId());
+                                }else{
+                                    System.out.println("Product stock deduction failed");
+                                }
+
                             } else {
                                 System.out.println("Order Transaction Creation Failed");
                             }

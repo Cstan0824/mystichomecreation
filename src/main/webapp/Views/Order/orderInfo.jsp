@@ -36,7 +36,7 @@
         <div class="p-8 pb-0">
             <div class="flex justify-between">
                 <div class="text-2xl font-bold font-poppins hover:text-darkYellow cursor-pointer">
-                    <p class="flex gap-2 items-center" onclick="refreshPage()"><i class="fa-solid fa-left-long fa-lg"></i>Back</p>
+                    <p class="flex gap-2 items-center" onClick="redirect('<%= request.getContextPath() %>/User/account#transactions')"><i class="fa-solid fa-left-long fa-lg"></i>Back</p>
                 </div>
 
                 <div class="flex gap-4 items-center text-xl">
@@ -464,13 +464,23 @@
         });
     });
 
-    function redirect(url){
-        window.top.location.href = url;
+    function redirect(url) {
+        const targetWindow = (window.top === window.self) ? window : window.top;
+        const currentHref = targetWindow.location.href;
+
+        // Extract substring after "/web"
+        const currentPath = currentHref.substring(currentHref.indexOf("/web"));
+
+        if (currentPath === url) {
+            targetWindow.location.reload();
+        } else {
+            targetWindow.location.replace(url);
+        }
     }
 
-    function refreshPage() {
-        window.top.location.reload();
-    }
+
+
+
 
     let selectedRating = 0;
 

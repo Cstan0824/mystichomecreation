@@ -333,6 +333,20 @@ public class ReportDAO {
         return result;
     }
 
-
+    public List<Object[]> getTopSellingProducts(int limit) {
+        String sql = """
+            SELECT p.title, pt.type, p.price, SUM(ot.orderQuantity) AS totalSold
+            FROM OrderTransaction ot
+            JOIN ot.product p
+            JOIN p.type pt
+            GROUP BY p.id
+            ORDER BY totalSold DESC
+        """;
+    
+        var query = db.createQuery(sql, Object[].class)
+                      .setMaxResults(limit);
+    
+        return query.getResultList(); 
+    }
 }
 

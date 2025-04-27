@@ -8,6 +8,7 @@
     <title>Sign Up | Mystichome Creations</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Hide all steps by default */
         .step {
@@ -244,15 +245,30 @@
                     contentType: "application/json",
                     success: function(response) {
                         if (response.status == 200) {
-                            window.location.href =
-                            "<%= request.getContextPath() %>/Landing";
+                            Swal.fire({
+                                icon: "success",
+                                title: "Sign Up Successful",
+                                text: "You have successfully signed up! Redirecting to home...",
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.href = "<%= request.getContextPath() %>/Landing";
+                            });
                         } else {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON;
-                        alert(response.message);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                        });
                     }
                 });
             });

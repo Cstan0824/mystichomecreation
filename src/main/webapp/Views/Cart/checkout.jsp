@@ -26,7 +26,6 @@
 <%@ include file="/Views/Shared/Header.jsp" %>
 
     <% 
-        SessionHelper session = new SessionHelper(request.getSession());
         List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
         ShippingInformation shippingInfo = (ShippingInformation) request.getAttribute("shippingAddress");
         List<VoucherInfoDTO> voucherInfoList = (List<VoucherInfoDTO>) request.getAttribute("voucherArray");
