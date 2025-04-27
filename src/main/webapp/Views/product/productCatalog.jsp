@@ -4,6 +4,8 @@
 <%@ page import="Models.Products.productType" %>
 <%@ page import="Models.Products.productDTO" %>
 <%@ page import="java.util.List" %>
+<%@ page import="mvc.Helpers.SessionHelper" %>
+<%@ page import="DTO.UserSession" %>
 <%@ include file="/Views/product/addProduct.jsp" %>
 
 <!DOCTYPE html>
@@ -20,9 +22,19 @@
 
 </head>
 
+ 
 
 <body class="bg-gray-50">
 <%@ include file="/Views/Shared/Header.jsp" %>
+
+<% 
+        UserSession userSession = sessionHelper.getUserSession(); // Get the full UserSession object
+        String userRole = userSession.getRole(); // Get the role from the UserSession object
+        
+        // Debugging userRole
+        System.out.println("DEBUG: userRole = " + userRole); // Logs to server console
+%>
+
     <div class="content-wrapper">
         <!-- Header with search and cart -->
         <div class="flex flex-row justify-between items-center mb-6 gap-4">
@@ -33,14 +45,19 @@
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
 
-            <!-- Cart Container -->
-            <div class="flex items-center">
+            <% if(userSession.getRole().toLowerCase() == "admin" || userSession.getRole().toLowerCase() == "staff" ) { %>
+             
+                <div class="flex items-center">
                 <!-- Plus Icon -->
                 <div class="relative">
-                <i class="fa-solid fa-plus cursor-pointer" onclick="openAddModal()"></i>                    
+                    <i class="fa-solid fa-plus cursor-pointer" onclick="openAddModal()"></i>                    
 
                 </div>
             </div>
+
+           <% } %>
+            <!-- Cart Container -->
+            
         </div>
 
         <div class="flex flex-col md:flex-row gap-4">
@@ -126,7 +143,7 @@
                     <!-- Card View -->
                     <div id="cardView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         <% if (hasProducts) { 
-                            //
+                            
                             for (int i=0; i<products.size(); i++) { 
                                 product p = products.get(i); %>
                                 <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">
