@@ -18,8 +18,8 @@ import java.sql.Blob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DAO.productDAO;
+import DTO.productDTO;
 import Models.Products.product;
-import Models.Products.productDTO;
 import Models.Products.productFeedback;
 import Models.Products.productFeedbackKey;
 import Models.Products.productImage;
@@ -38,7 +38,6 @@ import jakarta.servlet.http.Part;
 public class productController extends ControllerBase {
     private productDAO productDAO = new productDAO(); // Assuming you have a DAO class for product
 
-    @Authorization(accessUrls = "product/productPage")
     @ActionAttribute(urlPattern = "productPage")
     public Result productPage() throws Exception {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -103,8 +102,6 @@ public class productController extends ControllerBase {
         return page();
     }
 
-    // only return the products and the types
-    @Authorization(accessUrls = "product/productCatalog")
     public Result productCatalog() throws Exception {
 
         List<productType> types = productDAO.getAllProductTypes();
@@ -162,6 +159,7 @@ public class productController extends ControllerBase {
         return page();
     }
 
+    
     @ActionAttribute(urlPattern = "productCatalog/Categories")
     public Result getProductsByCategories() throws Exception {
         String[] selectedCategories = request.getParameterValues("categories");
@@ -203,6 +201,7 @@ public class productController extends ControllerBase {
     }
 
     // This is to add product
+    @Authorization(accessUrls = "product/addProduct")
     @ActionAttribute(urlPattern = "productCatalog/addProduct")
     @HttpRequest(HttpMethod.POST)
     public Result addProduct() throws Exception {
@@ -288,6 +287,7 @@ public class productController extends ControllerBase {
 
     }
 
+    @Authorization(accessUrls = "deleteProduct")
     @ActionAttribute(urlPattern = "deleteProduct")
     @HttpRequest(HttpMethod.POST)
     public Result deleteProduct() throws Exception {
@@ -298,6 +298,7 @@ public class productController extends ControllerBase {
         return null;
     }
 
+    @Authorization(accessUrls = "updateProduct")
     @ActionAttribute(urlPattern = "updateProduct")
     @HttpRequest(HttpMethod.POST)
     public Result updateProduct() throws Exception {
