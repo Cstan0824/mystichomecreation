@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import DAO.UserDA;
+import DAO.UserDAO;
 import Models.Users.User;
 import mvc.Cache.Redis;
 import mvc.Helpers.JsonConverter;
@@ -16,7 +16,7 @@ public class OTPHelper {
     private static Redis redis = new Redis();
 
     public static boolean sendOTP(int id) {
-        UserDA userDA = new UserDA();
+        UserDAO userDA = new UserDAO();
         MailService mailService = new MailService();
         String generatedOtp = otpGenerator();
         OTP OTP = new OTP();

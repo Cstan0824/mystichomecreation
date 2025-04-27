@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import DAO.AccountDA;
+import DAO.AccountDAO;
 import DAO.CartDAO;
 import DAO.OrderDAO;
 import DAO.PaymentDAO;
-import DAO.UserDA;
+import DAO.UserDAO;
 import Models.Accounts.Voucher;
 import Models.Orders.Order;
 import Models.Orders.OrderTransaction;
@@ -30,8 +30,8 @@ public class PaymentController extends ControllerBase {
     private PaymentDAO paymentDAO = new PaymentDAO();
     private OrderDAO orderDAO = new OrderDAO();
     private CartDAO cartDAO = new CartDAO();
-    private UserDA userDA = new UserDA();
-    private AccountDA accountDA = new AccountDA();
+    private UserDAO userDA = new UserDAO();
+    private AccountDAO accountDA = new AccountDAO();
 
     @HttpRequest(HttpMethod.GET)
     @ActionAttribute(urlPattern = "processPayment/v2")

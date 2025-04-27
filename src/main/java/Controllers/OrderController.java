@@ -18,11 +18,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import DAO.AccountDA;
+import DAO.AccountDAO;
 import DAO.CartDAO;
 import DAO.OrderDAO;
 import DAO.PaymentDAO;
-import DAO.UserDA;
+import DAO.UserDAO;
 import DAO.productDAO;
 import DAO.ReportDAO;
 import DTO.OrderDTO;
@@ -68,8 +68,8 @@ public class OrderController extends ControllerBase {
     private PaymentDAO paymentDAO = new PaymentDAO();
     private OrderDAO orderDAO = new OrderDAO();
     private CartDAO cartDAO = new CartDAO();
-    private UserDA userDA = new UserDA();
-    private AccountDA accountDA = new AccountDA();
+    private UserDAO userDA = new UserDAO();
+    private AccountDAO accountDA = new AccountDAO();
     private productDAO productDAO = new productDAO();
 
     // #region ORDER INFO PAGE
