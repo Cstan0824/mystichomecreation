@@ -621,15 +621,15 @@ INSERT INTO Permission(role_id, permission_url, permission_description) VALUES(1
 
 
 --Product Permission Data
-INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'product/addProduct', 'Get to access update and edit product page');
-INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'deleteProduct', 'Have access to add product');
-INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'updateProduct', 'Get to access update and edit product page');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'product/addProduct', 'Get to access add product ');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'deleteProduct', 'Have access to delete product');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'updateProduct', 'Get to access  edit product ');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (1, 'feedback/reply', 'Get Product by ID');
 
-
-INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'product/addProduct', 'Get to access update and edit product page');
-INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'deleteProduct', 'Have access to add product');
-INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'updateProduct', 'Get to access update and edit product page');
-
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'feedback/reply', 'Able to reply feedback');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'product/addProduct', 'Get to access add product ');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'deleteProduct', 'Have access to delete product');
+INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'updateProduct', 'Get to access  edit product ');
 
 
 

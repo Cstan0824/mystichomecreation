@@ -338,7 +338,7 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Please select all variation options!',
-                    text: 'You need to select at least one option for each variation type.'
+                    text: 'You need to select at least one option for each variation type.',
                     showConfirmButton: true,
                     confirmButtonText: 'OK'
                 });
@@ -429,7 +429,7 @@
             const form = icon.nextElementSibling;
             form.classList.toggle('hidden');
             if (!form.classList.contains('hidden')) {
-            form.querySelector('textarea').focus();
+                form.querySelector('textarea').focus();
             }
         }
         

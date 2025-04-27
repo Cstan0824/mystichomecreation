@@ -18,6 +18,7 @@ import DAO.ReportDAO;
 import DAO.UserDAO;
 import DAO.productDAO;
 import DTO.productDTO;
+import DTO.CustomerDTO;
 import Models.Accounts.Voucher;
 import Models.Products.product;
 import Models.Products.productType;
@@ -36,6 +37,7 @@ import mvc.Helpers.pdf.PdfService;
 import mvc.Helpers.pdf.PdfService.PdfOrientation;
 import mvc.Helpers.pdf.PdfType;
 import mvc.Http.HttpMethod;
+
 
 public class DashboardController extends ControllerBase {
     private AccountDAO accountDA = new AccountDAO();
