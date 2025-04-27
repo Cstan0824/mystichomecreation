@@ -23,7 +23,7 @@
 <header class="bg-gray-700 text-white shadow flex items-center justify-between px-6 py-4">
     <h1 class="text-xl font-semibold">MysticHome Creations</h1>
     <nav class="space-x-4">
-      <a href="<%= request.getContextPath() %>/Admin/Dashboard" class="text-gray-400 hover:text-blue-600">Home</a>
+      <a href="<%= request.getContextPath() %>/Dashboard" class="text-gray-400 hover:text-blue-600">Home</a>
       <a href="<%= request.getContextPath() %>/Landing" class="text-gray-400 hover:text-blue-600">Back to Main Page</a>
       <a href="<%= request.getContextPath() %>/logout" class="text-gray-400 hover:text-blue-600">Logout</a>
     </nav>

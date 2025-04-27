@@ -12,7 +12,7 @@
     <p><strong>Name:</strong> <c:out value="${staff.username}"/></p>
     <p><strong>Email:</strong> <c:out value="${staff.email}"/></p>
     <p><strong>Birthdate:</strong>  <c:out value="${staff.birthdate}"/></p>
-    <a href="${pageContext.request.contextPath}/Admin/Dashboard/staff" class="mt-4 inline-block text-blue-600">Back to Staff</a>
+    <a href="${pageContext.request.contextPath}/Dashboard/staff" class="mt-4 inline-block text-blue-600">Back to Staff</a>
   </div>
 </div>
 
