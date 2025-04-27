@@ -1,6 +1,7 @@
 package Controllers;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +42,15 @@ import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Cache.Redis;
 import mvc.ControllerBase;
+import mvc.FileType;
+import mvc.Helpers.Helpers;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.Mail.OrderMailService;
+import mvc.Helpers.Mail.MailService;
+import mvc.Helpers.Mail.MailType;
+import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.Notify.NotificationService;
+import mvc.Helpers.SessionHelper;
 import mvc.Helpers.pdf.PdfService;
 import mvc.Helpers.pdf.PdfService.PdfOrientation;
 import mvc.Helpers.pdf.PdfType;
@@ -120,7 +129,6 @@ public class OrderController extends ControllerBase {
             return json(jsonResponse);
         }
 
-        
 
         ShippingInformation shippingInfo = null;
         String shippingJson = order.getShippingInfo();
@@ -197,11 +205,15 @@ public class OrderController extends ControllerBase {
                 File pdf = service.convert();
 
                 if (pdf != null) {
+                    byte[] pdfFile = Files.readAllBytes(pdf.toPath());
+                    FileType fileType = Helpers.getFileTypeFromBytes(pdfFile);
                     ((ObjectNode) jsonResponse).put("pdf_success", true);
                     ((ObjectNode) jsonResponse).put("pdf_path", pdf.getAbsolutePath());
+                    return source(pdfFile, "E-receipt for Order " + order.getOrderRefNo(), fileType);
                 } else {
                     ((ObjectNode) jsonResponse).put("pdf_success", false);
                     ((ObjectNode) jsonResponse).put("error_msg", "PDF generation failed");
+                    return json(jsonResponse);
                 }
 
             } else {
@@ -214,8 +226,6 @@ public class OrderController extends ControllerBase {
             ((ObjectNode) jsonResponse).put("error_msg", "Error retrieving order transactions: " + e.getMessage());
             return json(jsonResponse);
         }
-            
-        return json(jsonResponse);
     }
 
 
@@ -309,9 +319,49 @@ public class OrderController extends ControllerBase {
 
                 if(orderDAO.updateOrder(order)){
                     System.out.println("Order status updated successfully");
+
+                    User user = order.getUser();
+                    String currentDateTime = Helpers.getCurrentDateTime();
+                    NotificationService notificationService = new NotificationService();
+                    Notification notification = new Notification();
+                    notification.setCreatedAt(currentDateTime);
+                    notification.setTitle("Order updated");
+                    switch(order.getStatus().getId()){
+                        case 2 -> // Packing
+                            notification.setContent("Update: Your order " + order.getOrderRefNo() + " is now being packed! 🎁 We’re preparing everything carefully.");
+                            
+                        case 3 -> // Shipping
+                            notification.setContent("Good news! Your order " + order.getOrderRefNo() + " has been shipped. 🚚 It’s on the way to you!");
+                    
+                        case 4 -> // Received
+                            notification.setContent("Delivered! 🎉 You have received your order " + order.getOrderRefNo() + ". Thank you for shopping with us!");
+                    
+                        default -> notification.setContent("Update regarding your order " + order.getOrderRefNo() + ". Please check for more details.");
+                    }
+                    notification.setUser(user);
+                    notification.setUrl("");
+                    notificationService.setNotification(notification);
+                    notificationService.inform();
+
+                    MailService mail = new MailService();
+                    mail
+                        .configure().build()
+                        .setRecipient(order.getUser().getEmail())
+                        .setSubject("Order Updated - " + order.getOrderRefNo())
+                        .setMailType(MailType.UPDATE_ORDER)
+                        .setValues("name",
+                                order.getUser().getUsername())
+                        .setValues("currentStatus",
+                                order.getStatus().getStatusDesc())
+                        .setValues("orderRefNo",
+                                order.getOrderRefNo())
+                        .send();
+
+
                     ((ObjectNode) jsonResponse).put("updateStatus_success", true);
                     ((ObjectNode) jsonResponse).put("order_id", order.getId());
                     ((ObjectNode) jsonResponse).put("status_id", order.getStatus().getId());
+                            
                 } else {
                     System.out.println("Failed to update order status");
                     ((ObjectNode) jsonResponse).put("updateStatus_success", false);
@@ -351,6 +401,31 @@ public class OrderController extends ControllerBase {
 
                 if(orderDAO.updateOrder(order)){
                     System.out.println("Order cancelled successfully");
+
+                    User user = order.getUser();
+                    String currentDateTime = Helpers.getCurrentDateTime();
+                    NotificationService notificationService = new NotificationService();
+                    Notification notification = new Notification();
+                    notification.setCreatedAt(currentDateTime);
+                    notification.setTitle("Order cancelled");
+                    notification.setContent("We’re sorry! Your order " + order.getOrderRefNo() + " has been cancelled. ❌ If you have any questions, please contact our support team.");
+                    notification.setUser(user);
+                    notification.setUrl("");
+                    notificationService.setNotification(notification);
+                    notificationService.inform();
+
+                    MailService mail = new MailService();
+                    mail
+                        .configure().build()
+                        .setRecipient(order.getUser().getEmail())
+                        .setSubject("Order Updated - " + order.getOrderRefNo())
+                        .setMailType(MailType.CANCEL_ORDER)
+                        .setValues("name",
+                            order.getUser().getUsername())
+                        .setValues("orderRefNo",
+                            order.getOrderRefNo())
+                        .send();
+
                     ((ObjectNode) jsonResponse).put("cancelOrder_success", true);
                     ((ObjectNode) jsonResponse).put("order_id", order.getId());
                     ((ObjectNode) jsonResponse).put("status_id", order.getStatus().getId());
@@ -388,8 +463,9 @@ public class OrderController extends ControllerBase {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonResponse = mapper.createObjectNode();
         JsonNode orderIdJson = mapper.createObjectNode();
+        SessionHelper session = getSessionHelper();
     
-        final int userId = 1;  // Replace with session-based user retrieval
+        final int userId = session.getUserSession().getId();  // Replace with session-based user retrieval
         final int statusId = 1; // Order status "Pending"
     
         User user = userDA.getUserById(userId);
@@ -453,6 +529,7 @@ public class OrderController extends ControllerBase {
             if (createdPayment != null) {
                 
                 System.out.println("Payment Created Successfully");
+
                 ((ObjectNode) jsonResponse).put("payment_success", true);
                 ((ObjectNode) jsonResponse).put("payment_id", createdPayment.getId());
                 ((ObjectNode) jsonResponse).put("totalPaid", total);
@@ -467,6 +544,18 @@ public class OrderController extends ControllerBase {
     
                     if (createdOrder != null) {
                         System.out.println("Order Created Successfully");
+
+                        String currentDateTime = Helpers.getCurrentDateTime();
+                        NotificationService notificationService = new NotificationService();
+                        Notification notification = new Notification();
+                        notification.setCreatedAt(currentDateTime);
+                        notification.setTitle("Order placed");
+                        notification.setContent("Thank you! 🎉 We have received " + String.format(".2f", createdPayment.getTotalPaid()) + " for your order " + createdOrder.getOrderRefNo() + ". Your order has been placed successfully!");
+                        notification.setUser(user);
+                        notification.setUrl("");
+                        notificationService.setNotification(notification);
+                        notificationService.inform();
+
                         ((ObjectNode) jsonResponse).put("order_success", true);
                         ((ObjectNode) jsonResponse).put("order_id", createdOrder.getId());
     
@@ -505,6 +594,12 @@ public class OrderController extends ControllerBase {
                             } else {
                                 System.out.println("Order Transaction Creation Failed");
                             }
+                        }
+
+                        // generate email here
+                        OrderMailService mail = new OrderMailService(orderId);
+                        if (mail.generateOrderPDF()){
+                            mail.send();
                         }
     
                     } else {
