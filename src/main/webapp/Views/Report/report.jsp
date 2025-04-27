@@ -3,7 +3,7 @@
 <%@ page import="java.lang.Long" %>
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productType" %>
-<%@ page import="DTO.productDTO" %>
+<%@ page import="Models.Products.productDTO" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -369,7 +369,6 @@
           '<td class="px-6 py-4 text-sm text-gray-900">'   + p.title      + '</td>' +
           '<td class="px-6 py-4 text-sm text-gray-700">'   + p.type       + '</td>' +
           '<td class="px-6 py-4 text-sm text-gray-900 text-right">RM ' + p.price.toFixed(2) + '</td>' +
-          '<td class="px-6 py-4 text-sm text-gray-900 text-right">' + p.stock +(p.stock < 10 ? '<i class="fa-solid fa-exclamation-circle text-red-500 ml-2" title="Low stock"></i>' : '') +'</td>' +
           '<td class="px-6 py-4 text-sm text-gray-900 text-right">'  + p.stock      + '</td>' +
           '<td class="px-6 py-4 text-sm text-gray-900 text-right">'  + p.avgRating.toFixed(1) + '</td>' +
           '<td class="px-6 py-4 text-sm text-gray-900 text-right">'  + p.totalSold  + '</td>' +
@@ -473,18 +472,14 @@ function fetchDailyRevenue(days) {
     .then(envelope => {
       console.log("⬅️ Raw dailyRevenue response:", envelope);
       const rows = unwrapEnvelope(envelope);
-
-      
-      
       console.log("📊 Parsed rows:", rows);
       const labels = rows.map(d => d[0] || 'Unknown');
       const values = rows.map(d => Number(d[1]) || 0);
       console.log("🏷️ Daily chart labels:", labels);
       console.log("🏷️ Daily chart values:", values);
-
       if (rows.length === 0 || values.every(v => v === 0)) {
-          updateDailyChart([], []);
-        
+        document.getElementById('dailyRevenueChart').parentElement.innerHTML +=
+          '<p class="text-red-500">No data available</p>';
       } else {
         updateDailyChart(labels, values);
       }

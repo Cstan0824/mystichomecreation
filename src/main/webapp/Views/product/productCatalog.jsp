@@ -2,7 +2,7 @@
 <%@ page import="Models.Products.productVariationOptions" %>
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productType" %>
-<%@ page import="DTO.productDTO" %>
+<%@ page import="Models.Products.productDTO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="mvc.Helpers.SessionHelper" %>
 <%@ page import="DTO.UserSession" %>
@@ -31,7 +31,9 @@
         UserSession userSession = sessionHelper.getUserSession(); // Get the full UserSession object
         String userRole = userSession.getRole(); // Get the role from the UserSession object
         
-%>  
+        // Debugging userRole
+        System.out.println("DEBUG: userRole = " + userRole); // Logs to server console
+%>
 
     <div class="content-wrapper">
         <!-- Header with search and cart -->
@@ -43,7 +45,7 @@
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
 
-            <%-- <% if(userSession.getRole().toLowerCase() == "admin" || userSession.getRole().toLowerCase() == "staff" ) { %> --%>
+            <% if(userSession.getRole().toLowerCase() == "admin" || userSession.getRole().toLowerCase() == "staff" ) { %>
              
                 <div class="flex items-center">
                 <!-- Plus Icon -->
@@ -53,7 +55,7 @@
                 </div>
             </div>
 
-           <%-- <% } %> --%>
+           <% } %>
             <!-- Cart Container -->
             
         </div>
