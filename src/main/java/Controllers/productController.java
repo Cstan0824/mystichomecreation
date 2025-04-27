@@ -115,13 +115,7 @@ public class productController extends ControllerBase {
         System.out.println("📦 Products: " + products.size());
         request.setAttribute("products", products);
         
-        // for (product p : products) {
-        //     if (p.getImage() != null) {
-        //         System.out.println("📩 Image       = " + p.getImage().getId());
-        //     } else {
-        //         System.out.println("No image available for product ID: " + p.getId());
-        //     }
-        // }
+      
 
         for (product p : products) {
             System.out.println("🔍 Product ID: " + p.getId());

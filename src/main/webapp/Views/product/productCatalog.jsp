@@ -144,7 +144,7 @@
                             
                             for (int i=0; i<products.size(); i++) { 
                                 product p = products.get(i); %>
-                                <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">
+                                <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">                                   
                                     <a href="productPage?id=<%= p.getId() %>" class="block h-full hover:shadow-lg transition-shadow duration-200">
                                         <div class="bg-white rounded-lg overflow-hidden shadow h-full">
                                             <img loading="lazy" src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" 
@@ -175,7 +175,7 @@
                             
                             for (int i=0; i<products.size(); i++) { 
                                 product p = products.get(i); %>
-                                <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">
+                                <div class="product-item page-<%= (i/itemsPerPage)+1 %>" data-page="<%= (i/itemsPerPage)+1 %>">                                    
                                     <a href="productPage?id=<%= p.getId() %>" class="flex flex-col sm:flex-row bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
                                         <div class="sm:w-1/3">
                                             <img loading="lazy" src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" 
@@ -281,32 +281,32 @@ function changePage(newPage) {
 
         
 
-        function toggleView(view) {
-                const cardView = document.getElementById('cardView');
-                const listView = document.getElementById('listView');
-                const btnCard = document.getElementById('btnCard');
-                const btnList = document.getElementById('btnList');
+        // function toggleView(view) {
+        //         const cardView = document.getElementById('cardView');
+        //         const listView = document.getElementById('listView');
+        //         const btnCard = document.getElementById('btnCard');
+        //         const btnList = document.getElementById('btnList');
 
-                if (view === 'card') {
-                    cardView.classList.remove('hidden');
-                    listView.classList.add('hidden');
+        //         if (view === 'card') {
+        //             cardView.classList.remove('hidden');
+        //             listView.classList.add('hidden');
 
-                    // Update button styles for card view
-                    btnCard.classList.add('bg-yellow-400', 'text-white');
-                    btnCard.classList.remove('bg-white', 'text-gray-700');
-                    btnList.classList.add('bg-white', 'text-gray-700');
-                    btnList.classList.remove('bg-yellow-400', 'text-white');
-                } else if (view === 'list') {
-                    cardView.classList.add('hidden');
-                    listView.classList.remove('hidden');
+        //             // Update button styles for card view
+        //             btnCard.classList.add('bg-yellow-400', 'text-white');
+        //             btnCard.classList.remove('bg-white', 'text-gray-700');
+        //             btnList.classList.add('bg-white', 'text-gray-700');
+        //             btnList.classList.remove('bg-yellow-400', 'text-white');
+        //         } else if (view === 'list') {
+        //             cardView.classList.add('hidden');
+        //             listView.classList.remove('hidden');
                     
-                    // Update button styles for list view
-                    btnList.classList.add('bg-yellow-400', 'text-white');
-                    btnList.classList.remove('bg-white', 'text-gray-700');
-                    btnCard.classList.add('bg-white', 'text-gray-700');
-                    btnCard.classList.remove('bg-yellow-400', 'text-white');
-                }
-        }
+        //             // Update button styles for list view
+        //             btnList.classList.add('bg-yellow-400', 'text-white');
+        //             btnList.classList.remove('bg-white', 'text-gray-700');
+        //             btnCard.classList.add('bg-white', 'text-gray-700');
+        //             btnCard.classList.remove('bg-yellow-400', 'text-white');
+        //         }
+        // }
 
         function clearAllFilters() {
             // Reset the form to its initial state
