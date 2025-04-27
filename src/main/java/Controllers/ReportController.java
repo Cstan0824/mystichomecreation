@@ -3,24 +3,31 @@ package Controllers;
 import mvc.ControllerBase;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
+import mvc.Helpers.pdf.PdfService;
+import mvc.Helpers.pdf.PdfService.PdfOrientation;
+import mvc.Helpers.pdf.PdfType;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 
 import DAO.ReportDAO;
 import DAO.productDAO;
+import DTO.productDTO;
 import Models.Products.product;
 import Models.Products.productType;
 import jakarta.servlet.annotation.WebServlet;
-import Models.Products.productDTO;
-
+import java.io.File;
 
 
 
@@ -269,7 +276,75 @@ public class ReportController extends ControllerBase{
         return json(salesList);
     }
 
+    @ActionAttribute(urlPattern = "report/generateSalesReport")
+    public Result generateSalesReport() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonResponse = mapper.createObjectNode();
     
+        try {
+            List<product> products = productDAO.getAllProducts();
+            List<Integer> productIds = products.stream()
+                                               .map(product::getId)
+                                               .collect(Collectors.toList());
+    
+            Map<Integer, Integer> totalSoldMap = reportDAO.getTotalSoldForProducts(productIds);
+    
+            // 🔥 Sort and get top 5 products
+            List<Map.Entry<Integer, Integer>> topProducts = totalSoldMap.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .limit(5)
+                .collect(Collectors.toList());
+    
+            // 🔥 Fetch last 12 months revenue
+            List<Object[]> monthlyRevenue = reportDAO.getMonthlyRevenue(12);
+    
+            // 🔥 Prepare the values for the report template
+            Map<String, String> values = new HashMap<>();
+            
+            StringBuilder topProductsHtml = new StringBuilder();
+            for (Map.Entry<Integer, Integer> entry : topProducts) {
+                product p = findProductById(products, entry.getKey());
+                topProductsHtml.append("<tr>")
+                    .append("<td>").append(p.getTitle()).append("</td>")
+                    .append("<td>").append(entry.getValue()).append("</td>")
+                    .append("</tr>");
+            }
+            StringBuilder revenueHtml = new StringBuilder();
+            for (Object[] row : monthlyRevenue) {
+                int year = (Integer) row[0];
+                int month = (Integer) row[1];
+                BigDecimal total = (BigDecimal) row[2];
+                revenueHtml.append("<tr>")
+                    .append("<td>").append(String.format("%04d-%02d", year, month)).append("</td>")
+                    .append("<td>").append(String.format("RM %.2f", total)).append("</td>")
+                    .append("</tr>");
+            }
+    
+            values.put("topProductsRows", topProductsHtml.toString());
+            values.put("monthlyRevenueRows", revenueHtml.toString());
+    
+            PdfService pdfService = new PdfService(PdfType.SALES_REPORT, values, PdfOrientation.PORTRAIT);
+            File pdf = pdfService.convert();
+    
+            if (pdf != null) {
+                jsonResponse.put("pdf_success", true);
+                jsonResponse.put("pdf_path", pdf.getAbsolutePath());
+            } else {
+                jsonResponse.put("pdf_success", false);
+                jsonResponse.put("error_msg", "PDF generation failed");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            jsonResponse.put("pdf_success", false);
+            jsonResponse.put("error_msg", "Exception: " + ex.getMessage());
+        }
+    
+        return json(jsonResponse);
+    }
+    
+    
+
+
 
 
     

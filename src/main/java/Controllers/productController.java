@@ -18,8 +18,8 @@ import java.sql.Blob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DAO.productDAO;
+import DTO.productDTO;
 import Models.Products.product;
-import Models.Products.productDTO;
 import Models.Products.productFeedback;
 import Models.Products.productFeedbackKey;
 import Models.Products.productImage;
@@ -110,9 +110,11 @@ public class productController extends ControllerBase {
         List<productType> types = productDAO.getAllProductTypes();
         request.setAttribute("productTypes", types);
         System.out.println("📦 Product Types: " + types.size());
+
         List<product> products = productDAO.getAllProducts();
         System.out.println("📦 Products: " + products.size());
         request.setAttribute("products", products);
+        
         // for (product p : products) {
         //     if (p.getImage() != null) {
         //         System.out.println("📩 Image       = " + p.getImage().getId());
