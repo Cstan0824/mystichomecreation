@@ -39,6 +39,7 @@ public class CartController extends ControllerBase{
     private productDAO productDAO = new productDAO();
     private AccountDAO accountDA = new AccountDAO();
 
+    // Cart Index Page
     @Authorization(accessUrls = "Cart/cart")
     @SyncCache(channel = "CartItem", message ="from cart/index")
     public Result cart() throws Exception {
@@ -68,6 +69,7 @@ public class CartController extends ControllerBase{
         return page();
     }
 
+    // Cart Checkout Page
     @Authorization(accessUrls = "Cart/checkout")
     @SyncCache(channel = "CartItem", message ="from cart/cartCheckout")
     @HttpRequest(HttpMethod.POST)
@@ -157,111 +159,6 @@ public class CartController extends ControllerBase{
         return page();
     }
 
-    ////@Authorization(accessUrls = "Cart/getAvailableVouchers")
-    @HttpRequest(HttpMethod.POST) //postman testing api
-    public Result getAvailableVouchers(int userId, double subtotal) throws Exception {
-        System.out.println("Get Available Vouchers");
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonResponse = mapper.createObjectNode();
-    
-        try {
-            User user = userDA.getUserById(userId);
-            if (user != null) {
-                List<Voucher> vouchers = accountDA.getAvailableVouchers(user, subtotal);
-    
-                if (vouchers != null && !vouchers.isEmpty()) {
-                    ArrayNode voucherArray = mapper.createArrayNode();
-    
-                    for (Voucher voucher : vouchers) {
-                        VoucherInfoDTO voucherInfo = accountDA.getVoucherInfo(voucher.getId(), user);
-    
-                        ObjectNode voucherNode = mapper.createObjectNode();
-                        voucherNode.put("voucher_id", voucher.getId());
-                        voucherNode.put("voucher_name", voucher.getName());
-                        voucherNode.put("voucher_desc", voucher.getDescription());
-                        voucherNode.put("voucher_type", voucher.getType());
-                        voucherNode.put("voucher_amount", voucher.getAmount());
-                        voucherNode.put("voucher_max_coverage", voucher.getMaxCoverage());
-                        voucherNode.put("voucher_minimum_spend", voucher.getMinSpent());
-                        voucherNode.put("voucher_usage_left", voucherInfo.getUsageLeft());
-                        voucherNode.put("voucher_usage_limit", voucher.getUsagePerMonth());
-    
-                        voucherArray.add(voucherNode);
-                    }
-    
-                    jsonResponse.put("success", true);
-                    jsonResponse.set("available_vouchers", voucherArray);
-                } else {
-                    jsonResponse.put("success", false);
-                    jsonResponse.put("error_msg", "No vouchers available for current subtotal.");
-                }
-            } else {
-                jsonResponse.put("success", false);
-                jsonResponse.put("error_msg", "User not found.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            jsonResponse.put("success", false);
-            jsonResponse.put("error_msg", e.getMessage());
-        }
-    
-        return json(jsonResponse);
-    }
-
-    // Add New Cart to New User
-    //@Authorization(accessUrls = "Cart/addCart")
-    @SyncCache(channel = "user", message ="from cart/addCart")
-    @HttpRequest(HttpMethod.POST) //postman testing api
-    public Result addCart(Cart cart) throws Exception {
-
-        System.out.println("Add New Cart");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonResponse = mapper.createObjectNode();
-
-        try {
-            if (cartDAO.createCart(cart)) {
-                ((ObjectNode) jsonResponse).put("success", true);
-                ((ObjectNode) jsonResponse).put("cart_id", cart.getId());
-            }
-        } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
-        }
-
-        return json(jsonResponse);
-
-    }
-
-    // Get Cart by User ID
-    //@Authorization(accessUrls = "Cart/getCart")
-    @SyncCache(channel = "user", message ="from cart/getCart")
-    @HttpRequest(HttpMethod.GET) //postman testing api
-    public Result getCart(int userId) throws Exception {
-        System.out.println("Get Cart by User ID");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonResponse = mapper.createObjectNode();
-
-        try {
-            User user = userDA.getUserById(userId);
-            if (user != null){
-                Cart cart = cartDAO.getCartByUser(userId);
-                if (cart != null) {
-                    ((ObjectNode) jsonResponse).put("success", true);
-                    ((ObjectNode) jsonResponse).put("username", user.getUsername());
-                    ((ObjectNode) jsonResponse).put("cart_id", cart.getId());
-                } else {
-                    ((ObjectNode) jsonResponse).put("success", false);
-                    ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
-                }
-            }
-        } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
-        }
-
-        return json(jsonResponse);
-    }
-
     // Get Cart Items by User ID
     // used by cart.jsp, header.jsp
     @Authorization(accessUrls = "Cart/getCartItems")
@@ -320,36 +217,6 @@ public class CartController extends ControllerBase{
             ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
         }
         System.out.println("Response: " + jsonResponse.toString());
-        return json(jsonResponse);
-    }
-
-    // Add Cart Item for postman testing
-    //@Authorization(accessUrls = "Cart/addToCart")
-    @SyncCache(channel = "CartItem", message ="from cart/addToCart")
-    @HttpRequest(HttpMethod.POST)
-    public Result addToCart(CartItem cartItem) throws Exception {
-
-        System.out.println("Add Cart Item");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonResponse = mapper.createObjectNode();
-
-        try {
-            if (cartDAO.addCartItem(cartItem)) {
-                ((ObjectNode) jsonResponse).put("success", true);
-                ((ObjectNode) jsonResponse).put("cart_user", cartItem.getCart().getUser().getUsername());
-                ((ObjectNode) jsonResponse).put("cart_item_quantity", cartItem.getQuantity());
-                ((ObjectNode) jsonResponse).put("cart_item_selected_variation", cartItem.getSelectedVariation());
-                ((ObjectNode) jsonResponse).put("cart_id", cartItem.getCart().getId());
-                ((ObjectNode) jsonResponse).put("cart_item_name", cartItem.getProduct().getTitle());
-            } else {
-                ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Cart item already exists");
-            }
-        } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
-        }
-
         return json(jsonResponse);
     }
 
@@ -473,31 +340,6 @@ public class CartController extends ControllerBase{
         return json(jsonResponse);
     }
 
-    // Remove Cart Item for postman testing
-    //@Authorization(accessUrls = "Cart/removeCartItem")
-    @SyncCache(channel = "CartItem", message ="from cart/removeCartItem")
-    @HttpRequest(HttpMethod.POST)
-    public Result removeCartItem(CartItem cartItem) throws Exception {
-
-        System.out.println("Remove Cart Item");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonResponse = mapper.createObjectNode();
-
-        try {
-            if (cartDAO.deleteCartItem(cartItem)) {
-                ((ObjectNode) jsonResponse).put("success", true);
-            } else {
-                ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
-            }
-        } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
-        }
-
-        return json(jsonResponse);
-    }
-
     // Remove Cart Item by Cart ID and Product ID
     // used by cart.jsp, header.jsp
     @Authorization(accessUrls = "Cart/removeCartItemById")
@@ -547,40 +389,5 @@ public class CartController extends ControllerBase{
 
         return json(jsonResponse);
     }
-
-    // Clear Cart by User ID for postman testing
-    //@Authorization(accessUrls = "Cart/clearCart")
-    @SyncCache(channel = "CartItem", message ="from cart/clearCart")
-    @HttpRequest(HttpMethod.POST)
-    public Result clearCart(int userId) throws Exception {
-        System.out.println("Clear Cart by User ID");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonResponse = mapper.createObjectNode();
-
-        try {
-            User user = userDA.getUserById(userId);
-            if (user != null){
-                List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
-                if (cartItems != null) {
-                    for (CartItem item : cartItems) {
-                        cartDAO.deleteCartItem(item);
-                    }
-                    ((ObjectNode) jsonResponse).put("success", true);
-                } else {
-                    ((ObjectNode) jsonResponse).put("success", false);
-                    ((ObjectNode) jsonResponse).put("error msg", "Cart items not found");
-                }
-            } else {
-                ((ObjectNode) jsonResponse).put("success", false);
-                ((ObjectNode) jsonResponse).put("error msg", "User not found");
-            }
-        } catch (Exception e) {
-            ((ObjectNode) jsonResponse).put("success", false);
-            ((ObjectNode) jsonResponse).put("error msg", e.getMessage());
-        }
-
-        return json(jsonResponse);
-    }
-
 
 }

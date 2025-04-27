@@ -438,22 +438,35 @@
             
             const orderId = document.getElementById("updateOrderId").value;
 
+            // ✅ Show loading Swal before sending
+            Swal.fire({
+                title: 'Updating Order Status',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             $.ajax({
                 url: "<%= request.getContextPath() %>/Order/orders/updateStatus", // 🔧 adjust controller endpoint
                 type: "POST",
-                data: JSON.stringify({orderId: orderId}),
+                data: JSON.stringify({ orderId: orderId }),
                 contentType: "application/json",
                 success: function (response) {
+                    Swal.close(); // ✅ Close loading Swal when success
+
                     const parsedResponse = JSON.parse(response.data);
                     if (!parsedResponse.updateStatus_success) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Failed to update order status.',
-                            text: parsedResponse.errorMessage || 'Please try again later.',
+                            text: parsedResponse.error_msg || 'Please try again later.',
                             showConfirmButton: true
                         });
                         return;
-                    }else{
+                    } else {
                         closeUpdateModal();
                         Swal.fire({
                             icon: 'success',
@@ -465,16 +478,19 @@
                     }
                 },
                 error: function () {
+                    Swal.close(); // ✅ Close loading Swal on error too
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Failed to update order status.',
-                        text: parsedResponse.errorMessage || 'Please try again later.',
+                        text: 'Please try again later.',
                         showConfirmButton: true
                     });
                 }
             });
         });
     });
+
 
     function renderProduct(productImgUrl, productName, productPrice, quantity, selectedVariation) {
         return (
