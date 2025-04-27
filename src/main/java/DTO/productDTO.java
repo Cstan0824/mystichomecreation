@@ -1,4 +1,6 @@
-package Models.Products;
+package DTO;
+
+import Models.Products.product;
 
 public class productDTO {
     public int id;

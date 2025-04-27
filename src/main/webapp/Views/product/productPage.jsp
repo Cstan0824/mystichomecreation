@@ -28,6 +28,7 @@
 
     <%
         UserSession userSession = sessionHelper.getUserSession(); // Get the full UserSession object
+        boolean access = false;
         product product = (product) request.getAttribute("product");
 
     %>
@@ -35,9 +36,16 @@
             <div class="flex justify-end space-x-4 mb-4">
                 <!-- Update Button -->
 
-                <!-- for the update and delete button, we need to pass the product-->
-                <% if(userSession.getRole() == "Admin" || userSession.getRole() == "Staff" ) { %>
-
+            <% if (sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                                for (String accessUrl : sessionHelper.getAccessUrls()) {
+                                    if (accessUrl.startsWith("product/")) { 
+                                        access = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        %>
+             <% if (access) { %> <!-- 🛠 Wrap the button with permission check -->
 
                     <button  onclick="openeditModal()" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
                         Update
@@ -168,7 +176,8 @@
                             <p><%= feedback.getComment() %></p>
                             <p class="text-sm text-gray-600"><%= feedback.getFeedbackDate() %></p>
 
-                            
+                         <% if (access) { %> <!-- 🛠 Wrap the button with permission check -->
+
                             <% if (feedback.getReply() != null && !feedback.getReply().isEmpty()) { %>
                                 <!-- Already replied: show reply + date -->
                                 <div class="mt-2">
@@ -211,9 +220,10 @@
                                     </button>
                                 </form>
                                 </div>
-                            <% } %>
+                            <% }} %>
                             </div>
                         <% } %>
+
                         </div>
 
                         
@@ -399,13 +409,7 @@
             
         }
 
-        var swiper = new Swiper(".mySwiper", {
-            loop: true,
-            spaceBetween: 10,
-            slidesPerView: 4,
-            freeMode: true,
-            watchSlidesProgress: true,
-        });
+        
 
         function openeditModal() {
             const m = document.getElementById("editProductModal");

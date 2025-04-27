@@ -3,7 +3,7 @@
 <%@ page import="Models.Products.productVariationOptions" %>
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productType" %>
-<%@ page import="Models.Products.productDTO" %>
+<%@ page import="DTO.productDTO" %>
 
 <!-- addProduct.jsp -->
 <div id="addProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[600] overflow-y-auto hidden">

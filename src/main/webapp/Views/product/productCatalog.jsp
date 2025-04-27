@@ -2,7 +2,7 @@
 <%@ page import="Models.Products.productVariationOptions" %>
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productType" %>
-<%@ page import="Models.Products.productDTO" %>
+<%@ page import="DTO.productDTO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="mvc.Helpers.SessionHelper" %>
 <%@ page import="DTO.UserSession" %>
@@ -28,11 +28,10 @@
 <%@ include file="/Views/Shared/Header.jsp" %>
 
 <% 
-        UserSession userSession = sessionHelper.getUserSession(); // Get the full UserSession object
-        String userRole = userSession.getRole(); // Get the role from the UserSession object
+        UserSession userSession = sessionHelper.getUserSession(); 
+        boolean access = false;
+
         
-        // Debugging userRole
-        System.out.println("DEBUG: userRole = " + userRole); // Logs to server console
 %>
 
     <div class="content-wrapper">
@@ -45,8 +44,17 @@
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
 
-            <% if(userSession.getRole().toLowerCase() == "admin" || userSession.getRole().toLowerCase() == "staff" ) { %>
-             
+            <% if (sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                    for (String accessUrl : sessionHelper.getAccessUrls()) {
+                        if (accessUrl.startsWith("product/")) { 
+                            access = true;
+                            break;
+                        }
+                    }
+                }
+            %>
+             <% if (access) { %> <!-- 🛠 Wrap the button with permission check -->
+
                 <div class="flex items-center">
                 <!-- Plus Icon -->
                 <div class="relative">
@@ -56,7 +64,6 @@
             </div>
 
            <% } %>
-            <!-- Cart Container -->
             
         </div>
 
@@ -122,12 +129,12 @@
                         <div class="flex gap-2 w-full md:w-auto">
                             <!-- View Toggle Buttons -->
                             <button id="btnList" onclick="toggleView('list')" 
-                                class="view-toggle bg-gray-100 text-gray-600 px-4 py-2 rounded-md flex items-center gap-2">
+                                class="view-toggle hidden md:flex bg-gray-100 text-gray-600 px-4 py-2 rounded-md items-center gap-2">
                                 <i class="fas fa-list"></i>
                                 <span>List</span>
                             </button>
                             <button id="btnCard" onclick="toggleView('card')" 
-                                class="view-toggle bg-yellow-400 text-white px-4 py-2 rounded-md flex items-center gap-2">
+                                class="view-toggle hidden md:flex bg-yellow-400 text-white px-4 py-2 rounded-md items-center gap-2">
                                 <i class="fas fa-th"></i>
                                 <span>Grid</span>
                             </button>
@@ -263,13 +270,16 @@ function toggleView(view) {
 
 function changePage(newPage) {
     const totalProducts = <%= hasProducts ? products.size() : 0 %>;
+
+    // calculate total pages  , use math ceil to round up , even 1.1
     const totalPages = Math.ceil(totalProducts / itemsPerPage);
     
     if(newPage < 1 || newPage > totalPages) return;
     
+    //when user click on the page number, we need to update the current page product available
     currentPage = newPage;
     
-    // Update product visibility
+    // Update product visibility , if the data-page ==  currentPage 
     document.querySelectorAll('.product-item').forEach(item => {
         item.style.display = item.dataset.page == currentPage ? 'block' : 'none';
     });
@@ -283,32 +293,6 @@ function changePage(newPage) {
 
         
 
-        // function toggleView(view) {
-        //         const cardView = document.getElementById('cardView');
-        //         const listView = document.getElementById('listView');
-        //         const btnCard = document.getElementById('btnCard');
-        //         const btnList = document.getElementById('btnList');
-
-        //         if (view === 'card') {
-        //             cardView.classList.remove('hidden');
-        //             listView.classList.add('hidden');
-
-        //             // Update button styles for card view
-        //             btnCard.classList.add('bg-yellow-400', 'text-white');
-        //             btnCard.classList.remove('bg-white', 'text-gray-700');
-        //             btnList.classList.add('bg-white', 'text-gray-700');
-        //             btnList.classList.remove('bg-yellow-400', 'text-white');
-        //         } else if (view === 'list') {
-        //             cardView.classList.add('hidden');
-        //             listView.classList.remove('hidden');
-                    
-        //             // Update button styles for list view
-        //             btnList.classList.add('bg-yellow-400', 'text-white');
-        //             btnList.classList.remove('bg-white', 'text-gray-700');
-        //             btnCard.classList.add('bg-white', 'text-gray-700');
-        //             btnCard.classList.remove('bg-yellow-400', 'text-white');
-        //         }
-        // }
 
         function clearAllFilters() {
             // Reset the form to its initial state
@@ -362,40 +346,74 @@ function changePage(newPage) {
         }
 
         function renderProducts(products) {
-            var ctx = '<%= request.getContextPath() %>'
+            var ctx = '<%= request.getContextPath() %>';
             const container = document.getElementById("cardView");
+            const paginationContainer = document.querySelector('.pagination-controls');
+
+            paginationContainer.innerHTML = ""; // 🛑 Clear old pagination buttons
             container.innerHTML = ""; 
 
             if (!products || products.length === 0) {
                 container.innerHTML = "<p>No products found.</p>";
                 return;
             }
-            
+
+            const itemsPerPage = 9; 
+
             for (let i = 0; i < products.length; i++) {
                 let p = products[i];
+                let pageNumber = Math.floor(i / itemsPerPage) + 1; 
 
                 let html = ""
-                    + "<a href='productPage?id=" + p.id + "' class='block hover:shadow-lg transition-shadow duration-200'>"
-                    +     "<div class='bg-white rounded-lg overflow-hidden shadow relative'>"
-                    +         "<img src='" + ctx + "/File/Content/product/retrieve?id=" + p.productImageId + "' alt='" + p.title + "' class='w-full h-40 object-cover' >"
-                    +         "<div class='p-3'>"
-                    +             "<h3 class='font-medium'>" + p.title + "</h3>"
-                    +             "<p class='text-xs text-gray-500'>" + p.retailInfo + "</p>    "
-                    +             "<div class='flex justify-between items-center mt-2'>"
-                    +                 "<span class='font-bold'>RM " + p.price.toFixed(2) + "</span>"
-                    +                 "<div class='flex items-center text-xs text-gray-500'>"
-                    +                     "<i class='fas fa-box mr-1'></i>"
+                    + "<div class='product-item page-" + pageNumber + "' data-page='" + pageNumber + "'>"
+                    +   "<a href='productPage?id=" + p.id + "' class='block h-full hover:shadow-lg transition-shadow duration-200'>"
+                    +     "<div class='bg-white rounded-lg overflow-hidden shadow h-full'>"
+                    +         "<img src='" + ctx + "/File/Content/product/retrieve?id=" + p.productImageId + "' alt='" + p.title + "' class='w-full h-48 object-cover rounded-t-md' >"
+                    +         "<div class='p-4'>"
+                    +             "<h3 class='font-semibold text-lg truncate'>" + p.title + "</h3>"
+                    +             "<p class='text-sm text-gray-500 mt-2 line-clamp-2'>" + p.retailInfo + "</p>"
+                    +             "<div class='flex justify-between items-center mt-4'>"
+                    +                 "<span class='text-lg font-bold text-yellow-600'>RM " + p.price.toFixed(2) + "</span>"
+                    +                 "<div class='flex items-center text-sm text-gray-500'>"
+                    +                     "<i class='fas fa-box mr-2'></i>"
                     +                     "<span>" + p.stock + " left</span>"
                     +                 "</div>"
                     +             "</div>"
                     +         "</div>"
                     +     "</div>"
-                    + "</a>";
+                    +   "</a>"
+                    + "</div>"; // ✅ wrap with div.product-item
 
                 container.innerHTML += html;
-
-                console.log("✅ Rendered " + products.length + " products to frontend.");
             }
+
+            const totalPages = Math.ceil(products.length / itemsPerPage);
+
+            if (totalPages > 1) {
+                    paginationContainer.innerHTML += ""
+                        + "<button onclick='changePage(currentPage - 1)' class='prev-btn px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200'>"
+                        + "&laquo; Previous"
+                        + "</button>";
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationContainer.innerHTML += ""
+                            + "<button onclick='changePage(" + i + ")' class='page-btn px-4 py-2 rounded-md "
+                            + (i === 1 ? "bg-yellow-400 text-white" : "bg-gray-100 hover:bg-gray-200")
+                            + "'>"
+                            + i
+                            + "</button>";
+                    }
+
+                    paginationContainer.innerHTML += ""
+                        + "<button onclick='changePage(currentPage + 1)' class='next-btn px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200'>"
+                        + "Next &raquo;"
+                        + "</button>";
+                }
+            // 3. Always reset to page 1 after re-render
+            currentPage = 1;
+            changePage(currentPage);
+
+
         }
 
         function openAddModal() {
@@ -439,6 +457,10 @@ function changePage(newPage) {
                 params.delete('deleted');
                 history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            changePage(1);
         });
 
 
