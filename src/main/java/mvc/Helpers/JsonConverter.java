@@ -1,6 +1,5 @@
 package mvc.Helpers;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import Models.Accounts.ShippingInformation;
-import jakarta.json.Json;
 
 public class JsonConverter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,23 +36,5 @@ public class JsonConverter {
             return Collections.singletonList(singleObject);
         }
 
-    }
-
-    public static List<ShippingInformation> formatShippingInfo(String jsonString) {
-        List<ShippingInformation> addresses = new ArrayList<>();
-
-        if (jsonString == null || jsonString.trim().isEmpty()) {
-            return addresses;
-        }
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            addresses = objectMapper.readValue(jsonString, new TypeReference<List<ShippingInformation>>() {
-            });
-        } catch (Exception e) {
-            System.err.println("Error parsing shipping addresses JSON: " + e.getMessage());
-        }
-
-        return addresses;
     }
 }

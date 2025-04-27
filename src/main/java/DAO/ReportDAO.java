@@ -1,12 +1,9 @@
 package DAO;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
+
 import jakarta.persistence.TypedQuery;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashMap;
