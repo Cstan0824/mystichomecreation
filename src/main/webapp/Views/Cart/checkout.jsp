@@ -49,7 +49,7 @@
             <div class="basis-2/3 flex flex-col gap-6">
 
                 <!-- Select Voucher -->
-                <%= if (voucherInfoList != null && !voucherInfoList.isEmpty()) { %>
+                <% if (voucherInfoList != null && !voucherInfoList.isEmpty()) { %>
                     
                     <div class="flex flex-col gap-4 p-8 border border-grey3 w-full" x-data="{ showVouchers: true }">
                         <p class="font-bold text-lg font-poppins mb-4">Select Voucher</p>
@@ -129,7 +129,7 @@
                         </div>
                     </div>
                 
-                <%= } %>
+                <% } %>
                 
 
                 <!-- Payment Method -->
@@ -481,6 +481,8 @@
                 url: "<%= request.getContextPath() %>/Order/processPayment",
                 type: "POST",
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function (response) {
                    const parsedResponse = JSON.parse(response.data);
                     if (parsedResponse.process_success) {
