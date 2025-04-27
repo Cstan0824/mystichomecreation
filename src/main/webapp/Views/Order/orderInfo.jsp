@@ -436,6 +436,8 @@
 </body>
 <script>
     const thisOrderId = '<%= order.getId() %>';
+    const thisOrderRefNo = '<%= order.getOrderRefNo() %>';
+    const safeOrderRefNo = thisOrderRefNo.replace(/#/g, ''); // remove all #
     var status = '<%= order.getStatus().getStatusDesc() %>';
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -507,30 +509,36 @@
             data: JSON.stringify({
                 orderId: parseInt(thisOrderId)
             }),
-            success: function(response) {
-                const parsedResponse = JSON.parse(response.data);
-                if (parsedResponse.pdf_success) {
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Receipt Generated',
-                        text: 'View at: ' + parsedResponse.pdf_path
-                    });
-                    
-                } else {
+            xhrFields: {
+                responseType: 'blob'   // 🚀 Important! Expect a blob, not text
+            },
+            success: function(blob) {
+                // Create a temporary URL for the blob
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // Create an anchor element to trigger download
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = 'Order_Receipt_' + safeOrderRefNo + '.pdf'; // ✅ set filename here
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
 
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Failed to generate receipt: ' + parsedResponse.error_msg
-                    });
-                }
+                // Optionally, show a success popup
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Receipt Generated',
+                    text: 'Your receipt has been downloaded.'
+                });
             },
             error: function() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Failed to generate receipt: ' + parsedResponse.error_msg
+                    text: 'Failed to generate receipt.'
                 });
             }
         });
