@@ -69,10 +69,10 @@ public class LandingController extends ControllerBase {
         }
 
         List<String> accessUrls = userDA.getUrlAccesses(user.getRole().getId());
-        if (accessUrls == null) {
-            request.setAttribute("error", "User does not have any access permissions.");
-            return page();
-        }
+        // if (accessUrls == null) {
+        // request.setAttribute("error", "User does not have any access permissions.");
+        // return page();
+        // }
 
         UserImage userImage = userDA.getUserImageByUserId(user.getId());
         if (userImage != null) {
