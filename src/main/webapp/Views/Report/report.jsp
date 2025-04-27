@@ -19,6 +19,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 <body class="bg-gray-100 font-sans p-6">
   <div class="max-w-7xl mx-auto space-y-8">
@@ -189,9 +192,17 @@
     <div class="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-shadow duration-300">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-900">Product List</h2>
-        <div class="relative">
-          <button onclick="openFilterModal()" class="p-2 rounded-full hover:text-yellow-300 focus:outline-none"> 
-            <i class="fa-solid fa-filter"></i>
+        <div class="flex items-center space-x-4">
+          <!-- Generate Sales Report Button -->
+          <button onclick="generateSalesReport()" class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            <i class="fa-solid fa-download mr-2"></i>
+            <span>Download Report</span>
+          </button>
+
+          <!-- Filter Button -->
+          <button onclick="openFilterModal()" class="flex items-center bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300">
+            <i class="fa-solid fa-filter mr-2"></i>
+            <span>Filter</span>
           </button>
         </div>
       </div>
@@ -247,6 +258,45 @@
 
 <script>
   const ctx = '<%= request.getContextPath() %>';
+
+  //================ Sales Report download ============-
+ function generateSalesReport() {
+   $.ajax({
+        url: '<%= request.getContextPath() %>/Report/report/generateSalesReport',
+        type: 'POST',
+        contentType: 'application/json',
+        xhr: function() {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob'; // ✅ Correct way for binary download
+            return xhr;
+        },
+        success: function(blob) {
+            const blobUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = 'Sales_Report_' + new Date().toISOString().split('T')[0] + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sales Report Generated',
+                text: 'The sales report has been downloaded.'
+            });
+        },
+        error: function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to generate sales report.'
+            });
+        }
+    });
+}
 
   // ==================== Filter Modal ====================
 
@@ -328,23 +378,38 @@
   }
 
   // ==================== Sorting total sold ====================
-  function sortTotalSold() {
-    let asc = false; // Set to false for sorting from largest to smallest
-    const tbody = document.querySelector('#productTable tbody');
-    const rows  = Array.from(tbody.rows);
-    rows.sort((a, b) => {
-      // Grab the 6th cell of the table
-      const vA = parseInt(a.cells[5].textContent, 10) || 0;
-      const vB = parseInt(b.cells[5].textContent, 10) || 0;
-      return asc ? vA - vB : vB - vA;
-    });
-    rows.forEach(r => tbody.appendChild(r));
+  let isDescending = true; // Default
 
-    const icon = document.getElementById('icon-totalSold');
-    icon.classList.toggle('fa-sort-up',  asc);
-    icon.classList.toggle('fa-sort-down', !asc);
-    icon.classList.toggle('fa-sort',      false);
-    asc = !asc;
+  function sortTotalSold() {
+    const table = document.getElementById('productTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    if (sortTotalSold.clickCount === undefined) sortTotalSold.clickCount = 0;
+    sortTotalSold.clickCount++;
+
+    if (sortTotalSold.clickCount % 3 === 1) {
+        // First click: sort descending (high to low)
+        rows.sort((a, b) => {
+            const aValue = parseInt(a.children[5].textContent.trim()) || 0;
+            const bValue = parseInt(b.children[5].textContent.trim()) || 0;
+            return bValue - aValue;
+        });
+    } else if (sortTotalSold.clickCount % 3 === 2) {
+        // Second click: sort ascending (low to high)
+        rows.sort((a, b) => {
+            const aValue = parseInt(a.children[5].textContent.trim()) || 0;
+            const bValue = parseInt(b.children[5].textContent.trim()) || 0;
+            return aValue - bValue;
+        });
+    } else {
+        // Third click: restore original order
+        rows.length = 0;
+        rows.push(...originalRows);
+    }
+
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
   }
 
 //#region testing

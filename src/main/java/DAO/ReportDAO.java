@@ -126,21 +126,7 @@ public class ReportDAO {
         // ensure always get a number, not null.
     }
 
-    // Get the top-selling products for all months
-    public List<Object[]> getTopSellingProductsEachMonth() {
-        String sql = """
-         SELECT p.product_title, SUM(ot.order_quantity) AS total_qty
-            FROM Order_Transaction ot
-            JOIN Orders o ON ot.order_id = o.order_id
-            JOIN Product p ON ot.product_id = p.product_id
-            WHERE o.status_id = 4
-            GROUP BY p.product_title
-            ORDER BY total_qty DESC
-        """;
-        @SuppressWarnings("unchecked")
-        List<Object[]> results = db.createNativeQuery(sql).getResultList();
-        return results;
-    }
+   
 
     // filter product
     public List<product> filterProducts( List<Integer> categoryIds, Double priceMin, Double priceMax, Integer stockMin, Integer stockMax, Double ratingMin, LocalDate dateFrom, LocalDate dateTo) 

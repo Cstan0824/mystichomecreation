@@ -42,7 +42,7 @@
             <th class="px-6 py-3 text-gray-500 font-medium">Username</th>
             <th class="px-6 py-3 text-gray-500 font-medium">Email</th>
             <th class="px-6 py-3 text-gray-500 font-medium">Birthdate</th>
-            <th class="px-6 py-3 text-gray-500 font-medium">Total Spent</th>
+            <th class="px-6 py-3 text-gray-500 font-medium">Total Spent (RM)</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
@@ -67,7 +67,7 @@
               </td>
               <td class="px-6 py-4 text-gray-600">
                 <div class="flex items-center">
-                  <c:out value="RM99.99"/>
+                  <%= String.format("RM %.2f", ((DTO.CustomerDTO)pageContext.getAttribute("customer")).getTotalSpent()) %>
                 </div>
               </td>
             </tr>

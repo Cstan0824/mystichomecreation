@@ -27,6 +27,7 @@
 <body>
 
     <%
+        UserSession userSession = sessionHelper.getUserSession(); // Get the full UserSession object
         product product = (product) request.getAttribute("product");
 
     %>
@@ -35,20 +36,22 @@
                 <!-- Update Button -->
 
                 <!-- for the update and delete button, we need to pass the product-->
+                <% if(userSession.getRole() == "Admin" || userSession.getRole() == "Staff" ) { %>
 
 
-                <button  onclick="openeditModal()" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
-                    Update
-                </button>
-                
-                <!-- Delete Button -->
-                <form action="<%= request.getContextPath() %>/product/deleteProduct" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
-                                <input type="hidden" name="productId" value="<%= product.getId() %>">
-
-                    <button type="submit" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
-                        Delete
+                    <button  onclick="openeditModal()" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
+                        Update
                     </button>
-                </form>
+                    
+                    <!-- Delete Button -->
+                    <form action="<%= request.getContextPath() %>/product/deleteProduct" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                    <input type="hidden" name="productId" value="<%= product.getId() %>">
+
+                        <button type="submit" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
+                            Delete
+                        </button>
+                    </form>
+                <% } %>
             </div>
 
 

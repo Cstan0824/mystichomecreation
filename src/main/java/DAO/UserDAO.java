@@ -3,6 +3,7 @@ package DAO;
 import java.util.ArrayList;
 import java.util.List;
 
+import DTO.CustomerDTO;
 import Models.Users.Permission;
 import Models.Users.Role;
 import Models.Users.RoleType;
@@ -68,6 +69,54 @@ public class UserDAO {
         return users;
     }
 
+    public List<CustomerDTO> getCustomers() {
+        List<CustomerDTO> customers = new ArrayList<>();
+
+        try {
+            // First get all users with role = CUSTOMER
+            TypedQuery<User> userQuery = db.createQuery(
+                    "SELECT u FROM User u WHERE u.role.description = :role",
+                    User.class)
+                    .setParameter("role", RoleType.CUSTOMER.get());
+
+            List<User> users = userQuery.getResultList();
+
+            // For each user, calculate their total spent from orders
+            for (User user : users) {
+                // Calculate total spent using a separate query
+                TypedQuery<Double> spentQuery = db.createQuery(
+                        "SELECT COALESCE(SUM(p.totalPaid), 0) " +
+                                "FROM Order o JOIN o.payment p " +
+                                "WHERE o.user.id = :userId AND o.status.id != 5", // Assuming status 5 is "Cancelled"
+                        Double.class)
+                        .setParameter("userId", user.getId());
+
+                Double totalSpent = spentQuery.getSingleResult();
+                if (totalSpent == null)
+                    totalSpent = 0.0;
+
+                CustomerDTO customerDTO = new CustomerDTO();
+                customerDTO.setId(user.getId());
+                customerDTO.setUsername(user.getUsername());
+                customerDTO.setEmail(user.getEmail());
+
+                // Handle possible null birthdate
+                if (user.getBirthdate() != null) {
+                    customerDTO.setBirthdate(user.getBirthdate());
+                } else {
+                    customerDTO.setBirthdate("Not provided");
+                }
+
+                customerDTO.setTotalSpent(totalSpent);
+                customers.add(customerDTO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the exception properly
+        }
+
+        return customers;
+    }
+
     public User getUserById(int id) {
         User user = null;
         TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE id=:id", User.class)
@@ -118,12 +167,28 @@ public class UserDAO {
     }
 
     public boolean deleteUser(int id) {
-        db.getTransaction().begin();
-        User user = getUserById(id);
-        db.remove(user);
-        db.getTransaction().commit();
+        CartDAO cartDAO = new CartDAO();
 
-        return !db.getTransaction().getRollbackOnly();
+        // First delete cart
+        boolean result = cartDAO.deleteCart(id);
+
+        if (result) {
+            db.getTransaction().begin();
+
+            // Re-fetch user inside SAME transaction
+            User user = db.find(User.class, id); // 📢 MUST USE db.find(), not old getUserById()
+
+            if (user != null) {
+                db.remove(user);
+                db.getTransaction().commit();
+                return true;
+            } else {
+                db.getTransaction().rollback();
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     public UserImage getUserImageById(int id) {
