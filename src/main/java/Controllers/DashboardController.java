@@ -32,20 +32,41 @@ public class DashboardController extends ControllerBase {
     private productDAO productDAO = new productDAO();
 
     public Result index() throws Exception {
-        // #region accept parameter
 
-        // #variable declaration
+        // #region total customer and staff
         int totalCustomers = reportDAO.getTotalCustomers();
         int totalStuff = reportDAO.getTotalStaff();
-        // List<product> lowStock = reportDAO.getLowStockProducts(5);
-        // List<Object[]> feedbackRatings = reportDAO.getFeedbackRatings();
-        List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
-        List<Object[]> salesByCategory = reportDAO.getSalesByCategory();
-        List<Object[]> ordersByMonth = reportDAO.getOrdersPerMonth();
-        double totalRevenue = reportDAO.getTotalRevenue();
-        List<Object[]> topSelling = reportDAO.getTopSellingProductsEachMonth();
-        List<productType> productTypes = productDAO.getAllProductTypes();
 
+        System.out.println("✅ Total Customers: " + totalCustomers);
+        System.out.println("✅ Total Staff: " + totalStuff);
+
+        request.setAttribute("totalCustomers", totalCustomers);
+        request.setAttribute("totalStaff", totalStuff);
+
+        // #region payment preferences
+        List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
+
+        request.setAttribute("paymentPreferences", paymentPreferences);
+
+        // #region total revenue of all time
+        double totalRevenue = reportDAO.getTotalRevenue();
+        request.setAttribute("totalRevenue", totalRevenue);
+
+        // #region Order comparison
+        int thisMonthCount = reportDAO.getOrdersThisMonth();
+        int lastMonthCount = reportDAO.getOrdersLastMonth();
+
+        // if lastMonthCount == 0, then pctChange = 100 if thisMonthCount > 0, else 0
+        double pctChange = lastMonthCount == 0 ? (thisMonthCount == 0 ? 0 : 100)
+                : ((thisMonthCount - lastMonthCount) * 100.0 / lastMonthCount);
+        String changeLabel = String.format("%+,.0f%%", pctChange);
+
+        request.setAttribute("orderChangeLabel", changeLabel);
+        request.setAttribute("orderChangeUp", pctChange >= 0);
+        request.setAttribute("ordersThisMonth", thisMonthCount);
+
+        // #region product list
+        List<productType> productTypes = productDAO.getAllProductTypes();
         List<product> products = reportDAO.getAllProducts();
 
         List<Integer> ids = products.stream()
@@ -61,62 +82,6 @@ public class DashboardController extends ControllerBase {
                         avgMap.getOrDefault(p.getId(), 0.0),
                         soldMap.getOrDefault(p.getId(), 0)))
                 .toList();
-
-        // #Debugging output
-        System.out.println("✅ Total Customers: " + totalCustomers);
-        System.out.println("✅ Total Staff: " + totalStuff);
-        // System.out.println("✅ Low Stock Products: " + lowStock.size() + " items
-        // found.");
-        // System.out.println("✅ Feedback Ratings: " + feedbackRatings.size() + " items
-        // found.");
-        System.out.println("✅ productList count = " + products.size());
-
-        for (Object[] row : paymentPreferences) {
-            String method = (String) row[0];
-            long count = ((Number) row[1]).longValue();
-            System.out.printf("🔹 %d × %s%n", count, method);
-        }
-
-        System.out.printf(
-                "✅ salesByCategory count=%d categories: %s%n",
-                salesByCategory.size(),
-                salesByCategory.stream()
-                        .map(r -> String.format("%s=RM%.2f", r[0], ((Number) r[1]).doubleValue()))
-                        .toList());
-
-        System.out.printf("✅ months=%d → %s%n",
-                ordersByMonth.size(),
-                ordersByMonth.stream()
-                        .map(r -> String.format("%d-%02d=%d",
-                                ((Number) r[0]).intValue(),
-                                ((Number) r[1]).intValue(),
-                                ((Number) r[2]).intValue()))
-                        .toList());
-
-        System.out.printf("✅ totalRevenue=RM%.2f%n", totalRevenue);
-
-        // System.out.printf(
-        // "✅ topSelling count=%d months: %s%n",
-        // topSelling.size(),
-        // topSelling.stream()
-        // .map(r -> String.format("%d-%02d→%s(%d)",
-        // ((Number)r[0]).intValue(),
-        // ((Number)r[1]).intValue(),
-        // r[2],
-        // ((Number)r[3]).intValue()))
-        // .toList()
-        // );
-
-        // #Set attributes for the view
-        request.setAttribute("totalCustomers", totalCustomers);
-        request.setAttribute("totalStaff", totalStuff);
-        // request.setAttribute("lowStock", lowStock);
-        // request.setAttribute("feedbackRatings", feedbackRatings);
-        request.setAttribute("paymentPreferences", paymentPreferences);
-        request.setAttribute("ordersByMonth", ordersByMonth);
-        request.setAttribute("totalRevenue", totalRevenue);
-        request.setAttribute("topSelling", topSelling);
-        request.setAttribute("salesByCategory", salesByCategory);
 
         // display purpose only
         request.setAttribute("productList", products);
