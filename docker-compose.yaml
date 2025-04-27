@@ -14,7 +14,8 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
             - ./.mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
-            - ./.mysql/schema.sql:/docker-entrypoint-initdb.d/init.sql
+            - ./.mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+            #- ./.mysql/schema.sql:/docker-entrypoint-initdb.d/init.sql
             #- ./.mysql/seed.sql:/docker-entrypoint-initdb.d/seed.sql #Seed Data Only - Optional
 
     mystichome:
