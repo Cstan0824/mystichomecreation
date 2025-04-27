@@ -1,6 +1,7 @@
 package Controllers;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +42,15 @@ import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.Cache.Redis;
 import mvc.ControllerBase;
+import mvc.FileType;
+import mvc.Helpers.Helpers;
 import mvc.Helpers.JsonConverter;
+import mvc.Helpers.Mail.OrderMailService;
+import mvc.Helpers.Mail.MailService;
+import mvc.Helpers.Mail.MailType;
+import mvc.Helpers.Notify.Notification;
+import mvc.Helpers.Notify.NotificationService;
+import mvc.Helpers.SessionHelper;
 import mvc.Helpers.pdf.PdfService;
 import mvc.Helpers.pdf.PdfService.PdfOrientation;
 import mvc.Helpers.pdf.PdfType;
@@ -61,6 +70,10 @@ public class OrderController extends ControllerBase {
     private productDAO productDAO = new productDAO();
 
     // #region ORDER INFO PAGE
+
+    // Order info page for users to view their order details
+    // This page is accessible only to logged-in users
+    // used in orderInfo.jsp
     @Authorization(accessUrls = "Order/orderInfo")
     @SyncCache(channel = "Order", message = "from order/orderInfo")
     @ActionAttribute(urlPattern= "orderInfo")
@@ -97,6 +110,9 @@ public class OrderController extends ControllerBase {
         return page();
     }
 
+    // Generate receipt for the order
+    // This method is called when the user clicks on "Generate Receipt" button
+    // used in orderInfo.jsp
     @Authorization(accessUrls = "Order/generateReceipt")
     @HttpRequest(HttpMethod.POST)
     public Result generateReceipt(int orderId) throws Exception {
@@ -113,7 +129,6 @@ public class OrderController extends ControllerBase {
             return json(jsonResponse);
         }
 
-        
 
         ShippingInformation shippingInfo = null;
         String shippingJson = order.getShippingInfo();
@@ -190,11 +205,15 @@ public class OrderController extends ControllerBase {
                 File pdf = service.convert();
 
                 if (pdf != null) {
+                    byte[] pdfFile = Files.readAllBytes(pdf.toPath());
+                    FileType fileType = Helpers.getFileTypeFromBytes(pdfFile);
                     ((ObjectNode) jsonResponse).put("pdf_success", true);
                     ((ObjectNode) jsonResponse).put("pdf_path", pdf.getAbsolutePath());
+                    return source(pdfFile, "E-receipt for Order " + order.getOrderRefNo(), fileType);
                 } else {
                     ((ObjectNode) jsonResponse).put("pdf_success", false);
                     ((ObjectNode) jsonResponse).put("error_msg", "PDF generation failed");
+                    return json(jsonResponse);
                 }
 
             } else {
@@ -207,8 +226,6 @@ public class OrderController extends ControllerBase {
             ((ObjectNode) jsonResponse).put("error_msg", "Error retrieving order transactions: " + e.getMessage());
             return json(jsonResponse);
         }
-            
-        return json(jsonResponse);
     }
 
 
@@ -216,6 +233,9 @@ public class OrderController extends ControllerBase {
 
     // #region STAFFORDER PAGE
 
+    // Order page for staff to manage orders
+    // This page is accessible only to staff and admin users
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/orders")
     @ActionAttribute(urlPattern = "orders")
     public Result orders() throws Exception {
@@ -228,6 +248,9 @@ public class OrderController extends ControllerBase {
         return page();
     }
 
+    // Get all orders by status and sort by date or order reference number
+    // This method is called when the staff filters orders by status and sorts them
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/getOrderByCategories")
     @ActionAttribute(urlPattern = "orders/Categories")
     @HttpRequest(HttpMethod.POST)
@@ -254,7 +277,9 @@ public class OrderController extends ControllerBase {
 
     }
 
-
+    // Update order status
+    // This method is called when the staff updates the status of an order
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/updateOrderStatus")
     @SyncCache(channel = "Order", message = "from order/updateOrderStatus")
     @ActionAttribute(urlPattern = "orders/updateStatus")
@@ -294,9 +319,49 @@ public class OrderController extends ControllerBase {
 
                 if(orderDAO.updateOrder(order)){
                     System.out.println("Order status updated successfully");
+
+                    User user = order.getUser();
+                    String currentDateTime = Helpers.getCurrentDateTime();
+                    NotificationService notificationService = new NotificationService();
+                    Notification notification = new Notification();
+                    notification.setCreatedAt(currentDateTime);
+                    notification.setTitle("Order updated");
+                    switch(order.getStatus().getId()){
+                        case 2 -> // Packing
+                            notification.setContent("Update: Your order " + order.getOrderRefNo() + " is now being packed! 🎁 We’re preparing everything carefully.");
+                            
+                        case 3 -> // Shipping
+                            notification.setContent("Good news! Your order " + order.getOrderRefNo() + " has been shipped. 🚚 It’s on the way to you!");
+                    
+                        case 4 -> // Received
+                            notification.setContent("Delivered! 🎉 You have received your order " + order.getOrderRefNo() + ". Thank you for shopping with us!");
+                    
+                        default -> notification.setContent("Update regarding your order " + order.getOrderRefNo() + ". Please check for more details.");
+                    }
+                    notification.setUser(user);
+                    notification.setUrl("");
+                    notificationService.setNotification(notification);
+                    notificationService.inform();
+
+                    MailService mail = new MailService();
+                    mail
+                        .configure().build()
+                        .setRecipient(order.getUser().getEmail())
+                        .setSubject("Order Updated - " + order.getOrderRefNo())
+                        .setMailType(MailType.UPDATE_ORDER)
+                        .setValues("name",
+                                order.getUser().getUsername())
+                        .setValues("currentStatus",
+                                order.getStatus().getStatusDesc())
+                        .setValues("orderRefNo",
+                                order.getOrderRefNo())
+                        .send();
+
+
                     ((ObjectNode) jsonResponse).put("updateStatus_success", true);
                     ((ObjectNode) jsonResponse).put("order_id", order.getId());
                     ((ObjectNode) jsonResponse).put("status_id", order.getStatus().getId());
+                            
                 } else {
                     System.out.println("Failed to update order status");
                     ((ObjectNode) jsonResponse).put("updateStatus_success", false);
@@ -315,7 +380,9 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-
+    // Cancel order
+    // This method is called when the staff cancels an order
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/cancelOrder")
     @SyncCache(channel = "Order", message = "from order/cancelOrder")
     @ActionAttribute(urlPattern = "orders/cancelOrder")
@@ -334,6 +401,31 @@ public class OrderController extends ControllerBase {
 
                 if(orderDAO.updateOrder(order)){
                     System.out.println("Order cancelled successfully");
+
+                    User user = order.getUser();
+                    String currentDateTime = Helpers.getCurrentDateTime();
+                    NotificationService notificationService = new NotificationService();
+                    Notification notification = new Notification();
+                    notification.setCreatedAt(currentDateTime);
+                    notification.setTitle("Order cancelled");
+                    notification.setContent("We’re sorry! Your order " + order.getOrderRefNo() + " has been cancelled. ❌ If you have any questions, please contact our support team.");
+                    notification.setUser(user);
+                    notification.setUrl("");
+                    notificationService.setNotification(notification);
+                    notificationService.inform();
+
+                    MailService mail = new MailService();
+                    mail
+                        .configure().build()
+                        .setRecipient(order.getUser().getEmail())
+                        .setSubject("Order Updated - " + order.getOrderRefNo())
+                        .setMailType(MailType.CANCEL_ORDER)
+                        .setValues("name",
+                            order.getUser().getUsername())
+                        .setValues("orderRefNo",
+                            order.getOrderRefNo())
+                        .send();
+
                     ((ObjectNode) jsonResponse).put("cancelOrder_success", true);
                     ((ObjectNode) jsonResponse).put("order_id", order.getId());
                     ((ObjectNode) jsonResponse).put("status_id", order.getStatus().getId());
@@ -360,6 +452,9 @@ public class OrderController extends ControllerBase {
     // #region CHECKOUT PAGE
 
     // Process payment
+    // This method is called when the user clicks on "Proceed To Payment" button
+    // creates payment, order, order transaction, and deletes cart items
+    // used in checkout.jsp
     @Authorization(accessUrls = "Order/processPayment")
     @SyncCache(channel = "Order", message = "from order/processPayment")
     @HttpRequest(HttpMethod.POST)
@@ -368,8 +463,9 @@ public class OrderController extends ControllerBase {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonResponse = mapper.createObjectNode();
         JsonNode orderIdJson = mapper.createObjectNode();
+        SessionHelper session = getSessionHelper();
     
-        final int userId = 1;  // Replace with session-based user retrieval
+        final int userId = session.getUserSession().getId();  // Replace with session-based user retrieval
         final int statusId = 1; // Order status "Pending"
     
         User user = userDA.getUserById(userId);
@@ -433,6 +529,7 @@ public class OrderController extends ControllerBase {
             if (createdPayment != null) {
                 
                 System.out.println("Payment Created Successfully");
+
                 ((ObjectNode) jsonResponse).put("payment_success", true);
                 ((ObjectNode) jsonResponse).put("payment_id", createdPayment.getId());
                 ((ObjectNode) jsonResponse).put("totalPaid", total);
@@ -447,6 +544,18 @@ public class OrderController extends ControllerBase {
     
                     if (createdOrder != null) {
                         System.out.println("Order Created Successfully");
+
+                        String currentDateTime = Helpers.getCurrentDateTime();
+                        NotificationService notificationService = new NotificationService();
+                        Notification notification = new Notification();
+                        notification.setCreatedAt(currentDateTime);
+                        notification.setTitle("Order placed");
+                        notification.setContent("Thank you! 🎉 We have received " + String.format(".2f", createdPayment.getTotalPaid()) + " for your order " + createdOrder.getOrderRefNo() + ". Your order has been placed successfully!");
+                        notification.setUser(user);
+                        notification.setUrl("");
+                        notificationService.setNotification(notification);
+                        notificationService.inform();
+
                         ((ObjectNode) jsonResponse).put("order_success", true);
                         ((ObjectNode) jsonResponse).put("order_id", createdOrder.getId());
     
@@ -486,6 +595,12 @@ public class OrderController extends ControllerBase {
                                 System.out.println("Order Transaction Creation Failed");
                             }
                         }
+
+                        // generate email here
+                        OrderMailService mail = new OrderMailService(orderId);
+                        if (mail.generateOrderPDF()){
+                            mail.send();
+                        }
     
                     } else {
                         System.out.println("Order Creation Failed");
@@ -512,7 +627,8 @@ public class OrderController extends ControllerBase {
     // #endregion CHECKOUT PAGE
 
     // #region PAYMENT
-    @Authorization(accessUrls = "Order/addPayment")
+    // Add payment data for postman testing
+    //@Authorization(accessUrls = "Order/addPayment")
     @SyncCache(channel = "Payment", message = "from order/addPayment")
     @HttpRequest(HttpMethod.POST)
     public Result addPayment(Payment payment) throws Exception {
@@ -544,7 +660,8 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    @Authorization(accessUrls = "Order/getPaymentByOrder")
+    // Get payment by order for postman testing
+    //@Authorization(accessUrls = "Order/getPaymentByOrder")
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentByOrder(Order order) throws Exception{
 
@@ -577,7 +694,8 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @Authorization(accessUrls = "Order/getPaymentById")
+    // Get payment by id for postman testing
+    //@Authorization(accessUrls = "Order/getPaymentById")
     @HttpRequest(HttpMethod.POST)
     public Result getPaymentById(int id) throws Exception{
 
@@ -610,7 +728,9 @@ public class OrderController extends ControllerBase {
     // #endregion PAYMENT
 
     // #region ORDER
-    @Authorization(accessUrls = "Order/addOrder")
+
+    // Add order data for postman testing
+    //@Authorization(accessUrls = "Order/addOrder")
     @SyncCache(channel = "Order", message = "from order/addOrder")
     @HttpRequest(HttpMethod.POST)
     public Result addOrder(Order order) throws Exception {
@@ -647,7 +767,8 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
-    @Authorization(accessUrls = "Order/getOrderById")
+    // Get order by id for postman testing
+    //@Authorization(accessUrls = "Order/getOrderById")
     @HttpRequest(HttpMethod.GET)
     public Result getOrder(int id) throws Exception {
     
@@ -687,6 +808,9 @@ public class OrderController extends ControllerBase {
         return json(jsonResponse);
     }
 
+    // Get all order info by order id
+    // This method is called when the staff views order details
+    // used in orders.jsp
     @Authorization(accessUrls = "Order/getAllOrderInfo") // only admin/staff can access this
     @HttpRequest(HttpMethod.POST)
     public Result getAllOrderInfo(int orderId) throws Exception{
@@ -746,7 +870,9 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @Authorization(accessUrls = "Order/getOrdersByUser")
+
+    // Get all orders by user for postman testing
+    //@Authorization(accessUrls = "Order/getOrdersByUser")
     @HttpRequest(HttpMethod.POST)
     public Result getOrdersByUser(User user) throws Exception {
     
@@ -788,7 +914,9 @@ public class OrderController extends ControllerBase {
     // #endregion ORDER
 
     // #region ORDER TRANSACTION
-    @Authorization(accessUrls = "Order/addOrderTransaction")
+
+    // Add order transaction data for postman testing
+    //@Authorization(accessUrls = "Order/addOrderTransaction")
     @SyncCache(channel = "OrderTransaction", message = "from order/addOrderTransaction")
     @HttpRequest(HttpMethod.POST)
     public Result addOrderTransaction(OrderTransaction orderTransaction) throws Exception{
@@ -813,7 +941,8 @@ public class OrderController extends ControllerBase {
 
     }
 
-    @Authorization(accessUrls = "Order/getOrderTransactionByOrderAndProduct")
+    // Get order transaction data for postman testing
+    //@Authorization(accessUrls = "Order/getOrderTransactionByOrderAndProduct")
     @HttpRequest(HttpMethod.POST)
     public Result getOrderTransaction(Order order, product product) throws Exception{
 
@@ -852,6 +981,7 @@ public class OrderController extends ControllerBase {
 
     }
 
+    // Get order transaction data for postman testing
     @Authorization(accessUrls = "Order/getAllOrderTransactionByOrder")
     @HttpRequest(HttpMethod.POST)
     public Result getOrderTransaction(Order order) throws Exception{
@@ -891,6 +1021,9 @@ public class OrderController extends ControllerBase {
     // #endregion ORDER TRANSACTION
 
     // #region ORDER FEEDBACK
+
+    // Add order feedback data
+    // used in orderInfo.jsp
     @Authorization(accessUrls = "Order/addOrderFeedback")
     @SyncCache(channel = "Product_Feedback", message = "from order/addOrderFeedback")
     @HttpRequest(HttpMethod.POST)

@@ -30,7 +30,7 @@
             <!-- Description -->
             <div>
                 <label class="block mb-1 font-semibold">Description</label>
-                <textarea name="description" id="descInput" rows="3" class="w-full border px-3 py-2 rounded"><%= product.getDescription() %></textarea>
+                <textarea name="description" id="descInput" rows="3" maxlength="200" class="w-full border px-3 py-2 rounded"><%= product.getDescription() %></textarea>
             </div>
 
             <!-- Slug -->
@@ -144,7 +144,7 @@
             <!-- Image URL -->
             <div>
                 <label class="block mb-1 font-semibold">Product Image</label>
-                <input type="file" id="imageFile" name="imageFile" accept="image/*" required/>
+                <input type="file" id="imageFile" name="imageFile" accept="image/*" />
             </div>
 
             <!-- Featured -->

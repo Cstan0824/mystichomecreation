@@ -22,6 +22,7 @@ import Models.Users.CartItem;
 import Models.Users.User;
 import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.ControllerBase;
@@ -38,7 +39,7 @@ public class CartController extends ControllerBase{
     private productDAO productDAO = new productDAO();
     private AccountDAO accountDA = new AccountDAO();
 
-    //@Authorization(accessUrls = "Cart/cart")
+    @Authorization(accessUrls = "Cart/cart")
     @SyncCache(channel = "CartItem", message ="from cart/index")
     public Result cart() throws Exception {
         SessionHelper session = getSessionHelper();
@@ -47,7 +48,7 @@ public class CartController extends ControllerBase{
         }
         
         System.out.println("Cart Index Page");
-        User user = userDA.getUserById(1);
+        User user = userDA.getUserById(session.getUserSession().getId());
         System.out.println("Cart Index Page after user");
         if (user == null) {
             return json("User not found");
@@ -67,13 +68,17 @@ public class CartController extends ControllerBase{
         return page();
     }
 
-    //@Authorization(accessUrls = "Cart/checkout")
+    @Authorization(accessUrls = "Cart/checkout")
     @SyncCache(channel = "CartItem", message ="from cart/cartCheckout")
     @HttpRequest(HttpMethod.POST)
     public Result checkout(String label, String receiverName, String phoneNumber, String state, String postCode, String addressLine1, String addressLine2, boolean isDefault) throws Exception {
+        SessionHelper session = getSessionHelper();
+        if (session.isAuthenticated() == false) {
+            return page("login", "Landing");
+        }
 
         System.out.println("Cart Checkout Page");
-        User user = userDA.getUserById(1);
+        User user = userDA.getUserById(session.getUserSession().getId());
         if (user == null) {
             return json("User not found");
         }
@@ -136,7 +141,7 @@ public class CartController extends ControllerBase{
             }
         }
 
-        List<PaymentCard> paymentCards = accountDA.getPaymentCards(1);
+        List<PaymentCard> paymentCards = accountDA.getPaymentCards(session.getUserSession().getId());
 
 
         request.setAttribute("cartItems", cartItems);
@@ -153,7 +158,7 @@ public class CartController extends ControllerBase{
     }
 
     ////@Authorization(accessUrls = "Cart/getAvailableVouchers")
-    @HttpRequest(HttpMethod.POST)
+    @HttpRequest(HttpMethod.POST) //postman testing api
     public Result getAvailableVouchers(int userId, double subtotal) throws Exception {
         System.out.println("Get Available Vouchers");
         ObjectMapper mapper = new ObjectMapper();
@@ -204,10 +209,9 @@ public class CartController extends ControllerBase{
     }
 
     // Add New Cart to New User
-    // This method is called when a new user is created and a cart is created for them.
     //@Authorization(accessUrls = "Cart/addCart")
     @SyncCache(channel = "user", message ="from cart/addCart")
-    @HttpRequest(HttpMethod.POST)
+    @HttpRequest(HttpMethod.POST) //postman testing api
     public Result addCart(Cart cart) throws Exception {
 
         System.out.println("Add New Cart");
@@ -231,7 +235,7 @@ public class CartController extends ControllerBase{
     // Get Cart by User ID
     //@Authorization(accessUrls = "Cart/getCart")
     @SyncCache(channel = "user", message ="from cart/getCart")
-    @HttpRequest(HttpMethod.GET)
+    @HttpRequest(HttpMethod.GET) //postman testing api
     public Result getCart(int userId) throws Exception {
         System.out.println("Get Cart by User ID");
         ObjectMapper mapper = new ObjectMapper();
@@ -259,7 +263,8 @@ public class CartController extends ControllerBase{
     }
 
     // Get Cart Items by User ID
-    //@Authorization(accessUrls = "Cart/getCartItems")
+    // used by cart.jsp, header.jsp
+    @Authorization(accessUrls = "Cart/getCartItems")
     @SyncCache(channel = "user", message ="from cart/getCartItems")
     @HttpRequest(HttpMethod.POST)
     public Result getCartItems(int userId) throws Exception {
@@ -349,7 +354,8 @@ public class CartController extends ControllerBase{
     }
 
     // Add Cart Item by Product ID and Quantity
-    //@Authorization(accessUrls = "Cart/addToCartById")
+    // used by productPage.jsp
+    @Authorization(accessUrls = "Cart/addToCartById")
     @ActionAttribute(urlPattern = "addToCartById")
     @SyncCache(channel = "CartItem", message ="from cart/addToCartById")
     @HttpRequest(HttpMethod.POST)
@@ -398,8 +404,9 @@ public class CartController extends ControllerBase{
         }
     }
 
-    // Increase Cart Item Quantity
-    //@Authorization(accessUrls = "Cart/updateQuantity")
+    // Increase or Decrease Cart Item Quantity
+    // used by cart.jsp, header.jsp
+    @Authorization(accessUrls = "Cart/updateQuantity")
     @SyncCache(channel = "CartItem", message ="from cart/increaseCartItemQuantity")
     @HttpRequest(HttpMethod.POST)
     public Result updateQuantity(int cartId, int productId, String selectedVariation, int delta) throws Exception {
@@ -492,7 +499,8 @@ public class CartController extends ControllerBase{
     }
 
     // Remove Cart Item by Cart ID and Product ID
-    //@Authorization(accessUrls = "Cart/removeCartItemById")
+    // used by cart.jsp, header.jsp
+    @Authorization(accessUrls = "Cart/removeCartItemById")
     @SyncCache(channel = "CartItem", message ="from cart/removeCartItemById")
     @HttpRequest(HttpMethod.POST)
     public Result removeCartItemById(int cartId, int productId) throws Exception {
@@ -540,7 +548,7 @@ public class CartController extends ControllerBase{
         return json(jsonResponse);
     }
 
-    // Clear Cart by User ID
+    // Clear Cart by User ID for postman testing
     //@Authorization(accessUrls = "Cart/clearCart")
     @SyncCache(channel = "CartItem", message ="from cart/clearCart")
     @HttpRequest(HttpMethod.POST)

@@ -52,14 +52,14 @@
             </div>
 
 
-        <div class="grid grid-cols-1 md:grid-cols-7 gap-4 bg-white">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-8 bg-white">
 
             <!-- Image Gallery -->
-            <div class="order-1 md:col-span-4">
-                <div class="w-full h-[200px] sm:h-[300px] md:h-[500px] rounded-lg">
+            <div class="order-1 md:col-span-3">
+                <div class="relative overflow-hidden rounded-lg">
                    
-                        <img loading="lazy" src="<%=request.getContextPath()%>/File/Content/product/retrieve?id=<%=product.getImage().getId()%>"
-                            alt="<%=product.getTitle().replaceAll("'", "&#39;")%>" class="w-full  object-contain mb-4"/>
+                    <img loading="lazy" src="<%=request.getContextPath()%>/File/Content/product/retrieve?id=<%=product.getImage().getId()%>"
+                        alt="<%=product.getTitle()%>" class="w-full h-auto object-cover rounded-lg"/>
                 </div>
 
                
@@ -70,7 +70,7 @@
                 productVariationOptions options = (productVariationOptions) request.getAttribute("variationOptions");
             %>
             <div class="order-2 md:col-span-3 md:sticky md:top-[30px] h-fit ">
-                <div class="p-4 lg:p-6 rounded-lg shadow-md">
+                <div class="p-4 lg:p-6 rounded-lg mhc-box-shadow">
                     <h1 class="text-2xl font-bold text-left mb-4"><%= product.getTitle() %></h1>
 
                     <% if (options != null && options.getOptions() != null) { %>
@@ -117,17 +117,15 @@
             </div>
 
             <!-- Description & Reviews -->
-            <div class="order-3 md:col-span-4 pt-6">
-                <div>
-                    <h1 class="text-3xl font-bold mb-4">Description</h1>
-                    <p class="mb-4 text-lg"><%= product.getDescription() %></p>
-                    <hr class="mb-4">
-                </div>
+            <div class="order-3 md:col-span-3 pt-6">
+                
+                <h1 class="text-3xl font-bold mb-4">Description</h1>
+                <p class="mb-4 text-lg lineClamp-3"><%= product.getDescription() %></p>
+                <hr class="mb-4 border border-gray-150 border-b-0" />
                 
 
                 <!-- Reviews -->
                 <div class="pt-6">
-                    <h1 class="text-2xl font-bold">Reviews</h1>
                     <%
                         List<productFeedback> feedbackList = (List<productFeedback>) request.getAttribute("feedbackList");
                         if (feedbackList != null && !feedbackList.isEmpty()) {
@@ -139,6 +137,8 @@
                             float averageRating = (float) totalRating / feedbackList.size();
 
                     %>
+                        <h1 class="text-2xl font-bold">Reviews</h1>
+
                         <h2 class="text-xl font-semibold mb-6">
                             Overall Rating:
                             <span class="text-yellow-400">
@@ -225,30 +225,40 @@
             </div>
         </div>
 
+
+        <% List<product> productFeatured = (List<product>) request.getAttribute("featuredProducts"); %>
         <!-- Feature Products -->
         <div class="pt-3">
-            <h2 class="text-2xl font-bold mb-6">Popular accessories</h2>
+            <h2 class="text-2xl font-bold mb-6">Featured Products</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <div class="shadow rounded-lg">
-                    <div class="relative">
-                        <img src="/src/cupboard.avif" alt="Accessory" class="w-full h-full object-cover rounded-md">
-                        <span class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold m-2 px-2 py-1 rounded">Top seller</span>
+            <% if (productFeatured != null && !productFeatured.isEmpty()) {
+                for (product p : productFeatured) {
+            %>
+            <div class="bg-white rounded-lg overflow-hidden cursor-pointer relative" onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= p.getId() %>')">
+                <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">Featured</div>
+                <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" alt="<%= p.getTitle() %>" class="w-[350px] h-[260px] object-cover cursor-pointer">
+                <div class="p-3 cursor-pointer hover:bg-grey1">
+                    <h3 class="font-medium"><%= p.getTitle() %></h3>
+                    <p class="text-xs text-gray-500"><%= p.getTypeId().gettype() %></p>
+                    <div class="flex justify-between items-center mt-2">
+                    <span class="font-bold">RM <%= String.format("%.2f", p.getPrice()) %></span>
+                    <div class="flex items-center text-xs text-gray-500">
+                        <i class="fas fa-box mr-1"></i>
+                        <span><%= p.getStock() %> left</span>
                     </div>
-                    <div class="p-4">
-                        <h3 class="text-md font-semibold">Accessory Name</h3>
-                        <p class="text-lg font-bold text-yellow-600">RM6</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span>★★★★☆ (272)</span>
-                            <i class="fa-solid fa-cart-shopping text-blue-500"></i>
-                        </div>
                     </div>
                 </div>
+            </div>
+            <% } } %>
             </div>
         </div>
     </div>
 
     <%@ include file="/Views/Shared/Footer.jsp" %>
     <%@ include file="/Views/product/updateProduct.jsp" %>
+
+
+    
 
 
     <script>
