@@ -5,6 +5,7 @@
 <%@ include file="../Shared/AdminHeader.jsp" %>
 <%@ include file="../Shared/AdminNavigation.jsp" %>
 
+
 <!-- Main Content Area with proper spacing -->
 <div class="flex-1 p-6 overflow-auto">
   <!-- Page Header -->
@@ -15,6 +16,32 @@
       <i class="fas fa-plus mr-2"></i> Add Staff
     </button>
   </div>
+
+  <!-- Global Error Message -->
+  <c:if test="${not empty requestScope.error}">
+    <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6" id="pageErrorContainer">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-red-500"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Error</h3>
+          <div class="text-sm text-red-700 mt-2">
+            <c:out value="${requestScope.error}"/>
+          </div>
+        </div>
+        <div class="ml-auto pl-3">
+          <div class="-mx-1.5 -my-1.5">
+            <button type="button" class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none" 
+                    onclick="document.getElementById('pageErrorContainer').remove()">
+              <span class="sr-only">Dismiss</span>
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </c:if>
 
   <!-- Search Staff -->
   <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
@@ -66,13 +93,8 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex gap-4 justify-end">
-                  <!-- View -->
-                  <a href="<%= request.getContextPath() %>/Dashboard/staff/view?id=${staff.id}" 
-                    class="text-indigo-600 hover:text-indigo-900 transition-colors">
-                    <i class="fas fa-eye"></i>
-                  </a>
                   <!-- Edit -->
-                  <button onclick="editStaff(${staff.id}, '${staff.username}', '${staff.email}', '${staff.birthdate}', '${staff.shippingInformation}')" 
+                  <button onclick="editStaff(${staff.id}, '${staff.username}', '${staff.email}', '${staff.birthdate}')" 
                           class="text-blue-600 hover:text-blue-900 transition-colors">
                     <i class="fas fa-pen"></i>
                   </button>
@@ -149,8 +171,7 @@
 <div id="editStaffModalContainer"></div>
 
 <script>
-  function editStaff(userId, userName, userEmail, userBirthdate, shippingInfo) {
-    const escapedShippingInfo = (shippingInfo || '[]').replace(/"/g, '&quot;');
+  function editStaff(userId, userName, userEmail, userBirthdate) {
     
     const modalHtml = `
       <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" id="editStaffModal">
