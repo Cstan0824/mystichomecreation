@@ -35,30 +35,30 @@
                 <div class="flex justify-between">
                     <div class="text-sm">
                         <p class="font-semibold text-gray-700">
-                            <%= StringEscapeUtils.escapeHtml4(voucher.getName()) %> &middot; 
-                            <%= voucher.getType().equals("Percent") ? 
-                                StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getAmount())) + "%" : 
-                                "RM" + StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getAmount())) %>
+                            <%= StringEscapeUtils.escapeHtml4(voucher.getVoucher().getName()) %> &middot; 
+                            <%= voucher.getVoucher().getType().equals("Percent") ? 
+                                StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getAmount())) + "%" : 
+                                "RM" + StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getAmount())) %>
                         </p>
-                        <p class="text-xs text-gray-500"><%= StringEscapeUtils.escapeHtml4(voucher.getDescription()) %></p>
+                        <p class="text-xs text-gray-500"><%= StringEscapeUtils.escapeHtml4(voucher.getVoucher().getDescription()) %></p>
                         <p class="text-xs text-gray-400">
-                            MIN: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getMinSpent())) %> &middot; 
-                            MAX: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getMaxCoverage())) %>
+                            MIN: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getMinSpent())) %> &middot; 
+                            MAX: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getMaxCoverage())) %>
                         </p>
                         <p class="text-xs text-gray-400">Usage: 2/3</p>
                     </div>
                     <div class="flex space-x-2 items-start">
-                        <% if(voucher.getStatus() == 1) { %>
+                        <% if(voucher.getVoucher().getStatus() == 1) { %>
                             <button
                             class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
-                            data-status="active" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getId())) %>">
+                            data-status="active" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getId())) %>">
 
                             Active
                             </button>
                         <% } else { %>
                             <button
                             class="status-btn border border-gray-900 text-gray-900 text-xs px-3 py-1 rounded-md hover:bg-gray-100"
-                            data-status="inactive" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getId())) %>">
+                            data-status="inactive" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getId())) %>">
                             Inactive
                             </button>
                         <% } %>
