@@ -2,6 +2,7 @@
 <html lang="en">
 <%@ page import="java.util.List" %>
 <%@ page import="Models.Accounts.Voucher" %>
+<%@ page import="DTO.VoucherInfoDTO" %>
 <%@ page import="mvc.Helpers.Helpers" %>
 <%@ page import="org.apache.commons.text.StringEscapeUtils" %>
 
@@ -26,9 +27,9 @@
     <div class="bg-white w-full p-4">
         <hr class="border-gray-200 p-2" />
         <%
-            List<Voucher> vouchers = (List<Voucher>) request.getAttribute("vouchers");
+            List<VoucherInfoDTO> vouchers = (List<VoucherInfoDTO>) request.getAttribute("vouchers");
             if(vouchers != null){
-                for(Voucher voucher : vouchers){
+                for(VoucherInfoDTO voucher : vouchers){
             %>
             <div class="bg-gray-50 p-4 rounded shadow mb-4">
                 <div class="flex justify-between">
@@ -51,6 +52,7 @@
                             <button
                             class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
                             data-status="active" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getId())) %>">
+
                             Active
                             </button>
                         <% } else { %>

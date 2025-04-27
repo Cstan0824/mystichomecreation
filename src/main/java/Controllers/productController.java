@@ -97,7 +97,7 @@ public class productController extends ControllerBase {
     }
 
     // only return the products and the types
-    @ActionAttribute(urlPattern = "productCatalog")
+
     public Result productCatalog() throws Exception {
 
         List<productType> types = productDAO.getAllProductTypes();
@@ -115,6 +115,28 @@ public class productController extends ControllerBase {
 
         return page();
 
+
+
+
+    }
+
+    public Result productCatalog(String productTypeId) throws Exception {
+
+        List<productType> types = productDAO.getAllProductTypes();
+        request.setAttribute("productTypes", types);
+
+        List<product> products = productDAO.getAllProducts();
+
+        request.setAttribute("products", products);
+        for (product p : products) {
+            if (p.getImage() != null) {
+                System.out.println("📩 Image       = " + p.getImage().getId());
+            } else {
+                System.out.println("No image available for product ID: " + p.getId());
+            }
+        }
+
+        return page();
     }
 
     @ActionAttribute(urlPattern = "productCatalog/Categories")

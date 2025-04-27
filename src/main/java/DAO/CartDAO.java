@@ -36,6 +36,12 @@ public class CartDAO {
         }
     }
 
+    public boolean createCart(User user) {
+        Cart cart = new Cart();
+        cart.setUser(user);
+        return createCart(cart);
+    }
+
     // Read a cart by user
     public Cart getCartByUser(int userId) {
         Cart cart = null;

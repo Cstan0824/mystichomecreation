@@ -1,7 +1,16 @@
 package Models.Products;
 
-import jakarta.persistence.*;
 import java.sql.Blob;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name="Product_Image")
@@ -19,7 +28,8 @@ public class productImage {
         public void setId(int id) {
             this.id = id;
         }
-
+        
+        @JsonIgnore
         @Lob
         @Column(name="image_data", nullable=false, columnDefinition="LONGBLOB")
         private Blob data;
