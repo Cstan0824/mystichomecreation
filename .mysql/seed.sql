@@ -638,3 +638,5 @@ INSERT INTO Permission (role_id, permission_url, permission_description) VALUES 
 
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'product/productCatalog', 'View Single Order Info');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'product/productPage', 'Generate Order Receipt PDF');
+
+

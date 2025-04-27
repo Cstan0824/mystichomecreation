@@ -36,7 +36,7 @@
                 <!-- Update Button -->
 
                 <!-- for the update and delete button, we need to pass the product-->
-                <% if(userSession.getRole() == "Admin" || userSession.getRole() == "Staff" ) { %>
+                <%-- <% if(userSession.getRole() == "Admin" || userSession.getRole() == "Staff" ) { %> --%>
 
 
                     <button  onclick="openeditModal()" class="bg-black rounded-full text-white py-2 px-6 font-bold hover:bg-yellow-400">
@@ -51,7 +51,7 @@
                             Delete
                         </button>
                     </form>
-                <% } %>
+                <%-- <% } %> --%>
             </div>
 
 
