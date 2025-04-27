@@ -34,6 +34,7 @@
                     boolean isProductPage = currentUrl.contains("/product/");
                     boolean isHomePage = currentUrl.contains("/Landing") || currentUrl.equals(request.getContextPath() + "/");
                     boolean isAdminPage = currentUrl.contains("/Dashboard");
+                    boolean isOrderPage = currentUrl.contains("/Order/orders");
                 %>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                     <a href="<%= request.getContextPath() %>/product/productCatalog" 
@@ -51,6 +52,23 @@
                 if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
                    
                     for(String accessUrl : sessionHelper.getAccessUrls()) {
+                        if(!accessUrl.equals("Order/orders")) {
+                            continue;
+                        }
+                        %> 
+                        <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                            <a href="<%= request.getContextPath() %>/Order/orders" 
+                            class="<%= isOrderPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                                Orders
+                            </a>
+                        </li>
+                        <% break;
+                    }
+                } %>
+                <% 
+                if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                   
+                    for(String accessUrl : sessionHelper.getAccessUrls()) {
                         if(!accessUrl.startsWith("Dashboard")) {
                             continue;
                         }
@@ -58,7 +76,7 @@
                         <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                             <a href="<%= request.getContextPath() %>/Dashboard" 
                             class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
-                                Admin Portal
+                                Admin
                             </a>
                         </li>
                         <% break;
@@ -445,8 +463,19 @@
             window.location.href = url;
         }
 
+        function hideCartOnCheckout() {
+            const currentUrl = window.location.href;
+            if (currentUrl.includes("checkout")) {
+                const cartButton = document.getElementById('cart-button');
+                if (cartButton) {
+                    cartButton.style.display = 'none'; // Hides the cart button
+                }
+            }
+        }
+
+
         $(document).ready(function() {
-          
+            hideCartOnCheckout();
 
             const $cartButton = $('#cart-button');
             const $cartPopup = $('#cart-popup');

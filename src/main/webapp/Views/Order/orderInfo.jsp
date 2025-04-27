@@ -610,7 +610,24 @@
             comment = null;
         }
 
-        if (selectedRating === 0) return alert("Please select a star rating.");
+        if (comment && comment.length >= 250) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Comment Too Long',
+                text: 'Please limit your comment to 250 characters.',
+            });
+            return;
+        }
+
+
+        if (selectedRating === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rating Required',
+                text: 'Please select a star rating before submitting.',
+            });
+            return;
+        }
 
 
         $.ajax({

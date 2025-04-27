@@ -89,13 +89,13 @@
                 </div>
             </div>
         </div>
-        <div class="swiper category-swiper content-wrapper !my-0">
+        <div class="swiper category-swiper content-wrapper !px-0 !my-0">
             <div class="swiper-wrapper pb-10">
                 <%  for (productType pType : productTypes) {
                         for (product product : randomProducts) {
                             if(product.getTypeId().getId() == pType.getId()) { %>
                 
-                                <div class="swiper-slide w-full cursor-pointer bg-white hover:bg-grey1 transition-colors ease-in-out duration-200 rounded-lg overflow-hidden" onClick="redirectURL('<%= request.getContextPath() %>/product/productCatalog?productTypeId=<%= pType.getId() %>')">
+                                <div class="swiper-slide w-full cursor-pointer mhc-box-shadow bg-white hover:bg-grey1 transition-colors ease-in-out duration-200 rounded-lg overflow-hidden" onClick="redirectURL('<%= request.getContextPath() %>/product/productCatalog?productTypeId=<%= pType.getId() %>')">
                                     <div class="w-full flex flex-col rounded-lg overflow-hidden">
                                         <div class="border border-white bg-grey1 rounded-lg">
                                             <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= product.getImage().getId() %>" class="w-full h-full object-cover" alt="<%= pType.gettype()%>">
@@ -176,10 +176,10 @@
             </div>
             
         </div>
-        <div class="swiper newArrivals-swiper content-wrapper !my-0">
+        <div class="swiper newArrivals-swiper content-wrapper !px-0 !my-0">
             <div class="swiper-wrapper pb-10">
                 <% for(product p : newProducts) { %>
-                    <div class="swiper-slide w-full hover:mhc-box-shadow">
+                    <div class="swiper-slide w-full mhc-box-shadow hover:mhc-box-shadow">
                         <div class="bg-white rounded-lg overflow-hidden cursor-pointer relative" onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= p.getId() %>')">
                             <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">NEW
                             </div>
@@ -433,7 +433,7 @@
     AOS.init();
     var newArrivalsSwiper = new Swiper(".newArrivals-swiper", {
       slidesPerView: 4,
-      spaceBetween: 30,
+      spaceBetween: 28,
       scrollbar: {
         el: ".newArrivals-scrollbar",
         draggable: true,
@@ -458,7 +458,7 @@
 
     var categorySwiper = new Swiper(".category-swiper", {
       slidesPerView: 4,
-      spaceBetween: 30,
+      spaceBetween: 28,
       scrollbar: {
         el: ".category-scrollbar",
         draggable: true,

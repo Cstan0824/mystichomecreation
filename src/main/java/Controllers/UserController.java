@@ -1,22 +1,13 @@
 package Controllers;
 
-import mvc.Annotations.ActionAttribute;
-import mvc.Annotations.Authorization;
-import mvc.Annotations.HttpRequest;
-import mvc.Annotations.SyncCache;
-import mvc.Cache.Redis;
-import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
-import mvc.Helpers.otps.OTPHelper;
-import mvc.Http.HttpMethod;
 import java.time.LocalDate;
 import java.util.List;
 
-import DAO.AccountDAO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import DAO.AccountDAO;
 import DAO.OrderDAO;
 import DAO.UserDAO;
 import DTO.VoucherInfoDTO;
@@ -29,11 +20,18 @@ import Models.Orders.OrderStatus;
 import Models.Users.Role;
 import Models.Users.RoleType;
 import Models.Users.User;
-
+import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.Authorization;
+import mvc.Annotations.HttpRequest;
+import mvc.Annotations.SyncCache;
+import mvc.Cache.Redis;
 import mvc.ControllerBase;
+import mvc.Helpers.Helpers;
 import mvc.Helpers.Notify.Notification;
 import mvc.Helpers.Notify.NotificationService;
-
+import mvc.Helpers.SessionHelper;
+import mvc.Helpers.otps.OTPHelper;
+import mvc.Http.HttpMethod;
 import mvc.Result;
 
 public class UserController extends ControllerBase {
@@ -323,6 +321,7 @@ public class UserController extends ControllerBase {
 
             notificationService.setNotification(notification);
             notificationService.inform();
+            Redis.getSignalHub().publish("Notifications", "invalidate feedback cache for Notification");
             return success("Password changed successfully");
         }
         return error("Failed to change password");
@@ -375,6 +374,7 @@ public class UserController extends ControllerBase {
 
             notificationService.setNotification(notification);
             notificationService.inform();
+            Redis.getSignalHub().publish("Notifications", "invalidate feedback cache for Notification");
             return success("Password changed successfully");
         }
         return error("Failed to change password");

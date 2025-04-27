@@ -191,7 +191,7 @@
                                     <% } %>
                             <% } %>
 
-                            <button class="w-full py-2 mt-2 text-sm font-medium text-darkYellow border border-darkYellow rounded-lg hover:bg-darkYellow hover:text-white transition">
+                            <button class="w-full py-2 mt-2 text-sm font-medium text-darkYellow border border-darkYellow rounded-lg hover:bg-darkYellow hover:text-white transition" onClick=redirectToAddCard()>
                                 + Add New Card
                             </button>
                         </div>
@@ -398,13 +398,16 @@
             });
         });
 
+        function redirectToAddCard() {
+            window.location.href = "<%= request.getContextPath() %>/User/account#payments";
+        }
+
         function proceedToPayment() {
             const methodInput = document.getElementById('methodId');
             const voucherInput = document.getElementById('voucherId');
             const paymentInfoInput = document.getElementById('paymentInfo');
             const shippingInfoInput = document.getElementById('shippingInfo');
 
-            // ----- Payment Method -----
             const selectedPaymentMethod = document.querySelector('[data-payment-method].selected');
             const selectedCard = document.querySelector('.card-option.selected');
             let methodId = 0;
@@ -416,23 +419,13 @@
                     text: 'Please select a payment method before proceeding.',
                     confirmButtonText: 'OK'
                 });
-                return; // ❌ Don't proceed
+                return;
             }
 
             let paymentInfo = {
-                creditDebit: {
-                    method: false,
-                    cardNumber: "",
-                    bankType: "",
-                    cardName: "",
-                    expiryDate: ""
-                },
-                bankTransfer: {
-                    method: false
-                },
-                cod: {
-                    method: false
-                }
+                creditDebit: { method: false, cardNumber: "", bankType: "", cardName: "", expiryDate: "" },
+                bankTransfer: { method: false },
+                cod: { method: false }
             };
 
             if (selectedPaymentMethod) {
@@ -450,14 +443,12 @@
                 paymentInfo.creditDebit.cardNumber = selectedCard.querySelector('.cardNumber')?.textContent.trim();
                 paymentInfo.creditDebit.cardName = selectedCard.querySelector('.cardName')?.textContent.trim();
                 paymentInfo.creditDebit.expiryDate = selectedCard.querySelector('.cardExp')?.textContent.replace("Exp:", "").trim();
-                paymentInfo.creditDebit.bankType = ""; // as requested, left empty
+                paymentInfo.creditDebit.bankType = "";
             }
 
-            // ----- Voucher -----
             const selectedVoucher = document.querySelector('.selectable-voucher.selected');
             const voucherId = selectedVoucher ? parseInt(selectedVoucher.dataset.voucherId) : 0;
 
-            // ----- Shipping Info -----
             const shippingInfo = {
                 label: "<%= shippingInfo.getLabel() %>",
                 receiverName: "<%= shippingInfo.getReceiverName() %>",
@@ -468,14 +459,23 @@
                 phoneNumber: "<%= shippingInfo.getPhoneNumber() %>"
             };
 
-            // ----- Assign and Submit -----
             methodInput.value = methodId;
             voucherInput.value = voucherId;
             paymentInfoInput.value = JSON.stringify(paymentInfo);
             shippingInfoInput.value = JSON.stringify(shippingInfo);
 
-            // get form data
             const formData = new FormData(document.getElementById("proceedPaymentForm"));
+
+            // ✅ Show Loading Swal
+            Swal.fire({
+                title: 'Processing Payment',
+                text: 'Please wait while we process your order...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             $.ajax({
                 url: "<%= request.getContextPath() %>/Order/processPayment",
@@ -484,9 +484,10 @@
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                   const parsedResponse = JSON.parse(response.data);
+                    Swal.close(); // ✅ Close loading when success
+
+                    const parsedResponse = JSON.parse(response.data);
                     if (parsedResponse.process_success) {
-                        // Handle success response
                         Swal.fire({
                             icon: 'success',
                             title: 'Payment Successful',
@@ -503,9 +504,7 @@
                                 window.location.href = "<%= request.getContextPath() %>/Landing/";
                             }
                         });
-                    
                     } else {
-                        // Handle failure response
                         Swal.fire({
                             icon: 'error',
                             title: 'Payment Failed',
@@ -520,7 +519,8 @@
                     }
                 },
                 error: function (error) {
-                    // Handle error response
+                    Swal.close(); // ✅ Close loading on error too
+
                     console.error("Error submitting form:", error);
                     Swal.fire({
                         icon: 'error',
