@@ -5,14 +5,11 @@ import mvc.Result;
 import mvc.Annotations.ActionAttribute;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
 
 import DAO.ReportDAO;
 import DAO.productDAO;

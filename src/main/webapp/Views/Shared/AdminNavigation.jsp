@@ -4,13 +4,20 @@
   <div class="p-6 text-2xl font-bold border-b"><i class="fa-solid fa-users-gear"></i>&nbsp; Admin Portal</div>
   
   <% 
-    // Get current URL to determine active page
+    // Get current URL to determine active page - more robust pattern matching
     String currentUrl = request.getRequestURI();
-    boolean isDashboardActive = currentUrl.endsWith("/Admin/Dashboard");
-    boolean isStaffActive = currentUrl.contains("/Admin/Dashboard/staff");
-    boolean isCustomerActive = currentUrl.contains("/Admin/Dashboard/customer");
-    boolean isVouchersActive = currentUrl.contains("/Admin/Dashboard/vouchers");
-  %>
+    String contextPath = request.getContextPath();
+    
+    // Remove context path from URL for cleaner comparison
+    if (currentUrl.startsWith(contextPath)) {
+      currentUrl = currentUrl.substring(contextPath.length());
+    }
+
+    boolean isDashboardActive = currentUrl.endsWith("/Dashboard") || currentUrl.endsWith("/Dashboard/") || currentUrl.endsWith("/Dashboard/index.jsp");
+    boolean isStaffActive = currentUrl.contains("/Dashboard/staff");
+    boolean isCustomerActive = currentUrl.contains("/Dashboard/customer");
+    boolean isVouchersActive = currentUrl.contains("/Dashboard/vouchers");
+    %>
   
   <nav class="p-4 space-y-2">
     <a href="<%= request.getContextPath() %>/Admin/Dashboard" 
