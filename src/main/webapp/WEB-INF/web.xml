@@ -82,7 +82,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>DashboardController</servlet-name>
-        <url-pattern>/Admin/Dashboard/*</url-pattern>
+        <url-pattern>/Dashboard/*</url-pattern>
     </servlet-mapping>
 
     <!-- Error Pages -->

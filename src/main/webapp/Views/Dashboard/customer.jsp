@@ -16,7 +16,7 @@
 
   <!-- Search Customer -->
   <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
-    <form action="<%= request.getContextPath() %>/Admin/Dashboard/customer" method="GET" class="flex items-end gap-4">
+    <form action="<%= request.getContextPath() %>/Dashboard/customer" method="GET" class="flex items-end gap-4">
       <div class="flex-grow">
         <div class="relative">
           <input type="text" 
@@ -94,7 +94,7 @@
       <nav class="flex items-center space-x-1">
         <!-- Previous Page -->
         <c:if test="${currentPage > 1}">
-          <a href="<%= request.getContextPath() %>/Admin/Dashboard/customer?page=${currentPage-1}&customer_search=${customer_search}"
+          <a href="<%= request.getContextPath() %>/Dashboard/customer?page=${currentPage-1}&customer_search=${customer_search}"
              class="px-3 py-2 rounded-md border hover:bg-gray-100 transition-colors">
             <i class="fas fa-chevron-left"></i>
           </a>
@@ -102,7 +102,7 @@
         
         <!-- Page Numbers -->
         <c:forEach begin="1" end="${totalPages}" var="pageNumber">
-          <a href="<%= request.getContextPath() %>/Admin/Dashboard/customer?page=${pageNumber}&customer_search=${customer_search}"
+          <a href="<%= request.getContextPath() %>/Dashboard/customer?page=${pageNumber}&customer_search=${customer_search}"
              class="px-3 py-1 rounded-md border ${pageNumber == currentPage ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'} transition-colors">
             ${pageNumber}
           </a>
@@ -110,7 +110,7 @@
         
         <!-- Next Page -->
         <c:if test="${currentPage < totalPages}">
-          <a href="<%= request.getContextPath() %>/Admin/Dashboard/customer?page=${currentPage+1}&customer_search=${customer_search}"
+          <a href="<%= request.getContextPath() %>/Dashboard/customer?page=${currentPage+1}&customer_search=${customer_search}"
              class="px-3 py-2 rounded-md border hover:bg-gray-100 transition-colors">
             <i class="fas fa-chevron-right"></i>
           </a>

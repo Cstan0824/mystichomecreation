@@ -114,7 +114,7 @@
             const voucherId = $(this).data('id');
             
             $.ajax({
-                url: '<%= request.getContextPath() %>/Admin/Dashboard/voucher/status',
+                url: '<%= request.getContextPath() %>/Dashboard/voucher/status',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
@@ -153,7 +153,7 @@
             };
 
             $.ajax({
-                url: '<%= request.getContextPath() %>/Admin/Dashboard/voucher/add',
+                url: '<%= request.getContextPath() %>/Dashboard/voucher/add',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
