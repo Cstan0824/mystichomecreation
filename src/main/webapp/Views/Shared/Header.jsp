@@ -50,18 +50,18 @@
                 <% 
                 if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
                    
-                for(String accessUrl : sessionHelper.getAccessUrls()) {
-                    if(!accessUrl.startsWith("Dashboard")) {
-                        continue;
-                    }
-                    %> 
-                    <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                        <a href="<%= request.getContextPath() %>/Dashboard" 
-                           class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
-                            Admin Portal
-                        </a>
-                    </li>
-                    <% break;
+                    for(String accessUrl : sessionHelper.getAccessUrls()) {
+                        if(!accessUrl.startsWith("Dashboard")) {
+                            continue;
+                        }
+                        %> 
+                        <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                            <a href="<%= request.getContextPath() %>/Dashboard" 
+                            class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                                Admin Portal
+                            </a>
+                        </li>
+                        <% break;
                     }
                 } %>
             </ul>
