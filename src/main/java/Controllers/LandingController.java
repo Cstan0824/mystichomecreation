@@ -89,7 +89,7 @@ public class LandingController extends ControllerBase {
 
         switch (userSession.getRole().toUpperCase()) {
             case "ADMIN":
-                return page("index", "Admin/Dashboard");
+                return page("index", "Dashboard");
             case "CUSTOMER":
                 return page("index");
             case "STAFF":
