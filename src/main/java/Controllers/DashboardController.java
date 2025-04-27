@@ -363,7 +363,7 @@ public class DashboardController extends ControllerBase {
 
     @HttpRequest(HttpMethod.POST)
     @ActionAttribute(urlPattern = "staff/add")
-    @SyncCache(channel = "Users")
+    @SyncCache(channel = "User")
     public Result addStaff() throws Exception {
 
         String userName = request.getParameter("user_name");
@@ -377,7 +377,25 @@ public class DashboardController extends ControllerBase {
                 userPassword == null || userPassword.trim().isEmpty()) {
 
             request.setAttribute("error", "Name, email, and password are required");
-            return page("staff", "Dashboard");
+            return page("staff");
+        }
+
+        // check if the username or email exists inside the database
+        User existsUser = userDA.getUserByEmailUsername(userEmail, userName);
+        if (existsUser != null) {
+
+            // check if username same
+            if (existsUser.getUsername().equals(userName)) {
+                request.setAttribute("error", "Username already exists");
+                return page("staff");
+            }
+
+            // check if email same
+            if (existsUser.getEmail().equals(userEmail)) {
+                request.setAttribute("error", "Email already exists");
+                return page("staff");
+            }
+            return page("staff");
         }
 
         // Create new staff user
@@ -385,6 +403,7 @@ public class DashboardController extends ControllerBase {
         Role role = userDA.getRoleByName(RoleType.STAFF.get());
         staff.setUsername(userName);
         staff.setEmail(userEmail);
+        userPassword = Helpers.hashPassword(userPassword);
         staff.setPassword(userPassword);
         staff.setBirthdate(userBirthdate);
         staff.setRole(role);
@@ -393,68 +412,119 @@ public class DashboardController extends ControllerBase {
         boolean result = userDA.createUser(staff);
 
         if (result) {
-            // Success
-            response.sendRedirect(request.getContextPath() + "/admin/staff");
-            return page("staff", "Dashboard");
+            return page("staff");
         } else {
-            // Error
             request.setAttribute("error", "Error adding staff member");
-            return page("staff", "Dashboard");
+            return page("staff");
         }
     }
 
     @HttpRequest(HttpMethod.POST)
-    @SyncCache(channel = "Users")
     @ActionAttribute(urlPattern = "staff/update")
+    @SyncCache(channel = "User")
     public Result editStaff() throws Exception {
+        System.out.println("🔍 DEBUG: editStaff() method started");
 
         String userIdParam = request.getParameter("user_id");
         String userName = request.getParameter("user_name");
         String userEmail = request.getParameter("user_email");
+        String userBirthdate = request.getParameter("user_birthdate");
+
+        System.out.println("🔍 DEBUG: Received parameters - userId: " + userIdParam +
+                ", userName: " + userName +
+                ", userEmail: " + userEmail +
+                ", userBirthdate: " + userBirthdate);
 
         // Basic validation
         if (userIdParam == null || userIdParam.trim().isEmpty() ||
                 userName == null || userName.trim().isEmpty() ||
                 userEmail == null || userEmail.trim().isEmpty()) {
-
+            System.out.println("⚠️ DEBUG: Validation failed - missing required fields");
             request.setAttribute("error", "ID, name, and email are required");
-            return page("staff", "Dashboard");
+            return page("staff");
+        }
+
+        // check if the username or email exists inside the database
+        System.out.println("🔍 DEBUG: Checking if username or email already exists");
+        User existsUser = userDA.getUserByEmailUsername(userEmail, userName);
+        if (existsUser != null) {
+            System.out.println("🔍 DEBUG: Found existing user: " + existsUser.getId() + ", username: "
+                    + existsUser.getUsername() + ", email: " + existsUser.getEmail());
+
+            // check if username same
+            if (existsUser.getUsername().equals(userName)) {
+                System.out.println("⚠️ DEBUG: Username already exists");
+                request.setAttribute("error", "Username already exists");
+                return page("staff");
+            }
+
+            // check if email same
+            if (existsUser.getEmail().equals(userEmail)) {
+                System.out.println("⚠️ DEBUG: Email already exists");
+                request.setAttribute("error", "Email already exists");
+                return page("staff");
+            }
+            System.out.println("⚠️ DEBUG: Some other conflict with existing user");
+            return page("staff");
         }
 
         try {
             int userId = Integer.parseInt(userIdParam);
+            System.out.println("🔍 DEBUG: Parsed userId: " + userId);
 
             // Get existing staff member
+            System.out.println("🔍 DEBUG: Fetching staff user with ID: " + userId);
             User staff = userDA.getUserById(userId);
 
-            if (staff == null || staff.getRole().getDescription() != RoleType.STAFF.get()) {
-                response.sendRedirect(request.getContextPath() + "/admin/staff");
-                return page("staff", "Dashboard");
+            if (staff == null) {
+                System.out.println("⚠️ DEBUG: Staff not found with ID: " + userId);
+                return page("staff");
             }
 
+            if (!RoleType.STAFF.get().equalsIgnoreCase(staff.getRole().getDescription())) {
+                System.out.println("⚠️ DEBUG: User with ID " + userId + " is not a staff member. Role: "
+                        + staff.getRole().getDescription());
+                return page("staff");
+            }
+
+            System.out.println("🔍 DEBUG: Found staff user: " + staff.getUsername() + " (ID: " + staff.getId() + ")");
+
             // Update
+            System.out.println("🔍 DEBUG: Updating staff information - userName: " + userName + ", userEmail: "
+                    + userEmail + ", birthdate: " + userBirthdate);
             staff.setUsername(userName);
             staff.setEmail(userEmail);
+            staff.setBirthdate(userBirthdate);
 
             // Update the staff member
+            System.out.println("🔍 DEBUG: Calling userDA.updateUser()");
             boolean success = userDA.updateUser(staff);
 
             if (success) {
                 // Success
-                return page("staff", "Dashboard");
+                System.out.println("✅ DEBUG: Staff updated successfully");
+                // freeze current thread for 500ms
+                Thread.sleep(500);
+                return page("staff");
             } else {
                 // Error
+                System.out.println("❌ DEBUG: Failed to update staff - database returned false");
                 request.setAttribute("error", "Error updating staff member");
-                return page("staff", "Dashboard");
+                return page("staff");
             }
 
         } catch (NumberFormatException e) {
-            return page("staff", "Dashboard");
+            System.out.println("❌ DEBUG: Invalid user ID format: " + userIdParam + " - " + e.getMessage());
+            return page("staff");
+        } catch (Exception e) {
+            System.out.println("❌ DEBUG: Unexpected error in editStaff: " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("error", "An unexpected error occurred");
+            return page("staff");
         }
     }
 
-    @HttpRequest(HttpMethod.POST)
-    @SyncCache(channel = "Users")
+    @SyncCache(channel = "User")
     @ActionAttribute(urlPattern = "staff/delete")
     public Result deleteStaff() throws Exception {
 
@@ -466,9 +536,9 @@ public class DashboardController extends ControllerBase {
 
                 // Delete the staff member
                 boolean success = userDA.deleteUser(userId);
-
+                System.out.println("Result: " + success);
                 if (success) {
-                    // Success - no need for special handling
+                    return page("staff");
                 }
             } catch (NumberFormatException e) {
                 // Invalid ID format
@@ -476,7 +546,7 @@ public class DashboardController extends ControllerBase {
         }
 
         // Always redirect back to staff list
-        return page("staff", "Dashboard");
+        return page("staff");
     }
 
     public Result staff_view() throws Exception {
@@ -502,7 +572,7 @@ public class DashboardController extends ControllerBase {
 
     public Result customer() throws Exception {
         String searchTerm = request.getParameter("customer_search");
-        List<User> customerList = userDA.getUsersByRole(RoleType.CUSTOMER);
+        List<CustomerDTO> customerList = userDA.getCustomers();
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             customerList = customerList.stream()
                     .filter(customer -> customer.getUsername().toLowerCase().contains(searchTerm.toLowerCase())
@@ -519,7 +589,7 @@ public class DashboardController extends ControllerBase {
         return page();
     }
 
-    @Authorization(accessUrls = "Dashboard/voucher/add")
+    // @Authorization(accessUrls = "Dashboard/voucher/add")
     @ActionAttribute(urlPattern = "voucher/add")
     @SyncCache(channel = "Voucher")
     @HttpRequest(HttpMethod.POST)
@@ -537,7 +607,7 @@ public class DashboardController extends ControllerBase {
         return error("Failed to add voucher");
     }
 
-    @Authorization(accessUrls = "Dashboard/voucher/status")
+    // @Authorization(accessUrls = "Dashboard/voucher/status")
     @ActionAttribute(urlPattern = "voucher/status")
     @SyncCache(channel = "Voucher")
     @HttpRequest(HttpMethod.POST)

@@ -14,7 +14,7 @@ import mvc.Cache.Redis;
 import mvc.DataAccess;
 
 public class CartDAO {
-    
+
     EntityManager db = DataAccess.getEntityManager();
     Redis cache = new Redis();
 
@@ -23,14 +23,15 @@ public class CartDAO {
 
     // #region CART
     // Create a cart
-    public boolean createCart(Cart cart){
+    public boolean createCart(Cart cart) {
         try {
             db.getTransaction().begin();
             db.persist(cart);
             db.getTransaction().commit();
             return true;
         } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            if (db.getTransaction().isActive())
+                db.getTransaction().rollback();
             e.printStackTrace();
             return false;
         }
@@ -46,8 +47,7 @@ public class CartDAO {
     public Cart getCartByUser(int userId) {
         Cart cart = null;
         TypedQuery<Cart> query = db.createQuery(
-            "SELECT c FROM Cart c WHERE c.user.id = :userId", Cart.class
-        ).setParameter("userId", userId);
+                "SELECT c FROM Cart c WHERE c.user.id = :userId", Cart.class).setParameter("userId", userId);
 
         try {
             cart = cache.getOrCreate("cart-" + userId, Cart.class, query, Redis.CacheLevel.LOW);
@@ -61,8 +61,7 @@ public class CartDAO {
     public Cart getCartById(int cartId) {
         Cart cart = null;
         TypedQuery<Cart> query = db.createQuery(
-            "SELECT c FROM Cart c WHERE c.id = :cartId", Cart.class
-        ).setParameter("cartId", cartId);
+                "SELECT c FROM Cart c WHERE c.id = :cartId", Cart.class).setParameter("cartId", cartId);
 
         try {
             cart = cache.getOrCreate("cart-" + cartId, Cart.class, query, Redis.CacheLevel.LOW);
@@ -78,36 +77,38 @@ public class CartDAO {
     public CartItem getCartItemByCartAndProduct(Cart cart, product product) {
         CartItem cartItem = null;
         TypedQuery<CartItem> query = db.createQuery(
-            "SELECT c FROM CartItem c WHERE c.cart.id = :cartId AND c.product.id = :productId", CartItem.class
-        ).setParameter("cartId", cart.getId())
-         .setParameter("productId", product.getId());
+                "SELECT c FROM CartItem c WHERE c.cart.id = :cartId AND c.product.id = :productId", CartItem.class)
+                .setParameter("cartId", cart.getId())
+                .setParameter("productId", product.getId());
 
         try {
-            cartItem = cache.getOrCreate("cartitem-" + cart.getId() + "-" + product.getId(), CartItem.class, query, Redis.CacheLevel.LOW);
+            cartItem = cache.getOrCreate("cartitem-" + cart.getId() + "-" + product.getId(), CartItem.class, query,
+                    Redis.CacheLevel.LOW);
         } catch (Exception e) {
             cartItem = query.getSingleResult(); // fallback if cache fails
         }
         return cartItem;
     }
 
-    public List<CartItem> getCartItemsByCart(Cart cart){
+    public List<CartItem> getCartItemsByCart(Cart cart) {
 
         List<CartItem> cartItems = null;
         int cartId = cart.getId();
 
-        TypedQuery<CartItem> query = db.createQuery("SELECT c FROM CartItem c WHERE c.cart.id = :cartId", CartItem.class)
-            .setParameter("cartId", cartId);
-        
+        TypedQuery<CartItem> query = db
+                .createQuery("SELECT c FROM CartItem c WHERE c.cart.id = :cartId", CartItem.class)
+                .setParameter("cartId", cartId);
+
         try {
             cartItems = cache.getOrCreateList("cartitems-" + cartId, CartItem.class, query, Redis.CacheLevel.LOW);
-            
+
         } catch (Exception e) {
             cartItems = query.getResultList(); // fallback if cache fails
         }
         return cartItems;
     }
 
-    public List<CartItem> getCartItemsByUser(User user){
+    public List<CartItem> getCartItemsByUser(User user) {
 
         int userId = user.getId();
         Cart cart = getCartByUser(userId);
@@ -117,36 +118,33 @@ public class CartDAO {
 
         return getCartItemsByCart(cart);
     }
-    
+
     // get cart item by cart, product and variations
     public CartItem getCartItemByCartAndProductAndVariation(Cart cart, product product, String selectedVariation) {
 
         int cartId = cart.getId();
         int productId = product.getId();
-    
+
         TypedQuery<CartItem> query = db.createQuery(
-            "SELECT c FROM CartItem c WHERE c.cart.id = :cartId AND c.product.id = :productId AND c.selectedVariation = :variation",
-            CartItem.class
-        )
-        .setParameter("cartId", cartId)
-        .setParameter("productId", productId)
-        .setParameter("variation", selectedVariation);
-    
+                "SELECT c FROM CartItem c WHERE c.cart.id = :cartId AND c.product.id = :productId AND c.selectedVariation = :variation",
+                CartItem.class)
+                .setParameter("cartId", cartId)
+                .setParameter("productId", productId)
+                .setParameter("variation", selectedVariation);
+
         try {
             // Using Redis key composed of all identifying elements
             return cache.getOrCreate(
-                "cartitem-" + cartId + "-" + productId + "-" + selectedVariation,
-                CartItem.class,
-                query,
-                Redis.CacheLevel.LOW
-            );
-    
+                    "cartitem-" + cartId + "-" + productId + "-" + selectedVariation,
+                    CartItem.class,
+                    query,
+                    Redis.CacheLevel.LOW);
+
         } catch (Exception e) {
             // Fallback to database query if cache fails
             return query.getSingleResult(); // or null, depending on your design choice
         }
     }
-    
 
     // Add a cart item
     public boolean addCartItem(CartItem cartItem) {
@@ -167,15 +165,15 @@ public class CartDAO {
 
             // ✅ Use shared method to find if item already exists
             CartItem existingItem = getCartItemByCartAndProductAndVariation(
-                cartItem.getCart(),
-                cartItem.getProduct(),
-                cartItem.getSelectedVariation()
-            );
+                    cartItem.getCart(),
+                    cartItem.getProduct(),
+                    cartItem.getSelectedVariation());
 
             if (existingItem != null) {
                 int newQuantity = existingItem.getQuantity() + cartItem.getQuantity();
                 existingItem.setQuantity(newQuantity);
-                System.out.println("selected variation: " + cartItem.getSelectedVariation() + " quantity: " + newQuantity);
+                System.out.println(
+                        "selected variation: " + cartItem.getSelectedVariation() + " quantity: " + newQuantity);
                 db.merge(existingItem);
             } else {
                 String createdAt = LocalDateTime.now().toString(); // Use LocalDateTime for createdAt
@@ -187,7 +185,8 @@ public class CartDAO {
             return true;
 
         } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            if (db.getTransaction().isActive())
+                db.getTransaction().rollback();
             e.printStackTrace();
             return false;
         }
@@ -206,11 +205,10 @@ public class CartDAO {
             }
 
             CartItem itemToRemove = db.find(CartItem.class, new CartItemId(
-                searchItem.getCart(),
-                searchItem.getProduct(),
-                searchItem.getCreatedAt()
-            ));
-            
+                    searchItem.getCart(),
+                    searchItem.getProduct(),
+                    searchItem.getCreatedAt()));
+
             if (itemToRemove != null) {
                 db.remove(itemToRemove);
                 db.getTransaction().commit();
@@ -221,7 +219,8 @@ public class CartDAO {
             }
 
         } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            if (db.getTransaction().isActive())
+                db.getTransaction().rollback();
             e.printStackTrace();
             return false;
         }
@@ -232,10 +231,9 @@ public class CartDAO {
             db.getTransaction().begin();
 
             CartItem itemToRemove = db.find(CartItem.class, new CartItemId(
-                cartItem.getCart(),
-                cartItem.getProduct(),
-                cartItem.getCreatedAt()
-            ));
+                    cartItem.getCart(),
+                    cartItem.getProduct(),
+                    cartItem.getCreatedAt()));
 
             if (itemToRemove != null) {
                 db.remove(itemToRemove);
@@ -247,7 +245,8 @@ public class CartDAO {
             }
 
         } catch (Exception e) {
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            if (db.getTransaction().isActive())
+                db.getTransaction().rollback();
             e.printStackTrace();
             return false;
         }
@@ -257,27 +256,26 @@ public class CartDAO {
     public boolean updateCartItemQuantity(CartItem cartItem, int delta) {
         try {
             db.clear(); // Clear persistence context to avoid stale state
-    
+
             int newQuantity = cartItem.getQuantity() + delta;
             System.out.println("New quantity: " + newQuantity);
-    
+
             if (newQuantity <= 0) {
-                System.out.println("Trying to delete cartItem with ID: " + cartItem.getProduct().getId() + 
-                                   " from cart with ID: " + cartItem.getCart().getId());
+                System.out.println("Trying to delete cartItem with ID: " + cartItem.getProduct().getId() +
+                        " from cart with ID: " + cartItem.getCart().getId());
                 return deleteCartItem(cartItem); // Use full object with createdAt to delete
             }
-    
+
             db.getTransaction().begin();
-    
+
             // Include `createdAt` in the composite key lookup
             CartItemId cartItemId = new CartItemId(
-                cartItem.getCart(),
-                cartItem.getProduct(),
-                cartItem.getCreatedAt()
-            );
-    
+                    cartItem.getCart(),
+                    cartItem.getProduct(),
+                    cartItem.getCreatedAt());
+
             CartItem existingItem = db.find(CartItem.class, cartItemId);
-    
+
             if (existingItem != null) {
                 System.out.println("before merge --------------------------------------------------------");
                 existingItem.setQuantity(newQuantity);
@@ -290,16 +288,42 @@ public class CartDAO {
                 System.out.println("CartItem not found for update.");
                 db.getTransaction().rollback();
             }
-    
+
         } catch (Exception e) {
-            System.out.println("Error updating cart item quantity:-------------------------------------------------------- " +
-                               e.getMessage() + "--------------------------------------------------------");
+            System.out.println(
+                    "Error updating cart item quantity:-------------------------------------------------------- " +
+                            e.getMessage() + "--------------------------------------------------------");
             e.printStackTrace();
-            if (db.getTransaction().isActive()) db.getTransaction().rollback();
+            if (db.getTransaction().isActive())
+                db.getTransaction().rollback();
         }
         return false;
     }
-    
+
+    public boolean deleteCart(int userId) {
+        db.getTransaction().begin();
+
+        // SAFELY re-fetch the cart using a managed state
+        Cart cart = db.createQuery("SELECT c FROM Cart c WHERE c.user.id = :userId", Cart.class)
+                .setParameter("userId", userId)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+
+        if (cart != null) {
+            Cart managedCart = db.find(Cart.class, cart.getId()); // 🔥 Very Important!
+            if (managedCart != null) {
+                db.remove(managedCart);
+                db.getTransaction().commit();
+                return true;
+            } else {
+                db.getTransaction().rollback();
+                return false;
+            }
+        } else {
+            db.getTransaction().rollback();
+            return false;
+        }
+    }
+
 }
-
-
