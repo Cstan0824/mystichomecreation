@@ -1,6 +1,5 @@
 package Controllers;
 
-
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
@@ -13,9 +12,9 @@ import mvc.Http.HttpMethod;
 import java.time.LocalDate;
 import java.util.List;
 
-import DAO.AccountDA;
+import DAO.AccountDAO;
 import DAO.OrderDAO;
-import DAO.UserDA;
+import DAO.UserDAO;
 import DTO.VoucherInfoDTO;
 import Models.Accounts.BankType;
 import Models.Accounts.PaymentCard;
@@ -24,24 +23,18 @@ import Models.Accounts.Voucher;
 import Models.Orders.Order;
 import Models.Orders.OrderStatus;
 import Models.Users.Role;
+import Models.Users.RoleType;
 import Models.Users.User;
-import mvc.Annotations.ActionAttribute;
-import mvc.Annotations.Authorization;
-import mvc.Annotations.HttpRequest;
-import mvc.Annotations.SyncCache;
-import mvc.Cache.Redis;
+
 import mvc.ControllerBase;
-import mvc.Helpers.Helpers;
 import mvc.Helpers.Notify.Notification;
 import mvc.Helpers.Notify.NotificationService;
-import mvc.Helpers.SessionHelper;
-import mvc.Helpers.otps.OTPHelper;
-import mvc.Http.HttpMethod;
+
 import mvc.Result;
 
 public class UserController extends ControllerBase {
-    private AccountDA accountDA = new AccountDA();
-    private UserDA userDA = new UserDA();
+    private AccountDAO accountDA = new AccountDAO();
+    private UserDAO userDA = new UserDAO();
     private OrderDAO orderDAO = new OrderDAO();
     private Redis redis = new Redis();
 
@@ -948,7 +941,7 @@ public class UserController extends ControllerBase {
         }
 
         // Retrieve role
-        Role role = userDA.getRoleById(2);
+        Role role = userDA.getRoleByName(RoleType.CUSTOMER.get());
         if (role == null) {
             return error("Error while creating user account. Please contact support.");
         }

@@ -22,22 +22,48 @@
     <div class="flex max-w-vw w-full p-4 items-center sticky top-0 z-[300] bg-white" id="nav-bar">
 
         <!--logo-->
-        <div class="basis-1/5 flex justify-center w-full">
+        <div class="basis-1/5 flex justify-center w-full cursor-pointer">
             <img src="<%= request.getContextPath()%>/Content/assets/image/MystichomeCreationLogo.jpg" onClick="redirectUrl('<%= request.getContextPath()%>/Landing')" class="w-[50px] h-[50px] object-cover rounded-full" alt="logo">
         </div>
 
         <!--nav-->
         <div class="basis-3/5">
             <ul class="flex justify-center gap-2 text-xl">
+                <%
+                    String currentUrl = request.getRequestURI();
+                    boolean isProductPage = currentUrl.contains("/product/");
+                    boolean isHomePage = currentUrl.contains("/Landing") || currentUrl.equals(request.getContextPath() + "/");
+                    boolean isAdminPage = currentUrl.contains("/Dashboard");
+                %>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                    <a href="<%= request.getContextPath() %>/product/productCatalog" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Products</a>
+                    <a href="<%= request.getContextPath() %>/product/productCatalog" 
+                       class="<%= isProductPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                        Products
+                    </a>
                 </li>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                    <a href="<%= request.getContextPath() %>/Landing" class="hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
+                    <a href="<%= request.getContextPath() %>/Landing" 
+                       class="<%= isHomePage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                        Home
+                    </a>
                 </li>
-                <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                    <a href="#" class="font-semibold hover:font-normal hover:text-darkYellow transition-all duration-[500] ease-in-out">Home</a>
-                </li>
+                <% 
+                if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                   
+                    for(String accessUrl : sessionHelper.getAccessUrls()) {
+                        if(!accessUrl.startsWith("Dashboard")) {
+                            continue;
+                        }
+                        %> 
+                        <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                            <a href="<%= request.getContextPath() %>/Dashboard" 
+                            class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                                Admin Portal
+                            </a>
+                        </li>
+                        <% break;
+                    }
+                } %>
             </ul>
         </div>
 

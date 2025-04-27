@@ -2,7 +2,7 @@ package Controllers;
 
 import java.util.List;
 
-import DAO.UserDA;
+import DAO.UserDAO;
 import DAO.productDAO;
 import DTO.UserSession;
 import Models.Products.product;
@@ -21,7 +21,7 @@ import mvc.Result;
 
 public class LandingController extends ControllerBase {
     private EntityManager db = DataAccess.getEntityManager();
-    private UserDA userDA = new UserDA();
+    private UserDAO userDA = new UserDAO();
     private productDAO productDAO = new productDAO();
 
     // @Authorization(permissions = "Landing/index")
@@ -89,7 +89,7 @@ public class LandingController extends ControllerBase {
 
         switch (userSession.getRole().toUpperCase()) {
             case "ADMIN":
-                return page("index", "Admin/Dashboard");
+                return page("index", "Dashboard");
             case "CUSTOMER":
                 return page("index");
             case "STAFF":

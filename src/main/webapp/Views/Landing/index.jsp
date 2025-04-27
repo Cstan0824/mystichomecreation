@@ -48,7 +48,7 @@
                 <div class="text-white text-center">
                     <h1 class="text-6xl font-bold drop-shadow-lg">MysticHome Creations</h1>
                     <p class="text-lg font-bold drop-shadow-lg">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
-                    <button class="bg-white text-black hover:bg-darkYellow hover:text-white transition-colors duration-300 ease-in-out text-lg px-4 py-2 rounded-full mt-4">Get Started</button>
+                    <button class="bg-white text-black hover:bg-darkYellow hover:text-white transition-colors duration-300 ease-in-out text-lg px-4 py-2 rounded-full mt-4" onCLick="getStartNavigation()">Get Started</button>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
         
 
     <!-- Category -->
-    <div class="content-wrapper flex flex-col">
+    <div id="categories" class="content-wrapper flex flex-col">
         <div class="pb-8 flex justify-between items-center">
             <div class="flex gap-2 items-center">
                 <h1 class="text-4xl font-bold text-poppins">Categories</h1>
@@ -170,7 +170,7 @@
                         <span class="text-lg">></span>
                     </div>
                     <div class="hover:text-darkYellow border border-white rounded-lg hover:bg-gray-50 px-2 cursor-pointer flex justify-center items-center">
-                        <a href="#"><i class="fa-solid fa-ellipsis fa-lg"></i></a>
+                        <a href="<%= request.getContextPath() %>/product/productCatalog"><i class="fa-solid fa-ellipsis fa-lg"></i></a>
                     </div>
                 </div>
             </div>
@@ -276,7 +276,7 @@
     </div>
 
     <!-- Why us -->
-    <div class="content-wrapper flex flex-col gap-4">
+    <div id="choose-us" class="content-wrapper flex flex-col gap-4">
         <!-- title -->
         <div class="flex flex-col items-center justify-center gap-3 py-4">
             <p class="text-lg font-light font-dmSans">Why choose us?</p>
@@ -319,11 +319,11 @@
     
 
     <!-- About us -->
-    <div class="content-wrapper flex flex-col gap-6">
+    <div id="about-us" class="content-wrapper flex flex-col gap-6">
         <!-- Title -->
         <div class="flex justify-between items-center">
             <h1 class="text-4xl font-bold font-poppins">A little about us</h1>
-            <div class="p-4 text-xl font-poppins font-semibold border hover:bg-lightMidYellow hover:text-white text-center rounded-full cursor-pointer duration-300 transition-colors ease-in-out">
+            <div class="p-4 text-xl font-poppins font-semibold border hover:bg-lightMidYellow hover:text-white text-center rounded-full cursor-pointer duration-300 transition-colors ease-in-out" onClick="scrollToFooter()">
                 LEARN MORE
             </div>
         </div>
@@ -379,7 +379,7 @@
 
 
     <!-- CTA -->
-    <div class="content-wrapper flex flex-col gap-6">
+    <div id="contact-us" class="content-wrapper flex flex-col gap-6">
 
         <!-- title -->
         <div class="flex items-center justify-center gap-3 py-4">
@@ -498,5 +498,18 @@
         window.location.href = url;
     }
 
+    function scrollToFooter() {
+        // Smooth scroll to footer
+        document.querySelector('footer').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }
+
+    function getStartNavigation() {
+        // Smooth scroll to the first section of the page
+        document.querySelector('#categories').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }
 </script>
 </html>
