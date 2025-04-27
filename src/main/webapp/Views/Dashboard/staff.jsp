@@ -18,7 +18,7 @@
 
   <!-- Search Staff -->
   <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
-    <form action="<%= request.getContextPath() %>/Admin/Dashboard/staff" method="GET" class="flex items-end gap-4">
+    <form action="<%= request.getContextPath() %>/Dashboard/staff" method="GET" class="flex items-end gap-4">
       <div class="flex-grow">
         <div class="relative">
           <input type="text" 
@@ -67,7 +67,7 @@
               <td class="px-6 py-4">
                 <div class="flex gap-4 justify-end">
                   <!-- View -->
-                  <a href="<%= request.getContextPath() %>/Admin/Dashboard/staff/view?id=${staff.id}" 
+                  <a href="<%= request.getContextPath() %>/Dashboard/staff/view?id=${staff.id}" 
                     class="text-indigo-600 hover:text-indigo-900 transition-colors">
                     <i class="fas fa-eye"></i>
                   </a>
@@ -77,7 +77,7 @@
                     <i class="fas fa-pen"></i>
                   </button>
                   <!-- Delete -->
-                  <button onclick="confirmDelete('Are you sure you want to delete this staff member?', '<%= request.getContextPath() %>/Admin/Dashboard/staff/delete?id=${staff.id}')" 
+                  <button onclick="confirmDelete('Are you sure you want to delete this staff member?', '<%= request.getContextPath() %>/Dashboard/staff/delete?id=${staff.id}')" 
                           class="text-red-600 hover:text-red-900 transition-colors">
                     <i class="fas fa-trash"></i>
                   </button>
@@ -113,7 +113,7 @@
       </button>
     </div>
     
-    <form action="<%= request.getContextPath() %>/Admin/Dashboard/staff/add" method="POST" class="space-y-4">
+    <form action="<%= request.getContextPath() %>/Dashboard/staff/add" method="POST" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
         <input type="text" name="user_name" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500" required>
@@ -162,7 +162,7 @@
             </button>
           </div>
           
-          <form action="<%= request.getContextPath() %>/Admin/Dashboard/staff/update" method="POST" class="p-6 space-y-4">
+          <form action="<%= request.getContextPath() %>/Dashboard/staff/update" method="POST" class="p-6 space-y-4">
             <input type="hidden" name="user_id" value="\${userId}">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>

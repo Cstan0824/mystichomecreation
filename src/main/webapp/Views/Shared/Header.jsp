@@ -33,7 +33,7 @@
                     String currentUrl = request.getRequestURI();
                     boolean isProductPage = currentUrl.contains("/product/");
                     boolean isHomePage = currentUrl.contains("/Landing") || currentUrl.equals(request.getContextPath() + "/");
-                    boolean isAdminPage = currentUrl.contains("/Admin/Dashboard");
+                    boolean isAdminPage = currentUrl.contains("/Dashboard");
                 %>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                     <a href="<%= request.getContextPath() %>/product/productCatalog" 
@@ -51,12 +51,12 @@
                 if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
                    
                 for(String accessUrl : sessionHelper.getAccessUrls()) {
-                    if(!accessUrl.startsWith("Admin/Dashboard")) {
+                    if(!accessUrl.startsWith("Dashboard")) {
                         continue;
                     }
                     %> 
                     <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                        <a href="<%= request.getContextPath() %>/Admin/Dashboard" 
+                        <a href="<%= request.getContextPath() %>/Dashboard" 
                            class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
                             Admin Portal
                         </a>

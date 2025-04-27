@@ -243,12 +243,12 @@ public class DashboardController extends ControllerBase {
                     return page();
                 }
             } catch (NumberFormatException e) {
-                return page("staff", "Admin/Dashboard");
+                return page("staff", "Dashboard");
             }
         }
 
         // Staff not found or invalid ID
-        return page("staff", "Admin/Dashboard");
+        return page("staff", "Dashboard");
     }
 
     @HttpRequest(HttpMethod.POST)
@@ -267,7 +267,7 @@ public class DashboardController extends ControllerBase {
                 userPassword == null || userPassword.trim().isEmpty()) {
 
             request.setAttribute("error", "Name, email, and password are required");
-            return page("staff", "Admin/Dashboard");
+            return page("staff", "Dashboard");
         }
 
         // Create new staff user
@@ -285,11 +285,11 @@ public class DashboardController extends ControllerBase {
         if (result) {
             // Success
             response.sendRedirect(request.getContextPath() + "/admin/staff");
-            return page("staff", "Admin/Dashboard");
+            return page("staff", "Dashboard");
         } else {
             // Error
             request.setAttribute("error", "Error adding staff member");
-            return page("staff", "Admin/Dashboard");
+            return page("staff", "Dashboard");
         }
     }
 
@@ -308,7 +308,7 @@ public class DashboardController extends ControllerBase {
                 userEmail == null || userEmail.trim().isEmpty()) {
 
             request.setAttribute("error", "ID, name, and email are required");
-            return page("staff", "Admin/Dashboard");
+            return page("staff", "Dashboard");
         }
 
         try {
@@ -319,7 +319,7 @@ public class DashboardController extends ControllerBase {
 
             if (staff == null || staff.getRole().getDescription() != RoleType.STAFF.get()) {
                 response.sendRedirect(request.getContextPath() + "/admin/staff");
-                return page("staff", "Admin/Dashboard");
+                return page("staff", "Dashboard");
             }
 
             // Update
@@ -331,15 +331,15 @@ public class DashboardController extends ControllerBase {
 
             if (success) {
                 // Success
-                return page("staff", "Admin/Dashboard");
+                return page("staff", "Dashboard");
             } else {
                 // Error
                 request.setAttribute("error", "Error updating staff member");
-                return page("staff", "Admin/Dashboard");
+                return page("staff", "Dashboard");
             }
 
         } catch (NumberFormatException e) {
-            return page("staff", "Admin/Dashboard");
+            return page("staff", "Dashboard");
         }
     }
 
@@ -366,7 +366,7 @@ public class DashboardController extends ControllerBase {
         }
 
         // Always redirect back to staff list
-        return page("staff", "Admin/Dashboard");
+        return page("staff", "Dashboard");
     }
 
     public Result staff_view() throws Exception {
@@ -382,12 +382,12 @@ public class DashboardController extends ControllerBase {
                     return page();
                 }
             } catch (NumberFormatException e) {
-                return page("staff", "Admin/Dashboard");
+                return page("staff", "Dashboard");
             }
         }
 
         // Staff not found or invalid ID
-        return page("staff", "Admin/Dashboard");
+        return page("staff", "Dashboard");
     }
 
     public Result customer() throws Exception {
@@ -409,7 +409,7 @@ public class DashboardController extends ControllerBase {
         return page();
     }
 
-    @Authorization(accessUrls = "Admin/Dashboard/voucher/add")
+    @Authorization(accessUrls = "Dashboard/voucher/add")
     @ActionAttribute(urlPattern = "voucher/add")
     @SyncCache(channel = "Voucher")
     @HttpRequest(HttpMethod.POST)
@@ -427,7 +427,7 @@ public class DashboardController extends ControllerBase {
         return error("Failed to add voucher");
     }
 
-    @Authorization(accessUrls = "Admin/Dashboard/voucher/status")
+    @Authorization(accessUrls = "Dashboard/voucher/status")
     @ActionAttribute(urlPattern = "voucher/status")
     @SyncCache(channel = "Voucher")
     @HttpRequest(HttpMethod.POST)
