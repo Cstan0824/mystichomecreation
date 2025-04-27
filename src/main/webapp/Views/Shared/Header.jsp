@@ -34,6 +34,7 @@
                     boolean isProductPage = currentUrl.contains("/product/");
                     boolean isHomePage = currentUrl.contains("/Landing") || currentUrl.equals(request.getContextPath() + "/");
                     boolean isAdminPage = currentUrl.contains("/Dashboard");
+                    boolean isOrderPage = currentUrl.contains("/Order/orders");
                 %>
                 <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                     <a href="<%= request.getContextPath() %>/product/productCatalog" 
@@ -51,6 +52,23 @@
                 if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
                    
                     for(String accessUrl : sessionHelper.getAccessUrls()) {
+                        if(!accessUrl.equals("Order/orders")) {
+                            continue;
+                        }
+                        %> 
+                        <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                            <a href="<%= request.getContextPath() %>/Order/orders" 
+                            class="<%= isOrderPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                                Orders
+                            </a>
+                        </li>
+                        <% break;
+                    }
+                } %>
+                <% 
+                if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                   
+                    for(String accessUrl : sessionHelper.getAccessUrls()) {
                         if(!accessUrl.startsWith("Dashboard")) {
                             continue;
                         }
@@ -58,7 +76,7 @@
                         <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
                             <a href="<%= request.getContextPath() %>/Dashboard" 
                             class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
-                                Admin Portal
+                                Admin
                             </a>
                         </li>
                         <% break;
@@ -116,12 +134,14 @@
                                     <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/User/account')">
                                         <p class="font-semibold transition-all duration-[500] ease-in-out">Profile</p>
                                     </li>
-                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer " onClick="redirectUrl('<%= request.getContextPath() %>/User/account#notifications')">
+                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer " onClick="redirectUrl('<%= request.getContextPath() %>/User/account#transactions')">
                                         <p class="font-semibold transition-all duration-[500] ease-in-out">Purchases</p>
                                     </li>
-                                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/User/account#notifications')">
-                                        <a href="#" class="font-semibold transition-all duration-[500] ease-in-out">Logout</a>
-                                    </li>
+                                    <form id="logoutForm" action="<%= request.getContextPath()%>/Landing/logout" method="post" enctype="multipart/form-data">
+                                        <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="logout()">
+                                            <p class="font-semibold transition-all duration-[500] ease-in-out">Logout</p>
+                                        </li>
+                                    </form>
                                 <% } else { %>
                                     <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/Landing/login')">
                                         <p class="font-semibold transition-all duration-[500] ease-in-out">Login</p>
@@ -258,6 +278,9 @@
                                     alt="empty-cart"
                                     class="w-[150px] h-[150px] object-cover" />
                                 <p class="text-gray-500 font-dmSans">Your cart is empty.</p>
+                                <button onclick="window.location.href='<%= request.getContextPath() %>/product/productCatalog'" class="px-4 py-2 rounded-full bg-darkYellow text-white hover:bg-yellow-600 transition">
+                                    Shop Now
+                                </button>
                             </div>
                         `;
 
@@ -415,12 +438,44 @@
             }
         }
 
+        function logout() {
+
+            
+            const logoutForm = document.getElementById('logoutForm');
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be signed out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6", // Blue button
+                cancelButtonColor: "#d33",     // Red button
+                confirmButtonText: "Yes, sign me out",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    logoutForm.submit();
+                }
+            });
+
+        }
+
         function redirectUrl(url) {
             window.location.href = url;
         }
 
+        function hideCartOnCheckout() {
+            const currentUrl = window.location.href;
+            if (currentUrl.includes("checkout")) {
+                const cartButton = document.getElementById('cart-button');
+                if (cartButton) {
+                    cartButton.style.display = 'none'; // Hides the cart button
+                }
+            }
+        }
+
+
         $(document).ready(function() {
-          
+            hideCartOnCheckout();
 
             const $cartButton = $('#cart-button');
             const $cartPopup = $('#cart-popup');

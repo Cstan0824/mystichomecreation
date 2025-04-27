@@ -322,15 +322,16 @@
 
 	<script>
 		const PAGE_MAP = {
-			'': '<%= request.getContextPath() %>/User/account/profile',
 			'profile': '<%= request.getContextPath() %>/User/account/profile',
 			'payments': '<%= request.getContextPath() %>/User/account/payments',
 			'addresses': '<%= request.getContextPath() %>/User/account/addresses',
 			'vouchers': '<%= request.getContextPath() %>/User/account/vouchers',
 			'transactions': '<%= request.getContextPath() %>/User/account/transactions',
+			'transactions/details': '<%= request.getContextPath() %>/User/account/transactions/details',
 			'password': '<%= request.getContextPath() %>/User/account/password',
 			'notifications': '<%= request.getContextPath() %>/User/account/notifications'
 		};
+
 		let $previousSubSidebarLink = null;
 
 		function loadPage(hash) {
@@ -338,33 +339,48 @@
 			return false;
 		}
 
-		function getHash() {
-			return window.location.hash.replace('#', '') || '';
+		function getHashParts() {
+			const hash = window.location.hash.substring(1); // Remove '#'
+			const [path, query] = hash.split('?');
+			return { path, query };
 		}
 
+
 		function updateNavigationBar() {
-			const hash = getHash() || 'profile'; // Default to 'profile' if no hash is present
-			if (hash === "account") {
-				hash = "profile";
+			const { path } = getHashParts();
+			let basePath = path ? path.split('/')[0] : 'profile'; // Only main section
+
+			if (basePath === "account") {
+				basePath = "profile";
 			}
-			const $sidebarLink = $(".sidebar-link[data-item='" + hash + "']");
+			
+			const $sidebarLink = $(".sidebar-link[data-item='" + basePath + "']");
 			if (!$sidebarLink.length) {
 				return;
 			}
+
 			$(".sidebar-link").removeClass("font-semibold text-yellow-500");
 			$(".sub-sidebar-link").hide();
 			$sidebarLink.addClass("font-semibold text-yellow-500");
+			
 			const $subSidebar = $sidebarLink.closest(".sub-sidebar-link");
 			if ($subSidebar.length) {
 				$subSidebar.show();
 			}
 		}
 
+
 		function updateIFrameSrc() {
-			const hash = getHash();
-			const iframeSrc = PAGE_MAP[hash] || PAGE_MAP[''];
+			const { path, query } = getHashParts();
+			let iframeSrc = PAGE_MAP[path] || PAGE_MAP[''];
+
+			if (query) {
+				iframeSrc += '?' + query; // Append query string if exists
+			}
+
 			$('#contentFrame').attr('src', iframeSrc);
 		}
+
 
 		function triggerHashChangedAction() {
 			updateIFrameSrc();

@@ -27,8 +27,8 @@ services:
             - ./src/main/Logs:${LOG_PATH}
             # # # LOAD CLIENT FILES DYNAMICALLY
 
-            #- ./src/main/webapp/Views:${CLEINT_FILE_PATH}/Views:rw
-            #- ./src/main/webapp/Content:${CLEINT_FILE_PATH}/Content:rw
+            # - ./src/main/webapp/Views:${CLEINT_FILE_PATH}/Views:rw
+            # - ./src/main/webapp/Content:${CLEINT_FILE_PATH}/Content:rw
 
 
             # # #backup use only

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Checkout</title>
 </head>
 
@@ -26,7 +27,6 @@
 <%@ include file="/Views/Shared/Header.jsp" %>
 
     <% 
-        SessionHelper session = new SessionHelper(request.getSession());
         List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
         ShippingInformation shippingInfo = (ShippingInformation) request.getAttribute("shippingAddress");
         List<VoucherInfoDTO> voucherInfoList = (List<VoucherInfoDTO>) request.getAttribute("voucherArray");
@@ -49,83 +49,87 @@
             <div class="basis-2/3 flex flex-col gap-6">
 
                 <!-- Select Voucher -->
-                <div class="flex flex-col gap-4 p-8 border border-grey3 w-full" x-data="{ showVouchers: true }">
-                    <p class="font-bold text-lg font-poppins mb-4">Select Voucher</p>
-                
-                    <!-- Toggle Button -->
-                    <div @click="showVouchers = !showVouchers"
-                         class="flex justify-between items-center bg-grey2 rounded-lg p-4 cursor-pointer hover:bg-grey3 transition">
-                        <p class="text-sm font-medium text-black">Available Vouchers</p>
-                        <i :class="showVouchers ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"
-                           class="text-darkYellow transition-all duration-300"></i>
-                    </div>
-                
-                    <!-- Voucher List (toggle display) -->
-                    <div x-show="showVouchers" x-transition class="flex flex-col gap-2 mt-2">
-                        <!-- Repeat this block per voucher -->
+                <% if (voucherInfoList != null && !voucherInfoList.isEmpty()) { %>
+                    
+                    <div class="flex flex-col gap-4 p-8 border border-grey3 w-full" x-data="{ showVouchers: true }">
+                        <p class="font-bold text-lg font-poppins mb-4">Select Voucher</p>
+                    
+                        <!-- Toggle Button -->
+                        <div @click="showVouchers = !showVouchers"
+                            class="flex justify-between items-center bg-grey2 rounded-lg p-4 cursor-pointer hover:bg-grey3 transition">
+                            <p class="text-sm font-medium text-black">Available Vouchers</p>
+                            <i :class="showVouchers ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"
+                            class="text-darkYellow transition-all duration-300"></i>
+                        </div>
+                    
+                        <!-- Voucher List (toggle display) -->
+                        <div x-show="showVouchers" x-transition class="flex flex-col gap-2 mt-2">
+                            <!-- Repeat this block per voucher -->
 
-                        <% 
-                            for (VoucherInfoDTO voucher : voucherInfoList) {
-                        %>
-                        <div class="border border-grey3 rounded-md cursor-pointer selectable-voucher hover:text-darkYellow hover:border-darkYellow select-none" data-voucher-id="<%= voucher.getVoucher().getId() %>" data-after-deduction="<%= voucher.getTotalAfterDeduction() %>">
+                            <% 
+                                for (VoucherInfoDTO voucher : voucherInfoList) {
+                            %>
+                            <div class="border border-grey3 rounded-md cursor-pointer selectable-voucher hover:text-darkYellow hover:border-darkYellow select-none" data-voucher-id="<%= voucher.getVoucher().getId() %>" data-after-deduction="<%= voucher.getTotalAfterDeduction() %>">
 
-                        
-                            <div class="flex voucher-info select-none">
-                                <!-- Left - Voucher Icon -->
-                                <div class="basis-1/4 flex flex-col justify-center items-center gap-2 bg-lightMidYellow p-4 overflow-hidden font-poppins">
-                                    <div class="aspect-square max-w-[100px] w-full flex flex-col justify-center items-center text-darkYellow bg-white rounded-full border-4 border-darkYellow m-2 p-4 overflow-hidden text-center">
-                                        <i class="fa-solid fa-ticket fa-2xl"></i>
+                            
+                                <div class="flex voucher-info select-none">
+                                    <!-- Left - Voucher Icon -->
+                                    <div class="basis-1/4 flex flex-col justify-center items-center gap-2 bg-lightMidYellow p-4 overflow-hidden font-poppins">
+                                        <div class="aspect-square max-w-[100px] w-full flex flex-col justify-center items-center text-darkYellow bg-white rounded-full border-4 border-darkYellow m-2 p-4 overflow-hidden text-center">
+                                            <i class="fa-solid fa-ticket fa-2xl"></i>
+                                        </div>
+                                        <p class="text-sm font-semibold text-darkYellow text-center break-words leading-tight line-clamp-2"><%= voucher.getVoucher().getName() %></p>
                                     </div>
-                                    <p class="text-sm font-semibold text-darkYellow text-center break-words leading-tight line-clamp-2"><%= voucher.getVoucher().getName() %></p>
-                                </div>
-                
-                                <!-- Right - Voucher Details -->
-                                <div class="basis-3/4 flex p-4 justify-between font-dmSans">
-                                    <div class="w-[90%] flex flex-col justify-between">
-                                        <div class="flex flex-col">
-                                            <p class="text-base font-semibold text-black">
+                    
+                                    <!-- Right - Voucher Details -->
+                                    <div class="basis-3/4 flex p-4 justify-between font-dmSans">
+                                        <div class="w-[90%] flex flex-col justify-between">
+                                            <div class="flex flex-col">
+                                                <p class="text-base font-semibold text-black">
+                                                
+                                                <% if (voucher.getVoucher().getType().equals("Percent")) { %>
+                                                    <%= String.format("%.2f", voucher.getVoucher().getAmount()) %>% off
+                                                <% } else if (voucher.getVoucher().getType().equals("Fixed")) { %>
+                                                        RM <%= String.format("%.2f", voucher.getVoucher().getAmount()) %> off
+                                                <% } %>
+
+                                                Capped at RM 
+                                                <%= String.format("%.2f", voucher.getVoucher().getMaxCoverage()) %>
+                                                </p>
+
+                                                <p class="text-sm text-grey5">
+                                                    Min. spend RM <%= String.format("%.2f", voucher.getVoucher().getMinSpent()) %>
+                                                </p>
+
+                                                <p class="text-sm text-grey4 line-clamp-2">
+                                                    <%= voucher.getVoucher().getDescription() %>
+                                                </p>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <p class="text-sm text-green-500">
+                                                    -RM <%= String.format("%.2f", voucher.getDeduction()) %>
+                                                </P>
+                                                <p class="text-xs text-grey4 mt-2">
+                                                    Remaining: 
+                                                    <%= voucher.getUsageLeft() %>/<%= voucher.getVoucher().getUsagePerMonth() %>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="w-[10%] flex justify-center items-center voucher-check-icon">
                                             
-                                            <% if (voucher.getVoucher().getType().equals("Percent")) { %>
-                                                <%= String.format("%.2f", voucher.getVoucher().getAmount()) %>% off
-                                            <% } else if (voucher.getVoucher().getType().equals("Fixed")) { %>
-                                                    RM <%= String.format("%.2f", voucher.getVoucher().getAmount()) %> off
-                                            <% } %>
-
-                                            Capped at RM 
-                                            <%= String.format("%.2f", voucher.getVoucher().getMaxCoverage()) %>
-                                            </p>
-
-                                            <p class="text-sm text-grey5">
-                                                Min. spend RM <%= String.format("%.2f", voucher.getVoucher().getMinSpent()) %>
-                                            </p>
-
-                                            <p class="text-sm text-grey4 line-clamp-2">
-                                                <%= voucher.getVoucher().getDescription() %>
-                                            </p>
                                         </div>
-                                        <div class="flex flex-col">
-                                            <p class="text-sm text-green-500">
-                                                -RM <%= String.format("%.2f", voucher.getDeduction()) %>
-                                            </P>
-                                            <p class="text-xs text-grey4 mt-2">
-                                                Remaining: 
-                                                <%= voucher.getUsageLeft() %>/<%= voucher.getVoucher().getUsagePerMonth() %>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="w-[10%] flex justify-center items-center voucher-check-icon">
                                         
                                     </div>
-                                    
                                 </div>
                             </div>
+                            <% } %>
+                    
+                            <!-- Repeat more voucher blocks as needed... -->
                         </div>
-                        <% } %>
-                
-                        <!-- Repeat more voucher blocks as needed... -->
                     </div>
-                </div>
+                
+                <% } %>
                 
 
                 <!-- Payment Method -->
@@ -187,7 +191,7 @@
                                     <% } %>
                             <% } %>
 
-                            <button @click="showAddCardModal = true" class="w-full py-2 mt-2 text-sm font-medium text-darkYellow border border-darkYellow rounded-lg hover:bg-darkYellow hover:text-white transition">
+                            <button class="w-full py-2 mt-2 text-sm font-medium text-darkYellow border border-darkYellow rounded-lg hover:bg-darkYellow hover:text-white transition" onClick=redirectToAddCard()>
                                 + Add New Card
                             </button>
                         </div>
@@ -305,82 +309,6 @@
 
 
     </div>
-    <!-- Add New Card Modal -->
-    <div x-show="showAddCardModal" x-transition
-        class="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center px-4"
-        @click.self="showAddCardModal = false">
-
-        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg" @click.stop>
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-black">Add New Card</h2>
-            <button @click="showAddCardModal = false">
-                <i class="fa-solid fa-xmark text-xl text-grey4 hover:text-darkYellow transition"></i>
-            </button>
-        </div>
-
-        <!-- Form -->
-        <form class="space-y-4">
-            <!-- Card Number -->
-            <div class="flex flex-col">
-                <label for="cardNumber" class="text-sm font-medium text-black">Card Number</label>
-                <input type="text" id="cardNumber" name="cardNumber"
-                        class="border border-grey3 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-darkYellow" 
-                        placeholder="XXXX XXXX XXXX XXXX">
-            </div>
-
-            <!-- Bank Type -->
-            <div class="flex flex-col">
-                <label for="bankType" class="text-sm font-medium text-black">Bank Type</label>
-                <select id="bankType" name="bankType"
-                        class="border border-grey3 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-darkYellow">
-                    <option value="">-- Select Bank --</option>
-                    <option value="Maybank">Maybank</option>
-                    <option value="Public Bank">Public Bank</option>
-                    <option value="CIMB">CIMB</option>
-                    <option value="RHB">RHB</option>
-                    <option value="HSBC">HSBC</option>
-                </select>
-            </div>
-
-            <!-- Card Name -->
-            <div class="flex flex-col">
-                <label for="cardName" class="text-sm font-medium text-black">Card Name</label>
-                <input type="text" id="cardName" name="cardName"
-                        class="border border-grey3 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-darkYellow" 
-                        placeholder="Eg: John Doe - Travel">
-            </div>
-
-            <!-- Expiry Date -->
-            <div class="flex flex-col">
-                <label for="expiryDate" class="text-sm font-medium text-black">Expiry Date</label>
-                <input type="date" id="expiryDate" name="expiryDate"
-                        class="border border-grey3 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-darkYellow">
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex justify-end gap-2 pt-4">
-                <button type="button" @click="showAddCardModal = false"
-                        class="px-4 py-2 text-sm border border-grey3 rounded hover:bg-grey2 transition">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 text-sm bg-darkYellow text-white rounded hover:bg-yellow-600 transition">
-                    Save Card
-                </button>
-            </div>
-        </form>
-        </div>
-    </div>
-
-    <!-- Warning Modal -->
-    <div id="paymentWarningModal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-md w-[90%] max-w-md text-center">
-            <p class="text-lg font-semibold text-red-600 mb-4">Please select a payment method before proceeding.</p>
-            <button onclick="closePaymentWarningModal()" class="bg-darkYellow text-white px-4 py-2 rounded hover:bg-yellow-600 transition">
-            OK
-            </button>
-        </div>
-    </div>
 
 
     <!-- Proceed Payment Hidden Form -->
@@ -470,37 +398,34 @@
             });
         });
 
+        function redirectToAddCard() {
+            window.location.href = "<%= request.getContextPath() %>/User/account#payments";
+        }
+
         function proceedToPayment() {
             const methodInput = document.getElementById('methodId');
             const voucherInput = document.getElementById('voucherId');
             const paymentInfoInput = document.getElementById('paymentInfo');
             const shippingInfoInput = document.getElementById('shippingInfo');
 
-            // ----- Payment Method -----
             const selectedPaymentMethod = document.querySelector('[data-payment-method].selected');
             const selectedCard = document.querySelector('.card-option.selected');
             let methodId = 0;
 
             if (!selectedPaymentMethod && !selectedCard) {
-                document.getElementById("paymentWarningModal").classList.remove("hidden");
-                document.getElementById("paymentWarningModal").classList.add("flex");
-                return; // ❌ Don't proceed
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Method Required',
+                    text: 'Please select a payment method before proceeding.',
+                    confirmButtonText: 'OK'
+                });
+                return;
             }
 
             let paymentInfo = {
-                creditDebit: {
-                    method: false,
-                    cardNumber: "",
-                    bankType: "",
-                    cardName: "",
-                    expiryDate: ""
-                },
-                bankTransfer: {
-                    method: false
-                },
-                cod: {
-                    method: false
-                }
+                creditDebit: { method: false, cardNumber: "", bankType: "", cardName: "", expiryDate: "" },
+                bankTransfer: { method: false },
+                cod: { method: false }
             };
 
             if (selectedPaymentMethod) {
@@ -518,14 +443,12 @@
                 paymentInfo.creditDebit.cardNumber = selectedCard.querySelector('.cardNumber')?.textContent.trim();
                 paymentInfo.creditDebit.cardName = selectedCard.querySelector('.cardName')?.textContent.trim();
                 paymentInfo.creditDebit.expiryDate = selectedCard.querySelector('.cardExp')?.textContent.replace("Exp:", "").trim();
-                paymentInfo.creditDebit.bankType = ""; // as requested, left empty
+                paymentInfo.creditDebit.bankType = "";
             }
 
-            // ----- Voucher -----
             const selectedVoucher = document.querySelector('.selectable-voucher.selected');
             const voucherId = selectedVoucher ? parseInt(selectedVoucher.dataset.voucherId) : 0;
 
-            // ----- Shipping Info -----
             const shippingInfo = {
                 label: "<%= shippingInfo.getLabel() %>",
                 receiverName: "<%= shippingInfo.getReceiverName() %>",
@@ -536,13 +459,82 @@
                 phoneNumber: "<%= shippingInfo.getPhoneNumber() %>"
             };
 
-            // ----- Assign and Submit -----
             methodInput.value = methodId;
             voucherInput.value = voucherId;
             paymentInfoInput.value = JSON.stringify(paymentInfo);
             shippingInfoInput.value = JSON.stringify(shippingInfo);
 
-            document.getElementById("proceedPaymentForm").submit();
+            const formData = new FormData(document.getElementById("proceedPaymentForm"));
+
+            // ✅ Show Loading Swal
+            Swal.fire({
+                title: 'Processing Payment',
+                text: 'Please wait while we process your order...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: "<%= request.getContextPath() %>/Order/processPayment",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    Swal.close(); // ✅ Close loading when success
+
+                    const parsedResponse = JSON.parse(response.data);
+                    if (parsedResponse.process_success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Payment Successful',
+                            text: 'Your payment has been processed successfully.',
+                            confirmButtonText: 'Proceed to Order Details',
+                            cancelButtonText: 'Back to Home',
+                            showCancelButton: true,
+                            showConfirmButton: true,
+                        })
+                        .then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "<%= request.getContextPath() %>/User/account#transactions/details?id=" + parsedResponse.processDone_orderId;
+                            } else {
+                                window.location.href = "<%= request.getContextPath() %>/Landing/";
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Failed',
+                            text: parsedResponse.error_msg,
+                            confirmButtonText: 'OK'
+                        })
+                        .then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "<%= request.getContextPath() %>/Landing/";
+                            }
+                        });
+                    }
+                },
+                error: function (error) {
+                    Swal.close(); // ✅ Close loading on error too
+
+                    console.error("Error submitting form:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Submission Failed',
+                        text: 'There was an error processing your payment. Please try again.',
+                        confirmButtonText: 'OK'
+                    })
+                    .then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "<%= request.getContextPath() %>/Landing/";
+                        }
+                    });
+                }
+            });
         }
 
         function closePaymentWarningModal() {
