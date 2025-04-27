@@ -429,7 +429,7 @@
             const form = icon.nextElementSibling;
             form.classList.toggle('hidden');
             if (!form.classList.contains('hidden')) {
-            form.querySelector('textarea').focus();
+                form.querySelector('textarea').focus();
             }
         }
         
