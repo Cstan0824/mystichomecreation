@@ -8,9 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import DAO.AccountDA;
+import DAO.AccountDAO;
 import DAO.CartDAO;
-import DAO.UserDA;
+import DAO.UserDAO;
 import DAO.productDAO;
 import DTO.VoucherInfoDTO;
 import Models.Accounts.PaymentCard;
@@ -34,9 +34,9 @@ import mvc.Result;
 public class CartController extends ControllerBase{
 
     private CartDAO cartDAO = new CartDAO();
-    private UserDA userDA = new UserDA();
+    private UserDAO userDA = new UserDAO();
     private productDAO productDAO = new productDAO();
-    private AccountDA accountDA = new AccountDA();
+    private AccountDAO accountDA = new AccountDAO();
 
     //@Authorization(accessUrls = "Cart/cart")
     @SyncCache(channel = "CartItem", message ="from cart/index")

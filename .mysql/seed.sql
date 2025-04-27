@@ -614,5 +614,4 @@ INSERT INTO Permission (role_id, permission_url, permission_description) VALUES 
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/getAllOrderTransactionByOrder', 'Get All Transactions for an Order (Postman)');
 INSERT INTO Permission (role_id, permission_url, permission_description) VALUES (3, 'Order/addOrderFeedback', 'Add Order Feedback');
 
-
-
+INSERT INTO Permission(role_id, permission_url, permission_description) VALUES(1, "Admin/Dashboard", "Management Portal");

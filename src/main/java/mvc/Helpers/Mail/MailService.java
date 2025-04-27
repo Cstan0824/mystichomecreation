@@ -28,6 +28,7 @@ public class MailService implements Mailable {
 
     private MimeMessage message;
     private MimeBodyPart mimeBodyPart;
+    private MimeBodyPart attachmentBodyPart;
     private Multipart multipart;
     private Session session;
 
@@ -108,7 +109,9 @@ public class MailService implements Mailable {
 
             // Create Mail Body
             this.mimeBodyPart.setContent(html, "text/html; charset=utf-8");
-
+            if (this.attachmentBodyPart != null) {
+                this.multipart.addBodyPart(this.attachmentBodyPart);
+            }
             this.multipart.addBodyPart(this.mimeBodyPart);
 
             this.message.setContent(this.multipart);
@@ -155,7 +158,10 @@ public class MailService implements Mailable {
 
     public MailService attach(File file) {
         try {
-            this.mimeBodyPart.attachFile(file);
+            if (this.attachmentBodyPart == null) {
+                this.attachmentBodyPart = new MimeBodyPart();
+            }
+            this.attachmentBodyPart.attachFile(file);
         } catch (MessagingException | IOException e) {
             System.out.println("MailSender Error: " + e.getMessage());
             return null;

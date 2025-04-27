@@ -5,6 +5,7 @@ import java.util.List;
 
 import Models.Users.Permission;
 import Models.Users.Role;
+import Models.Users.RoleType;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
@@ -13,11 +14,11 @@ import mvc.Cache.Redis;
 import mvc.Cache.Redis.CacheLevel;
 import mvc.DataAccess;
 
-public class UserDA {
+public class UserDAO {
     private EntityManager db = DataAccess.getEntityManager();
     private Redis cache = new Redis();
 
-    public UserDA() {
+    public UserDAO() {
     }
 
     public String getUserPasswordById(int id) {
@@ -49,6 +50,18 @@ public class UserDA {
         TypedQuery<User> query = db.createQuery("SELECT u FROM User u", User.class);
         try {
             users = cache.getOrCreateList("users", User.class, query);
+        } catch (Exception e) {
+            users = query.getResultList();
+        }
+        return users;
+    }
+
+    public List<User> getUsersByRole(RoleType role) {
+        List<User> users = null;
+        TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE u.role.description=:role", User.class)
+                .setParameter("role", role.get());
+        try {
+            users = cache.getOrCreateList("users-" + role.get(), User.class, query);
         } catch (Exception e) {
             users = query.getResultList();
         }
@@ -101,7 +114,14 @@ public class UserDA {
         db.merge(user);
         db.getTransaction().commit();
 
-        
+        return !db.getTransaction().getRollbackOnly();
+    }
+
+    public boolean deleteUser(int id) {
+        db.getTransaction().begin();
+        User user = getUserById(id);
+        db.remove(user);
+        db.getTransaction().commit();
 
         return !db.getTransaction().getRollbackOnly();
     }
@@ -222,6 +242,22 @@ public class UserDA {
                 .setParameter("id", id);
         try {
             role = cache.getOrCreate("role-" + id, Role.class, query, CacheLevel.LOW);
+        } catch (Exception e) {
+            List<Role> resultList = query.getResultList();
+            if (resultList.size() == 0) {
+                return null;
+            }
+            role = resultList.get(0);
+        }
+        return role;
+    }
+
+    public Role getRoleByName(String name) {
+        Role role = null;
+        TypedQuery<Role> query = db.createQuery("SELECT r FROM Role r WHERE r.description=:name", Role.class)
+                .setParameter("name", name);
+        try {
+            role = cache.getOrCreate("role-" + name, Role.class, query, CacheLevel.LOW);
         } catch (Exception e) {
             List<Role> resultList = query.getResultList();
             if (resultList.size() == 0) {

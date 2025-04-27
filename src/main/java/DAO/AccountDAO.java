@@ -20,9 +20,9 @@ import mvc.Helpers.Helpers;
 import mvc.Helpers.JsonConverter;
 import mvc.Helpers.Notify.Notification;
 
-public class AccountDA {
+public class AccountDAO  {
     private EntityManager db = DataAccess.getEntityManager();
-    private UserDA userDA = new UserDA();
+    private UserDAO userDA = new UserDAO();
     private Redis cache = new Redis();
 
     public List<ShippingInformation> getShippingInformation(int userId) {
