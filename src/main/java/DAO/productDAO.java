@@ -205,6 +205,23 @@ public class productDAO implements Serializable {
         }
     }
 
+
+    public boolean updateProductWithBoolean(product p) {
+        try {
+            db.getTransaction().begin();
+            db.merge(p);
+            db.getTransaction().commit();
+            System.out.println("🔄 DAO: product updated");
+            return true;
+
+        } catch (Exception e) {
+            db.getTransaction().rollback();
+            e.printStackTrace();
+            System.out.println("❌ DAO error on updateProduct: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean isProductNameExists(String name) {
         try {
             Long count = this.db.createQuery("SELECT COUNT(p) FROM product p WHERE p.title = :name", Long.class)

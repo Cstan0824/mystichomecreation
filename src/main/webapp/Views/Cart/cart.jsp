@@ -23,7 +23,6 @@
 <%@ include file="/Views/Shared/Header.jsp" %>
 
         <%  
-            SessionHelper session = new SessionHelper(request.getSession());
             List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
             List<ShippingInformation> shippingAddresses = (List<ShippingInformation>) request.getAttribute("shippingAddresses");  
         %>
@@ -329,7 +328,7 @@
 
 
     <script>
-        const userId = <%= session.getUserSession().getId() %>  ; // change to session userId
+        const userId = <%= sessionHelper.getUserSession().getId() %>  ; // change to session userId
 
         function refreshCartItems() {
             console.log("Refreshing cart items...");

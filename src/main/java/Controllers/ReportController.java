@@ -21,15 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import DAO.ReportDAO;
 import DAO.productDAO;
+import DTO.productDTO;
 import Models.Products.product;
 import Models.Products.productType;
 import jakarta.servlet.annotation.WebServlet;
-import Models.Products.productDTO;
+
+import java.util.HashMap;
+import java.io.File;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
+
 
 @WebServlet("/Report/*")
 public class ReportController extends ControllerBase {
@@ -39,7 +45,8 @@ public class ReportController extends ControllerBase {
     @ActionAttribute(urlPattern = "report")
     public Result report() throws Exception {
 
-        // #region total customer and staff
+
+        //  total customer and staff
         int totalCustomers = reportDAO.getTotalCustomers();
         int totalStuff = reportDAO.getTotalStaff();
 
@@ -49,16 +56,20 @@ public class ReportController extends ControllerBase {
         request.setAttribute("totalCustomers", totalCustomers);
         request.setAttribute("totalStaff", totalStuff);
 
-        // #region payment preferences
-        List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
 
+        //  payment preferences
+        List<Object[]> paymentPreferences = reportDAO.getPaymentPreferences();
         request.setAttribute("paymentPreferences", paymentPreferences);
 
-        // #region total revenue of all time
+
+
+        //total revenue of all time 
         double totalRevenue = reportDAO.getTotalRevenue();
         request.setAttribute("totalRevenue", totalRevenue);
 
-        // #region Order comparison
+
+
+        // Order comparison 
         int thisMonthCount = reportDAO.getOrdersThisMonth();
         int lastMonthCount = reportDAO.getOrdersLastMonth();
 
@@ -71,7 +82,8 @@ public class ReportController extends ControllerBase {
         request.setAttribute("orderChangeUp", pctChange >= 0);
         request.setAttribute("ordersThisMonth", thisMonthCount);
 
-        // #region product list
+        
+        // product list
         List<productType> productTypes = productDAO.getAllProductTypes();
         List<product> products = reportDAO.getAllProducts();
 
@@ -307,6 +319,7 @@ public class ReportController extends ControllerBase {
                     .append("</tr>");
         }
 
+
         Map<String, String> values = new HashMap<>();
         values.put("reportDate", java.time.LocalDate.now().toString());
         values.put("topProductsRows", topSellingRows.toString());
@@ -331,6 +344,7 @@ public class ReportController extends ControllerBase {
 
         // Retrieve the Monthly Revenue
 
+        
     }
 
 }

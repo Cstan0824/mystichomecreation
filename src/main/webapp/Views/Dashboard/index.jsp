@@ -7,7 +7,7 @@
 <%@ page import="java.lang.Long" %>
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productType" %>
-<%@ page import="Models.Products.productDTO" %>
+<%@ page import="DTO.productDTO" %>
 
 <!-- Main Content -->
 <div class="flex-1 p-6 overflow-y-auto bg-gray-100 font-sans p-6">

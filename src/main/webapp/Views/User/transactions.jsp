@@ -45,7 +45,7 @@
             <div class="text-sm">
               <p class="font-semibold text-gray-800"><%= order.getOrderRefNo() %></p>
               <p class="text-xs text-gray-500"><%= order.getOrderDate() %></p>
-              <a href="<%= request.getContextPath() %>/Order/orderInfo?orderId=<%= order.getId() %>" class="text-sm text-blue-600 hover:underline mt-1 inline-flex items-center gap-1">
+              <a href="<%= request.getContextPath() %>/User/account/transactions/details?id=<%= order.getId() %>" class="text-sm text-blue-600 hover:underline mt-1 inline-flex items-center gap-1">
                 <i class="fa-solid fa-receipt"></i> View Details
               </a>
             </div>

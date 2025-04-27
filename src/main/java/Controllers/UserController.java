@@ -1,16 +1,11 @@
 package Controllers;
 
-import mvc.Annotations.ActionAttribute;
-import mvc.Annotations.Authorization;
-import mvc.Annotations.HttpRequest;
-import mvc.Annotations.SyncCache;
-import mvc.Cache.Redis;
-import mvc.Helpers.Helpers;
-import mvc.Helpers.SessionHelper;
-import mvc.Helpers.otps.OTPHelper;
-import mvc.Http.HttpMethod;
 import java.time.LocalDate;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import DAO.AccountDAO;
 import DAO.OrderDAO;
@@ -25,11 +20,18 @@ import Models.Orders.OrderStatus;
 import Models.Users.Role;
 import Models.Users.RoleType;
 import Models.Users.User;
-
+import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.Authorization;
+import mvc.Annotations.HttpRequest;
+import mvc.Annotations.SyncCache;
+import mvc.Cache.Redis;
 import mvc.ControllerBase;
+import mvc.Helpers.Helpers;
 import mvc.Helpers.Notify.Notification;
 import mvc.Helpers.Notify.NotificationService;
-
+import mvc.Helpers.SessionHelper;
+import mvc.Helpers.otps.OTPHelper;
+import mvc.Http.HttpMethod;
 import mvc.Result;
 
 public class UserController extends ControllerBase {
@@ -176,8 +178,11 @@ public class UserController extends ControllerBase {
     @Authorization(accessUrls = "User/account/transactions/details")
     @ActionAttribute(urlPattern = "account/transactions/details")
     public Result orderDetails(String id) throws Exception {
-        // return page("details", "Order", id);
-        return page("index", "dev");
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.createObjectNode();
+        ((ObjectNode) jsonNode).put("orderId", id);
+
+        return page("orderInfo", "Order", jsonNode);
     }
 
     @Authorization(accessUrls = "User/account/password")
@@ -316,6 +321,7 @@ public class UserController extends ControllerBase {
 
             notificationService.setNotification(notification);
             notificationService.inform();
+            Redis.getSignalHub().publish("Notifications", "invalidate feedback cache for Notification");
             return success("Password changed successfully");
         }
         return error("Failed to change password");
@@ -368,6 +374,7 @@ public class UserController extends ControllerBase {
 
             notificationService.setNotification(notification);
             notificationService.inform();
+            Redis.getSignalHub().publish("Notifications", "invalidate feedback cache for Notification");
             return success("Password changed successfully");
         }
         return error("Failed to change password");
