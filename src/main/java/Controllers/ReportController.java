@@ -1,23 +1,36 @@
 package Controllers;
 
 import mvc.ControllerBase;
+import mvc.FileType;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.HttpRequest;
+import mvc.Helpers.Helpers;
+import mvc.Helpers.pdf.PdfService;
+import mvc.Helpers.pdf.PdfService.PdfOrientation;
+import mvc.Helpers.pdf.PdfType;
+import mvc.Http.HttpMethod;
 
+import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.Gson;
 
 import DAO.ReportDAO;
 import DAO.productDAO;
+import DTO.productDTO;
 import Models.Products.product;
 import Models.Products.productType;
 import jakarta.servlet.annotation.WebServlet;
-import Models.Products.productDTO;
-
+import java.io.File;
 
 
 
@@ -266,7 +279,125 @@ public class ReportController extends ControllerBase{
         return json(salesList);
     }
 
+    @ActionAttribute(urlPattern = "report/generateSalesReport")
+    @HttpRequest(HttpMethod.POST)
+    public Result generateSalesReport() throws Exception {
+        System.out.println("Generate Sales Report");
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonResponse = mapper.createObjectNode();
+
+        List<Object[]> topSellingProducts = reportDAO.getTopSellingProducts(5);
+
+        //debug 
+        System.out.println("🔍 Fetching top 5 selling products...");
+        System.out.println("✅ Retrieved " + topSellingProducts.size() + " top-selling products.");
+        for (Object[] row : topSellingProducts) {
+            System.out.printf(
+            "Product: %s, Category: %s, Price: RM%.2f, Total Sold: %d%n",
+            row[0], row[1], (double) row[2], ((Number) row[3]).longValue()
+            );
+        }
+        
+        
+
+        StringBuilder topSellingRows = new StringBuilder();
+        for (Object[] row : topSellingProducts) {
+            String productTitle = (String) row[0];
+            String categoryName = (String) row[1];
+            BigDecimal price = BigDecimal.valueOf((double) row[2]);
+            Long totalSold = ((Number) row[3]).longValue(); // safer for big qty
+        
+            topSellingRows.append("<tr>")
+                .append("<td>").append(productTitle).append("</td>")
+                .append("<td>").append(categoryName).append("</td>")
+                .append("<td>RM ").append(String.format("%.2f", price)).append("</td>")
+                .append("<td>").append(totalSold).append("</td>")
+                .append("</tr>");
+        }
+
+        //get the monthly Revenue 
+        List<Object[]> monthlyRevenue = reportDAO.getMonthlyRevenue(12);
+
+        System.out.println("🔍 Fetching monthly revenue for the last 12 months...");
+        System.out.println("✅ Retrieved " + monthlyRevenue.size() + " monthly revenue records.");
+        for (Object[] row : monthlyRevenue) {
+            int year = ((Number) row[0]).intValue();
+            int month = ((Number) row[1]).intValue();
+            double revenue = ((Number) row[2]).doubleValue();
+            System.out.printf("Year: %d, Month: %02d, Revenue: RM%.2f%n", year, month, revenue);
+        }
+
+        StringBuilder monthlyRevenueRows = new StringBuilder();
+        for (Object[] row : monthlyRevenue) {
+            int year = ((Number) row[0]).intValue();
+            int month = ((Number) row[1]).intValue();
+            double revenue = ((Number) row[2]).doubleValue();
+            java.time.Month m = java.time.Month.of(month);
+            String formattedMonth = m.toString().substring(0,1).toUpperCase() + m.toString().substring(1).toLowerCase();
+
+
+
+
+
+
+            monthlyRevenueRows.append("<tr>")
+                .append("<td>").append(year).append("</td>")
+                .append("<td>").append(formattedMonth).append("</td>")
+                .append("<td>RM ").append(String.format("%.2f", revenue)).append("</td>")
+                .append("</tr>");
+        }   
+
+       
+
+
+
+        
+
+
+
+        Map<String, String> values = new HashMap<>();
+        values.put("reportDate", java.time.LocalDate.now().toString());
+        values.put("topProductsRows", topSellingRows.toString());
+        values.put("monthlyRevenueRows", monthlyRevenueRows.toString());
+
+
+
+        PdfService service = new PdfService(PdfType.REPORT, values, PdfOrientation.LANDSCAPE);
+        File pdf = service.convert();
+
+        if (pdf != null) {
+            byte[] pdfFile = Files.readAllBytes(pdf.toPath());
+            FileType fileType = Helpers.getFileTypeFromBytes(pdfFile);
+            ((ObjectNode) jsonResponse).put("pdf_success", true);
+            ((ObjectNode) jsonResponse).put("pdf_path", pdf.getAbsolutePath());
+            return source(pdfFile, "Sales Report", fileType);
+            
+        } else {
+            System.out.println("Failed to generate PDF.");
+            jsonResponse.put("status", "error");
+            return json(jsonResponse);
+
+        }
+
+
+        // Retrieve the Monthly Revenue 
+
+
+
+
+
+
+  
+
+        
+    }
+
+   
+            
     
+
+
 
 
     

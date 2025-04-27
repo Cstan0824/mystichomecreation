@@ -3,6 +3,7 @@ package Controllers;
 import mvc.ControllerBase;
 import mvc.Result;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Http.HttpMethod;
 
@@ -17,8 +18,8 @@ import java.sql.Blob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DAO.productDAO;
+import DTO.productDTO;
 import Models.Products.product;
-import Models.Products.productDTO;
 import Models.Products.productFeedback;
 import Models.Products.productFeedbackKey;
 import Models.Products.productImage;
@@ -37,6 +38,7 @@ import jakarta.servlet.http.Part;
 public class productController extends ControllerBase {
     private productDAO productDAO = new productDAO(); // Assuming you have a DAO class for product
 
+    @Authorization(accessUrls = "product/productPage")
     @ActionAttribute(urlPattern = "productPage")
     public Result productPage() throws Exception {
         int id = Integer.parseInt(request.getParameter("id"));
@@ -102,22 +104,18 @@ public class productController extends ControllerBase {
     }
 
     // only return the products and the types
-
+    @Authorization(accessUrls = "product/productCatalog")
     public Result productCatalog() throws Exception {
 
         List<productType> types = productDAO.getAllProductTypes();
         request.setAttribute("productTypes", types);
         System.out.println("📦 Product Types: " + types.size());
+
         List<product> products = productDAO.getAllProducts();
         System.out.println("📦 Products: " + products.size());
         request.setAttribute("products", products);
-        // for (product p : products) {
-        //     if (p.getImage() != null) {
-        //         System.out.println("📩 Image       = " + p.getImage().getId());
-        //     } else {
-        //         System.out.println("No image available for product ID: " + p.getId());
-        //     }
-        // }
+        
+      
 
         for (product p : products) {
             System.out.println("🔍 Product ID: " + p.getId());
@@ -388,6 +386,7 @@ public class productController extends ControllerBase {
         return null;
     }
 
+    @Authorization(accessUrls = "feedback/reply")
     @ActionAttribute(urlPattern = "feedback/reply")
     @HttpRequest(HttpMethod.POST)
     public Result replyFeedback() throws Exception {
