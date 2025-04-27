@@ -80,6 +80,103 @@
     
 
 </div>
+<script>
+    $(function () {
+        // Find modal in current document instead of parent
+        const $voucherModal = $('#voucherModal');
 
+        // Hide modal if it's currently showing
+        if ($voucherModal.hasClass('flex')) {
+            $voucherModal.removeClass('flex').addClass('hidden');
+        }
+        
+        function clearVoucherForm() {
+            // Find form elements in current document
+            $('#voucherId').val('');
+            $('#voucherName').val('');
+            $('#voucherType').val('');
+            $('#voucherAmount').val('');
+            $('#minSpend').val('');
+            $('#maxDiscount').val('');
+            $('#usagePerMonth').val('');
+        }
+
+        $('#addVoucherTile').on('click', function () {
+            clearVoucherForm();
+            // Show modal in current document
+            $('#voucherModal').removeClass('hidden').addClass('flex');
+            $('#modalTitle').text('Add Voucher');
+            $('#voucherId').val('');
+        });
+
+        $(document).on('click', '.status-btn', function () {
+            const isActive = $(this).data('status') === 'active';
+            const voucherId = $(this).data('id');
+            
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Admin/Dashboard/voucher/status',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    voucherId: voucherId,
+                    status: !isActive
+                }),
+                success: function (response) {
+                    if (response.status == 200) {
+                        setTimeout(() => location.reload(), 300);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+                        alert("An error occurred while update the voucher's status.");
+                        return;
+                    }
+                    let response = xhr.responseJSON;
+                    alert(response ? response.message : "An error occurred while update the voucher's status.");
+                }
+            });
+        });
+        
+        // Update save button event handler
+        $(document).on('click', '#saveModal', function () {
+            const formData = {
+                voucherId: $('#voucherId').val(),
+                name: $('#voucherName').val(),
+                description: $('#voucherDescription').val(),
+                type: $('#voucherType').val(),
+                amount: $('#voucherAmount').val(),
+                minSpent: $('#minSpend').val(),
+                maxCoverage: $('#maxDiscount').val(),
+                usagePerMonth: $('#usagePerMonth').val(),
+            };
+
+            $.ajax({
+                url: '<%= request.getContextPath() %>/Admin/Dashboard/voucher/add',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                        voucher : formData
+                    }),
+                success: function (response) {
+                    if (response.status == 200) {
+                        setTimeout(() => location.reload(), 500);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    if (xhr.status === 200 && xhr.responseText.includes('<html')) {
+                        alert("An error occurred while saving the voucher.");
+                        return;
+                    }
+                    let response = xhr.responseJSON;
+                    alert(response ? response.message : "An error occurred while saving the voucher.");
+                }
+            });
+        });
+    });
+</script>
 <%@ include file="../Shared/AdminFooter.jsp" %>
 
