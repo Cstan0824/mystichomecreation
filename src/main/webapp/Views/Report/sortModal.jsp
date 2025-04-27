@@ -27,23 +27,26 @@
 
             <div class="grid grid-cols-2 gap-3">
 
-              <%
-                List<productType> categories = (List<productType>) request.getAttribute("productTypes");
-                if (categories == null) {
-                  categories = new java.util.ArrayList<>();
-                }
-              %>
+                <%
+                    List<productType> categories = (List<productType>) request.getAttribute("productTypes");
+                    if (categories == null) {
+                        categories = new java.util.ArrayList<>();
+                    }
+                %>
 
-              <!-- Category Checkboxes -->
-              <% for (productType ct : categories) { %>
-                <div class="flex items-center space-x-2">
-                  <input type="checkbox" name="category" value="<%= ct.getId() %>" id="cat-<%= ct.getId() %>" class="h-4 w-4 text-blue-600 border-gray-300 rounded"/>
-                  <label for="cat-<%= ct.getId() %>" class="text-sm text-gray-700">
-                    <%= ct.gettype() %>
-                  </label>
+                <!-- Category Checkboxes -->
+                <div class="relative flex items-start p-2 rounded-lg hover:bg-blue-50 transition-colors">
+                 <% for (productType ct : categories) { %>
+                    <div class="relative flex items-start p-2 rounded-lg hover:bg-blue-50 transition-colors">
+                    <input type="checkbox" name="category" value="<%= ct.getId() %>" id="cat-<%= ct.getId() %>" class="h-4 w-4 text-blue-600 border-gray-300 rounded"/>
+                    <label for="cat-<%= ct.getId() %>" class="ml-2 text-sm text-gray-700">
+                        <%= ct.gettype() %>
+                    </label>
+                    </div>
+                <% } %>
                 </div>
-              <% } %>
 
+               
             </div>
             
         </div>

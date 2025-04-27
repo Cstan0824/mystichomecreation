@@ -15,22 +15,19 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 
 import DAO.ReportDAO;
 import DAO.productDAO;
-import DTO.productDTO;
 import Models.Products.product;
 import Models.Products.productType;
 import jakarta.servlet.annotation.WebServlet;
-import java.io.File;
+import Models.Products.productDTO;
+
 
 
 
@@ -396,8 +393,6 @@ public class ReportController extends ControllerBase{
    
             
     
-
-
 
 
     
