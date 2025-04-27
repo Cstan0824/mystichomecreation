@@ -4,13 +4,12 @@ import java.sql.Blob;
 
 import javax.sql.rowset.serial.SerialBlob;
 
-import DAO.UserDA;
+import DAO.UserDAO;
 import DAO.productDAO;
 import Models.Products.productImage;
 import Models.Users.User;
 import Models.Users.UserImage;
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.annotation.WebServlet;
 import mvc.ControllerBase;
 import mvc.DataAccess;
 import mvc.FileType;
@@ -23,30 +22,12 @@ import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpMethod;
 import mvc.Http.HttpStatusCode;
 
-@WebServlet("/File/Content/*")
 public class FileController extends ControllerBase {
     private EntityManager db = DataAccess.getEntityManager();
-    private UserDA userDA = new UserDA();
+    private UserDAO userDA = new UserDAO();
     private productDAO productDAO = new productDAO();
 
     // #region Product
-    @ActionAttribute(urlPattern = "product/upload")
-    @HttpRequest(HttpMethod.POST)
-    public Result uploadProduct(byte[][] files) throws Exception {
-        // get file from request and save it to the server
-        // byte[] files1 = file[0];
-        // byte[] files2 = file[1];
-
-        return success();
-    }
-
-    @ActionAttribute(urlPattern = "product/download")
-    public Result downloadProduct(int id) throws Exception {
-        // get the file data from the server and return it to the client
-        byte[] file = null;
-        return file(file, "product-image-" + id, FileType.PNG);
-    }
-
     @ActionAttribute(urlPattern = "product/retrieve")
     public Result retrieveProduct(int id) throws Exception {
         productImage pi = productDAO.findImageById(id);
@@ -146,23 +127,4 @@ public class FileController extends ControllerBase {
         return source(file, "user-image-" + id, fileType);
     }
     // #endregion
-
-    // public Result getImage(int id) throws Exception {
-    // EntityManager em = DataAccess.getEntityManager();
-    // TestImage image = em.find(TestImage.class, id);
-    // // convert blob to byte[]
-    // byte[] imageBytes = Helpers.convertToByte(image.getImage());
-    // FileType contentType = Helpers.getFileTypeFromBytes(imageBytes);
-
-    // return source(imageBytes, "test-get-image-from-src", contentType);
-    // }
-
-    // public Result testDownload(int id) throws Exception {
-    // EntityManager em = DataAccess.getEntityManager();
-    // TestImage image = em.find(TestImage.class, id);
-    // // convert blob to byte[]
-    // byte[] imageBytes = Helpers.convertToByte(image.getImage());
-    // FileType contentType = Helpers.getFileTypeFromBytes(imageBytes);
-    // return file(imageBytes, "test-download-image-from-url", contentType);
-    // }
 }
