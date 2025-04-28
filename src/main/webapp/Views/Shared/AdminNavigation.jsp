@@ -25,14 +25,6 @@
     boolean isAuthenticated = sessionHelper.isAuthenticated();
     List<String> accessUrls = sessionHelper.getAccessUrls();
     
-    // Helper function to check if user has access to a specific URL
-    boolean hasAccess(String url) {
-      if (!isAuthenticated) return false;
-      for (String accessUrl : accessUrls) {
-        if (accessUrl.equals(url)) return true;
-      }
-      return false;
-    }
     %>
   
   <nav class="p-4 space-y-2">
