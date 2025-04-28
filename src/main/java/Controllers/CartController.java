@@ -1,4 +1,5 @@
 package Controllers;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,7 @@ import mvc.Helpers.SessionHelper;
 import mvc.Http.HttpMethod;
 import mvc.Result;
 
-
-public class CartController extends ControllerBase{
+public class CartController extends ControllerBase {
 
     private CartDAO cartDAO = new CartDAO();
     private UserDAO userDA = new UserDAO();
@@ -39,13 +39,13 @@ public class CartController extends ControllerBase{
 
     // Cart Index Page
     @Authorization(accessUrls = "Cart/cart")
-    @SyncCache(channel = "CartItem", message ="from cart/index")
+    @SyncCache(channel = "CartItem", message = "from cart/index")
     public Result cart() throws Exception {
         SessionHelper session = getSessionHelper();
         if (session.isAuthenticated() == false) {
             return page("login", "Landing");
         }
-        
+
         System.out.println("Cart Index Page");
         User user = userDA.getUserById(session.getUserSession().getId());
         System.out.println("Cart Index Page after user");
@@ -56,7 +56,9 @@ public class CartController extends ControllerBase{
         System.out.println("Cart Index Page after shippingAddresses");
         if (shippingAddresses != null) {
             for (ShippingInformation address : shippingAddresses) {
-                System.out.println("Address: " + address.getLabel() + ", " + address.getReceiverName() + ", " + address.getPhoneNumber() + ", " + address.getState() + ", " + address.getPostCode() + ", " + address.getAddressLine1() + ", " + address.getAddressLine2());
+                System.out.println("Address: " + address.getLabel() + ", " + address.getReceiverName() + ", "
+                        + address.getPhoneNumber() + ", " + address.getState() + ", " + address.getPostCode() + ", "
+                        + address.getAddressLine1() + ", " + address.getAddressLine2());
             }
         }
         List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
@@ -64,16 +66,16 @@ public class CartController extends ControllerBase{
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("shippingAddresses", shippingAddresses);
         request.setAttribute("bestSellers", bestSellers);
-        
 
         return page();
     }
 
     // Cart Checkout Page
     @Authorization(accessUrls = "Cart/checkout")
-    @SyncCache(channel = "CartItem", message ="from cart/cartCheckout")
+    @SyncCache(channel = "CartItem", message = "from cart/cartCheckout")
     @HttpRequest(HttpMethod.POST)
-    public Result checkout(String label, String receiverName, String phoneNumber, String state, String postCode, String addressLine1, String addressLine2, boolean isDefault) throws Exception {
+    public Result checkout(String label, String receiverName, String phoneNumber, String state, String postCode,
+            String addressLine1, String addressLine2, boolean isDefault) throws Exception {
         SessionHelper session = getSessionHelper();
         if (session.isAuthenticated() == false) {
             return page("login", "Landing");
@@ -84,7 +86,7 @@ public class CartController extends ControllerBase{
         if (user == null) {
             return json("User not found");
         }
-        
+
         ShippingInformation shippingAddress = new ShippingInformation();
         shippingAddress.setLabel(label);
         shippingAddress.setReceiverName(receiverName);
@@ -107,10 +109,9 @@ public class CartController extends ControllerBase{
             shippingFee = 0.0;
         }
 
-
         List<Voucher> vouchers = accountDA.getAvailableVouchers(user, subtotal);
         List<VoucherInfoDTO> voucherArray = new ArrayList<>();
-        
+
         if (vouchers != null && !vouchers.isEmpty()) {
             for (Voucher voucher : vouchers) {
                 double total = subtotal + shippingFee;
@@ -119,20 +120,20 @@ public class CartController extends ControllerBase{
                 voucherInfo.setDeduction(deduction);
                 voucherInfo.setTotalAfterDeduction(total);
 
-                //Calculate total after voucher deduction
-                if (voucher.getType().equals("percentage")){
+                // Calculate total after voucher deduction
+                if (voucher.getType().equals("percentage")) {
 
                     deduction = (subtotal * voucher.getAmount()) / 100;
-                    if (deduction > voucher.getMaxCoverage()){
+                    if (deduction > voucher.getMaxCoverage()) {
                         deduction = voucher.getMaxCoverage();
                     }
                     total = subtotal + shippingFee - deduction;
 
-                } else if (voucher.getType().equals("flat")){
+                } else if (voucher.getType().equals("flat")) {
 
                     deduction = voucher.getAmount();
                     total = subtotal + shippingFee - deduction;
-                    
+
                 }
 
                 voucherInfo.setDeduction(deduction);
@@ -143,8 +144,7 @@ public class CartController extends ControllerBase{
             }
         }
 
-        List<PaymentCard> paymentCards = accountDA.getPaymentCards(session.getUserSession().getId());
-
+        List<PaymentCard> paymentCards = accountDA.getPaymentCards(session.getId());
 
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("shippingAddress", shippingAddress);
@@ -154,15 +154,13 @@ public class CartController extends ControllerBase{
         request.setAttribute("totalItems", totalItems);
         request.setAttribute("paymentCards", paymentCards);
 
-
-        
         return page();
     }
 
     // Get Cart Items by User ID
     // used by cart.jsp, header.jsp
     @Authorization(accessUrls = "Cart/getCartItems")
-    @SyncCache(channel = "user", message ="from cart/getCartItems")
+    @SyncCache(channel = "user", message = "from cart/getCartItems")
     @HttpRequest(HttpMethod.POST)
     public Result getCartItems(int userId) throws Exception {
         System.out.println("Get Cart Items by User ID");
@@ -171,12 +169,12 @@ public class CartController extends ControllerBase{
 
         try {
             User user = userDA.getUserById(userId);
-            if (user != null){
-                
+            if (user != null) {
+
                 System.out.println("User: " + user.getUsername());
                 List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
                 System.out.println("Cart Items: " + cartItems);
-                
+
                 if (cartItems != null) {
                     ArrayNode cartItemArray = mapper.createArrayNode();
                     System.out.println("Cart Items: " + cartItems.size());
@@ -194,7 +192,6 @@ public class CartController extends ControllerBase{
                         cartItemArray.add(cartItemNode);
                     }
                     System.out.println("Cart Items 2: " + cartItems.size());
-                    
 
                     ((ObjectNode) jsonResponse).put("success", true);
                     ((ObjectNode) jsonResponse).put("cart_user", user.getUsername());
@@ -209,7 +206,7 @@ public class CartController extends ControllerBase{
                 ((ObjectNode) jsonResponse).put("success", false);
                 ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
             }
-        
+
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
 
@@ -224,9 +221,9 @@ public class CartController extends ControllerBase{
     // used by productPage.jsp
     @Authorization(accessUrls = "Cart/addToCartById")
     @ActionAttribute(urlPattern = "addToCartById")
-    @SyncCache(channel = "CartItem", message ="from cart/addToCartById")
+    @SyncCache(channel = "CartItem", message = "from cart/addToCartById")
     @HttpRequest(HttpMethod.POST)
-    public Result addToCart(int productId, int quantity, String selectedVariation) throws Exception{
+    public Result addToCart(int productId, int quantity, String selectedVariation) throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonResponse = mapper.createObjectNode();
@@ -251,7 +248,8 @@ public class CartController extends ControllerBase{
         }
         try {
             System.out.println("Using Selected Variation: " + selectedVariation);
-            CartItem cartItem = new CartItem(cart, product, quantity, selectedVariation, LocalDateTime.now().toString());
+            CartItem cartItem = new CartItem(cart, product, quantity, selectedVariation,
+                    LocalDateTime.now().toString());
             if (cartDAO.addCartItem(cartItem)) {
                 ((ObjectNode) jsonResponse).put("addToCart_success", true);
                 ((ObjectNode) jsonResponse).put("cart_user", user.getUsername());
@@ -275,12 +273,12 @@ public class CartController extends ControllerBase{
     // Increase or Decrease Cart Item Quantity
     // used by cart.jsp, header.jsp
     @Authorization(accessUrls = "Cart/updateQuantity")
-    @SyncCache(channel = "CartItem", message ="from cart/increaseCartItemQuantity")
+    @SyncCache(channel = "CartItem", message = "from cart/increaseCartItemQuantity")
     @HttpRequest(HttpMethod.POST)
     public Result updateQuantity(int cartId, int productId, String selectedVariation, int delta) throws Exception {
 
         System.out.println("Update Cart Item Quantity");
-        System.out.println("Cart ID: " + cartId);   
+        System.out.println("Cart ID: " + cartId);
         System.out.println("Product ID: " + productId);
         System.out.println("Selected Variation: " + selectedVariation);
         System.out.println("Delta: " + delta);
@@ -289,7 +287,7 @@ public class CartController extends ControllerBase{
         Cart cart = null;
         product product = null;
         CartItem cartItem = null;
-        try{
+        try {
             cart = cartDAO.getCartById(cartId);
             System.out.println("Cart #1: " + cart.getId());
         } catch (Exception e) {
@@ -297,7 +295,7 @@ public class CartController extends ControllerBase{
             ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
             return json(jsonResponse);
         }
-        try{
+        try {
             product = productDAO.searchProducts(productId);
             System.out.println("Product #2: " + product.getId());
         } catch (Exception e) {
@@ -305,7 +303,7 @@ public class CartController extends ControllerBase{
             ((ObjectNode) jsonResponse).put("error msg", "Product not found");
             return json(jsonResponse);
         }
-        
+
         try {
             if (selectedVariation == null || selectedVariation.isEmpty()) {
                 selectedVariation = "default"; // Provide a default value if necessary
@@ -322,7 +320,7 @@ public class CartController extends ControllerBase{
         try {
             System.out.println("here #4 updateCartItemQuantity");
             if (cartDAO.updateCartItemQuantity(cartItem, delta)) {
-                
+
                 ((ObjectNode) jsonResponse).put("update_success", true);
                 ((ObjectNode) jsonResponse).put("quantity", cartItem.getQuantity());
                 ((ObjectNode) jsonResponse).put("selected_variation", cartItem.getSelectedVariation());
@@ -344,7 +342,7 @@ public class CartController extends ControllerBase{
     // Remove Cart Item by Cart ID and Product ID
     // used by cart.jsp, header.jsp
     @Authorization(accessUrls = "Cart/removeCartItemById")
-    @SyncCache(channel = "CartItem", message ="from cart/removeCartItemById")
+    @SyncCache(channel = "CartItem", message = "from cart/removeCartItemById")
     @HttpRequest(HttpMethod.POST)
     public Result removeCartItemById(int cartId, int productId) throws Exception {
 
@@ -354,14 +352,14 @@ public class CartController extends ControllerBase{
         Cart cart = null;
         product product = null;
         CartItem cartItem = null;
-        try{
+        try {
             cart = cartDAO.getCartById(cartId);
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("remove_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Cart not found");
             return json(jsonResponse);
         }
-        try{
+        try {
             product = productDAO.searchProducts(productId);
         } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("remove_success", false);
@@ -370,7 +368,7 @@ public class CartController extends ControllerBase{
         }
         try {
             cartItem = cartDAO.getCartItemByCartAndProduct(cart, product);
-        }   catch (Exception e) {
+        } catch (Exception e) {
             ((ObjectNode) jsonResponse).put("remove_success", false);
             ((ObjectNode) jsonResponse).put("error msg", "Cart item not found");
             return json(jsonResponse);
