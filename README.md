@@ -10,8 +10,8 @@ This project is a full-stack application that uses Docker to manage the environm
 - 🔧 **GlassFish Manager** — [http://localhost:4848](Web Browser)
 - 🛢️ **PHPMyAdmin** — [http://localhost:8081](Web Browser)
 - 🧠 **Redis CLI** — `docker exec -it redis redis-cli` (via Terminal)
-
 ---
+
 
 ## ⚙️ Setup Instructions - Execute via terminal
 
@@ -62,11 +62,11 @@ docker-compose down
 
 ### 4. 🌐 Access Services
 
-| Service          | URL                               | Credentials               |
+| Service          | URL                               | Credentials (username / password)               |
 |------------------|-----------------------------------|----------------------------|
 | 🐬 PHPMyAdmin     | http://localhost:8081             | `root / root` or `user / user1234` |
 | 🐳 GlassFish Admin| http://localhost:4848             | `admin / admin`            |
-| 🧾 Main App       | http://localhost:8080             | Public access              |
+| 🧾 Main App       | http://localhost:8080             | Uses Mock Data: `<ANY_USERNAME> / sa `              |
 
 
 
@@ -230,3 +230,5 @@ docker-compose down
 
 ### 📎Additional Notes
 📌 All tasks are executed in PowerShell and configured to display output in a shared terminal panel with automatic clearing enabled.
+
+📌 For more information, kindly refer to `tancs-wm23@student.tarc.edu.my` 
