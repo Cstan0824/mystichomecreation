@@ -11,6 +11,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -25,6 +26,11 @@
     <nav class="space-x-4">
       <a href="<%= request.getContextPath() %>/Dashboard" class="text-gray-400 hover:text-blue-600">Home</a>
       <a href="<%= request.getContextPath() %>/Landing" class="text-gray-400 hover:text-blue-600">Back to Main Page</a>
+	  <form id="logoutForm" action="<%= request.getContextPath()%>/Landing/logout" method="post" enctype="multipart/form-data">
+		<li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="logout()">
+			<p class="font-semibold transition-all duration-[500] ease-in-out">Logout</p>
+		</li>
+	</form>
       <a href="<%= request.getContextPath() %>/logout" class="text-gray-400 hover:text-blue-600">Logout</a>
     </nav>
 </header>
@@ -96,7 +102,8 @@
 		</div>
 	</div>
 <script>
-    const $voucherModal = $('#voucherModal');
+$(function () {
+	const $voucherModal = $('#voucherModal');
     $('#closeVoucherModal, #cancelVoucherModal').on('click', function() {
         $voucherModal.addClass('hidden').removeClass('flex');
     });
@@ -109,6 +116,29 @@
         e.preventDefault();
         alert('Voucher saved!');
         $voucherModal.addClass('hidden').removeClass('flex');
-    });            
+    });      
+function logout() {
+
+            
+            const logoutForm = document.getElementById('logoutForm');
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be signed out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6", // Blue button
+                cancelButtonColor: "#d33",     // Red button
+                confirmButtonText: "Yes, sign me out",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    logoutForm.submit();
+                }
+            });
+
+        }
+});
+    
+
 </script>
 <div class="flex flex-1 h-[calc(100vh-72px)]">
