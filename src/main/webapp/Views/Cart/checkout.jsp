@@ -158,37 +158,58 @@
 
                             <!-- Example Card List -->
                             <% if(paymentCards != null && !paymentCards.isEmpty()) {
-                                    for(PaymentCard payment : paymentCards) { 
-                                        LocalDate today = LocalDate.now();
-                                        String expiryStr = payment.getExpiryDate();
-                                        LocalDate expiryDate = null;
-                                        try {
-                                            expiryDate = LocalDate.parse(expiryStr); // assumes yyyy-MM-dd
-                                        } catch (DateTimeParseException e) {
-                                            
-                                        }
-
-                                        if (expiryDate != null && expiryDate.isAfter(today)) { %>
+                                for(PaymentCard payment : paymentCards) { 
+                                    // Parse MM/YYYY format expiry date
+                                    String expiryStr = payment.getExpiryDate(); // Format: "MM/YYYY"
+                                    boolean isCardValid = false;
+                                    String cardStatus = "Expired";
                                     
-
-                                        <div class="card-option flex items-center justify-between p-3 bg-white rounded-md shadow-sm hover:bg-grey2 transition cursor-pointer select-none" data-payment-method="1">
-                                            <div class="flex items-center gap-3">
-                                                <img src="<%= request.getContextPath() + "/Content" + payment.getBankType().getLogoPath() %>" alt="Bank Logo" class="w-12 h-12 object-contain rounded-full"/>
-                                                <div class="flex flex-col">
-                                                    <p class="text-sm font-medium text-black cardName"><%= payment.getName() %></p>
-                                                    <p class="text-xs text-grey4 cardNumber">
-                                                        **** **** **** <%= payment.getCardNumber().substring(12) %>
-                                                    </p>
+                                    try {
+                                        // Split the MM/YYYY format
+                                        String[] parts = expiryStr.split("/");
+                                        if (parts.length == 2) {
+                                            int month = Integer.parseInt(parts[0]);
+                                            int year = Integer.parseInt(parts[1]);
+                                            
+                                            // Create date for end of expiry month
+                                            LocalDate expiryDate = LocalDate.of(year, month, 1)
+                                                .plusMonths(1)     // First day of next month
+                                                .minusDays(1);     // Last day of expiry month
+                                            
+                                            // Compare with current date
+                                            LocalDate today = LocalDate.now();
+                                            isCardValid = today.isBefore(expiryDate) || today.isEqual(expiryDate);
+                                            cardStatus = isCardValid ? "Ongoing" : "Expired";
+                                        }
+                                    } catch (Exception e) {
+                                        System.out.println("Error parsing expiry date: " + expiryStr + " - " + e.getMessage());
+                                    }
+                                    
+                                    // Show all cards, but highlight status
+                                    %>
+                                    <div class="card-option flex items-center justify-between p-3 bg-white rounded-md shadow-sm hover:bg-grey2 transition cursor-pointer select-none <%= isCardValid ? "" : "opacity-70" %>" 
+                                         data-payment-method="1" 
+                                         <%= isCardValid ? "" : "title='This card has expired'" %>>
+                                        <div class="flex items-center gap-3">
+                                            <img src="<%= request.getContextPath() + "/Content" + payment.getBankType().getLogoPath() %>" alt="Bank Logo" class="w-12 h-12 object-contain rounded-full"/>
+                                            <div class="flex flex-col">
+                                                <p class="text-sm font-medium text-black cardName"><%= payment.getName() %></p>
+                                                <p class="text-xs text-grey4 cardNumber">
+                                                    **** **** **** <%= payment.getCardNumber().substring(12) %>
+                                                </p>
+                                                <div class="flex items-center">
                                                     <p class="text-xs text-grey4 cardExp">Exp: <%= payment.getExpiryDate() %></p>
+                                                    <span class="ml-2 text-xs px-1.5 py-0.5 rounded <%= isCardValid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700" %>">
+                                                        <%= cardStatus %>
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div class="card-check-icon check-icon-container">
-
-                                            </div>
                                         </div>
-
-                                        <% } %>
-                                    <% } %>
+                                        <div class="card-check-icon check-icon-container">
+                                            <!-- Check icon will be inserted here by JS when selected -->
+                                        </div>
+                                    </div>
+                                <% } %>
                             <% } %>
 
                             <button class="w-full py-2 mt-2 text-sm font-medium text-darkYellow border border-darkYellow rounded-lg hover:bg-darkYellow hover:text-white transition" onClick=redirectToAddCard()>

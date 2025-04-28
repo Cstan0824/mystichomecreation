@@ -66,35 +66,46 @@
 			    <% } %>
 			    </div>
 			        <%
-			            String expiryStr = payment.getExpiryDate(); // e.g. "2026-08-31"
-			            LocalDate today = LocalDate.now();
-			            LocalDate expiryDate = null;
+			            String expiryStr = payment.getExpiryDate(); // Now in format "MM/YYYY"
 			            boolean isOngoing = false;
 
 			            try {
-			                expiryDate = LocalDate.parse(expiryStr); // assumes yyyy-MM-dd
-			                isOngoing = expiryDate.isAfter(today);
-			            } catch (DateTimeParseException e) {
-			                // Optional: log or handle parse failure
+			                // Split the MM/YYYY format
+			                String[] parts = expiryStr.split("/");
+			                int month = Integer.parseInt(parts[0]);
+			                int year = Integer.parseInt(parts[1]);
+			                    
+			                // Create a date for the last day of the expiry month
+			                LocalDate expiryDate = LocalDate.of(year, month, 1)
+			                    .plusMonths(1)     // Go to first day of next month
+			                    .minusDays(1);     // Go back one day to get last day of expiry month
+			                    
+			                // Get current date
+			                LocalDate today = LocalDate.now();
+			                    
+			                // Card is ongoing if expiry date is in the future
+			                isOngoing = expiryDate.isAfter(today) || expiryDate.isEqual(today);
+			            } catch (Exception e) {
+			                // Handle parsing errors or invalid date format
+			                System.out.println("Error parsing expiry date: " + expiryStr);
 			            }
 			        %>
 			        <div>
 			            <p class="text-gray-400 text-xs uppercase">
 			                <%= isOngoing ? "Ongoing" : "Expired" %>
 			            </p>
-			            
 			        </div>
 
 			        <div class="flex justify-between items-center">
-			        <p class="text-gray-700 text-sm"><%= StringEscapeUtils.escapeHtml4(expiryStr) %></p>
-			        <div class="space-x-3 text-xs">
-			            <button
-			                onclick="editPaymentCard(<%= payment.getId() %>, '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getName())) %>', '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getCardNumber())) %>', '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getExpiryDate())) %>', <%= payment.getBankTypeId() %>)"
-			                class="text-blue-500 hover:underline">Edit</button>
-			            <button onclick="deletePaymentCard(<%= payment.getId() %>)"
-			                class="text-red-500 hover:underline">Delete</button>
+			            <p class="text-gray-700 text-sm">Expires: <%= StringEscapeUtils.escapeHtml4(expiryStr) %></p>
+			            <div class="space-x-3 text-xs">
+			                <button
+			                    onclick="editPaymentCard(<%= payment.getId() %>, '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getName())) %>', '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getCardNumber())) %>', '<%= StringEscapeUtils.escapeHtml4(StringEscapeUtils.escapeEcmaScript(payment.getExpiryDate())) %>', <%= payment.getBankTypeId() %>)"
+			                    class="text-blue-500 hover:underline">Edit</button>
+			                <button onclick="deletePaymentCard(<%= payment.getId() %>)"
+			                    class="text-red-500 hover:underline">Delete</button>
+			            </div>
 			        </div>
-			    </div>
 			</div>
 		<%
 			}
