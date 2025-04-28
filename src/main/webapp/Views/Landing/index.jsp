@@ -352,10 +352,10 @@
         <!-- Title -->
         <div class="flex flex-col md:flex-row justify-between items-center gap-6">
             <h1 class="text-4xl font-bold font-poppins">A little about us</h1>
-            <div
+            <a href="#contact-us"><div
                 class="p-4 text-xl font-poppins font-semibold border hover:bg-lightMidYellow hover:text-white text-center rounded-full cursor-pointer duration-300 transition-colors ease-in-out">
                 LEARN MORE
-            </div>
+            </div></a>
         </div>
         <div class="flex flex-col gap-2">
             <div class="flex flex-col md:flex-row items-start md:items-center bg-grey2 border p-6 rounded-lg gap-6 md:gap-20">

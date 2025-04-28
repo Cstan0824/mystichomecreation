@@ -15,6 +15,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<style>
 		.sidebar-link {
 			display: block;
@@ -347,8 +348,15 @@
 				// On form submit
 				$('#cardForm').on('submit', function(e) {
 					e.preventDefault();
-					alert('💳 Card added!');
-					$cardModal.addClass('hidden').removeClass('flex');
+					Swal.fire({
+						title: "Success!",
+						text: "Card has been saved.",
+						icon: "success",
+						confirmButtonText: "OK"
+					}).then(() => {
+						// Optionally, you can reload the page or perform other actions here
+						$cardModal.addClass('hidden').removeClass('flex');
+					});
 				});
 			});
 			const $voucherModal = $('#voucherModal');
@@ -362,8 +370,15 @@
 			});
 			$('#voucherForm').on('submit', function(e) {
 				e.preventDefault();
-				alert('Voucher saved!');
-				$voucherModal.addClass('hidden').removeClass('flex');
+				Swal.fire({
+					title: "Success!",
+					text: "Voucher has been saved.",
+					icon: "success",
+					confirmButtonText: "OK"
+				}).then(() => {
+					$voucherModal.addClass('hidden').removeClass('flex');
+				});
+				
 			});
 			$('#bankDropdownBtn').on('click', function(e) {
 				e.stopPropagation();

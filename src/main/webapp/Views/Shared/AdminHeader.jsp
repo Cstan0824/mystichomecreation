@@ -128,7 +128,12 @@ $(function () {
     });
     $('#voucherForm').on('submit', function(e) {
         e.preventDefault();
-        alert('Voucher saved!');
+        Swal.fire({
+			title: "Success!",
+			text: "Voucher has been saved.",
+			icon: "success",
+			confirmButtonText: "OK"
+		});
         $voucherModal.addClass('hidden').removeClass('flex');
     });      
 	

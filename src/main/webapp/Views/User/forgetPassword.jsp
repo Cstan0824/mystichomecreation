@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Password Reset | Mystichome Creations</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Hide steps by default */
         .step {
@@ -231,12 +232,20 @@
                                 startResendCooldown();
                             }, 5000);
                         } else {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON;
-                        alert(response.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || "An error occurred while verifying your email.",
+                        });
                     }
                 });
             });
@@ -245,7 +254,11 @@
                 e.preventDefault();
                 var otp = $("#otp").val();
                 if (otp.trim() === "") {
-                    alert("Please enter the OTP.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: "Please enter the OTP.",
+                    });
                     return;
                 }
                 $.ajax({
@@ -261,13 +274,21 @@
                             // Move to step 3 using our central function
                             showStep(3);
                         } else {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON;
-                        alert(response.message);                    
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || "An error occurred while verifying the OTP.",               
                         }
+                    });
                 });
             });
             // Resend OTP button handler (Step 2) with AJAX.
@@ -283,7 +304,11 @@
                     contentType: "application/json",
                     success: function(response) {
                         if (response.status == 200) {
-                            alert("OTP resent successfully!");
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: "OTP has been resent to your email.",
+                            });
                             // Reset the cooldown timer to 10 minutes (600 seconds)
                             resendCooldown = 600;
                             // Clear any existing timer to prevent multiple timers running
@@ -293,12 +318,20 @@
                             // Start a fresh countdown
                             startResendCooldown();
                         } else {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON;
-                        alert(response.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || "An error occurred while resending the OTP.",
+                        });
                     }
                 });
             });
@@ -312,13 +345,21 @@
                 
                 // Validate passwords
                 if (newPassword.trim() === "") {
-                    alert("Please enter a new password.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: "Please enter a new password.",
+                    });
                     return;
                 }
                 
                 // Check if passwords match
                 if (newPassword !== confirmPassword) {
-                    alert("Passwords do not match. Please try again.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: "Passwords do not match.",
+                    });
                     return;
                 }
                 
@@ -335,12 +376,20 @@
                             // Redirect to login page
                             window.location.href = "<%= request.getContextPath() %>/Landing/login";
                         } else {
-                            alert(response.message || "Failed to reset password. Please try again.");
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON || {};
-                        alert(response.message || "Failed to reset password. Please try again.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || "An error occurred while changing the password.",
+                        });
                     }
                 });
             });
