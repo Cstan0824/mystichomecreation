@@ -517,9 +517,9 @@
                             if (cartRow.length > 0) {
                                 cartRow.find('.qty').text(parsedJson.quantity);
                             }
-                            const event = new CustomEvent('cart:changed');
-                            window.dispatchEvent(event);
                         }
+                        const event = new CustomEvent('cart:changed');
+                        window.dispatchEvent(event);
                     } else {
                         Swal.fire({
                             icon: 'error',

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="m-0 p-2 min-h-screen grid grid-rows-[auto,1fr]">
 
@@ -101,7 +102,12 @@
         updateCountdownDisplay(timeLeft);
         if (timeLeft <= 0) {
           clearInterval(countdownInterval);
-          alert("OTP expired. Please request a new one.");
+          Swal.fire({
+            title: 'OTP Expired',
+            text: 'The OTP code has expired. Please request a new one.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          });
           currentStep = 1;
           showStep(currentStep);
         }
@@ -145,10 +151,20 @@
               currentStep++;
               showStep(currentStep);
             }
-            alert(response.message);
+            Swal.fire({
+              title: 'Success!',
+              text: response.message,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
           },
           error: function () {
-            alert('Incorrect current password.');
+            Swal.fire({
+              title: 'Error!',
+              text: 'Invalid password. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
           }
         });
 
@@ -164,10 +180,20 @@
               currentStep++;
               showStep(currentStep);
             }
-            alert(response.message);
+            Swal.fire({
+              title: 'Success!',
+              text: response.message,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            });
           },
           error: function () {
-            alert('Invalid OTP code.');
+            Swal.fire({
+              title: 'Error!',
+              text: 'Invalid OTP code. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
           }
         });
 
@@ -198,13 +224,28 @@
               $('#new-password').val('');
               $('#confirm-password').val('');
 
-              alert('Password changed successfully!');
+              Swal.fire({
+                title: 'Success!',
+                text: "Password changed successfully.",
+                icon: 'success',
+                confirmButtonText: 'OK'
+              });
             } else {
-              alert(response.message);
+              Swal.fire({
+                title: 'Error!',
+                text: response.message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
             }
           },
           error: function () {
-            alert('Failed to change password.');
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to change password. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
           }
         });
       }
@@ -222,15 +263,30 @@
 			contentType: 'application/json',
 			success: function (response) {
 				if (response.status == 200) {
-					alert('OTP resent successfully!');
-          			clearInterval(countdownInterval);
+					Swal.fire({
+            title: 'Success!',
+            text: response.message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+          });
+          clearInterval(countdownInterval);
 					startOtpTimer(600); // Restart the timer
 				} else {
-					alert(response.message);
+					Swal.fire({
+            title: 'Error!',
+            text: response.message,
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
 				}
 			},
 			error: function () {
-				alert('Failed to resend OTP.');
+				Swal.fire({
+          title: 'Error!',
+          text: 'Failed to resend OTP. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
 			}
 		});
 	});

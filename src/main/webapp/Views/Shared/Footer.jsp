@@ -44,20 +44,14 @@
             <div>
                 <h5 class="font-bold text-lg mb-4">MYC Social Account</h5>
                 <div class="flex space-x-4 justify-center sm:justify-start">
-                    <a href="#" class="hover:opacity-75 transition-all duration-200">
-                        <img src="<%= request.getContextPath() %>/Content/assets/image/facebook-icon.webp" 
-                             alt="Facebook" 
-                             class="w-8 h-8 object-contain rounded hover:shadow-md hover:scale-110">
+                    <a href="https://www.facebook.com/tan.choonshen.9" class="hover:opacity-75 transition-all duration-200">
+                        <i class="fa-brands fa-facebook fa-lg"></i>
                     </a>
-                    <a href="#" class="hover:opacity-75 transition-all duration-200">
-                        <img src="<%= request.getContextPath() %>/Content/assets/image/instagram-icon.avif" 
-                             alt="Instagram" 
-                             class="w-8 h-8 object-contain rounded hover:shadow-md hover:scale-110">
+                    <a href="https://www.instagram.com/jeremycjc/" class="hover:opacity-75 transition-all duration-200">
+                        <i class="fa-brands fa-instagram fa-lg"></i>
                     </a>
-                    <a href="#" class="hover:opacity-75 transition-all duration-200">
-                        <img src="<%= request.getContextPath() %>/Content/assets/image/youtube-icon.webp" 
-                             alt="YouTube" 
-                             class="w-8 h-8 object-contain rounded hover:shadow-md hover:scale-110">
+                    <a href="https://www.youtube.com/@zwahoc" class="hover:opacity-75 transition-all duration-200">
+                        <i class="fa-brands fa-youtube fa-lg"></i>
                     </a>
                 </div>
             </div>

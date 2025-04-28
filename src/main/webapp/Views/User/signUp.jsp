@@ -182,11 +182,19 @@
                 // Basic validation
                 if (username.trim() === "" || email.trim() === "" || birthdate.trim() === "" ||
                     password.trim() === "" || confirmPassword.trim() === "") {
-                    alert("Please fill in all fields.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Please fill in all the fields.",
+                    });
                     return;
                 }
                 if (password !== confirmPassword) {
-                    alert("Passwords do not match.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Passwords do not match. Please try again.",
+                    });
                     return;
                 }
                 // Use $.ajax to send only username and email to trigger OTP sending.
@@ -201,7 +209,11 @@
                     contentType: "application/json",
                     success: function(response) {
                         if (response.status == 200) {
-                            alert("An OTP has been sent to: " + email);
+                            Swal.fire({
+                                icon: "success",
+                                title: "OTP Sent",
+                                text: "An OTP has been sent to "+ email +".",
+                            });
                             // Store all details from Step 1 into hidden fields for Step 2.
                             $("#signupUsername").val(username);
                             $("#signupEmail").val(email);
@@ -211,12 +223,20 @@
                             // Move to step 2
                             showStep(2);
                         } else {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON;
-                        alert(response.message);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                        });
                     }
                 });
             });
@@ -234,7 +254,11 @@
                 };
                 // Validate OTP field is not empty.
                 if (signupData.entryOtp.trim() === "") {
-                    alert("Please enter the OTP.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Please enter the OTP.",
+                    });
                     return;
                 }
                 // Send the full signup details including OTP to the server.
@@ -282,7 +306,11 @@
                     contentType: "application/json",
                     success: function(response) {
                         if (response.status == 200) {
-                            alert("OTP resent successfully!");
+                            Swal.fire({
+                                icon: "success",
+                                title: "OTP Resent",
+                                text: "A new OTP has been sent to your email.",
+                            });
                             // Reset cooldown to full 10 minutes (600 seconds)
                             resendCooldown = 600;
                             // Hide the resend link and show the timer again
@@ -294,12 +322,20 @@
                             }
                             startResendCooldown();
                         } else {
-                            alert(response.message);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: response.message,
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         let response = xhr.responseJSON;
-                        alert(response.message);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                        });
                     }
                 });
             });

@@ -655,15 +655,18 @@
         }
 
         function renderCartRow(item) {
-            const variationStr = JSON.stringify(item.selected_variation).replace(/"/g, '&quot;');
-            const variation = JSON.parse(item.selected_variation || '{}');
+            const rawVariation = (typeof item.selected_variation === 'string'
+                ? item.selected_variation
+                : JSON.stringify(item.selected_variation || {}));
+            const variationStr = rawVariation.replace(/"/g, '&quot;');
+            const variation = JSON.parse(rawVariation || '{}');
             const variationText = Object.entries(variation).map(function(pair) {
                 return pair[0] + ": " + pair[1];
             }).join(', ');
 
             return (
                 '<div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row"' +
-                    ' data-price="' + item.product_price + '" data-product-id="' + item.product_id + '" data-cart-id="' + item.cart_id + '" data-variation="' + item.selected_variation + '">' +
+                    ' data-price="' + item.product_price + '" data-product-id="' + item.product_id + '" data-cart-id="' + item.cart_id + '" data-variation="' + variationStr + '">' +
                     '<div class="col-span-5">' +
                         '<div class="flex gap-4">' +
                             '<img src="<%= request.getContextPath()%>/File/Content/product/retrieve?id=' + item.product_img_id + '" alt="Product" class="w-[100px] h-[100px] object-cover rounded-lg">' +
@@ -693,13 +696,19 @@
             );
         }
 
+
         function submitCheckout() {
             const selectedBlock = document.getElementById('selected-shipping-address');
             const defaultBlock = document.getElementById('default-shipping-address');
             const activeBlock = !selectedBlock.classList.contains('hidden') ? selectedBlock : defaultBlock;
 
             if (!activeBlock) {
-                alert("No address selected.");
+                Swal.fire({
+                    title: 'No Shipping Address Selected!',
+                    text: 'Please select a shipping address before proceeding.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                });
                 return;
             }
 

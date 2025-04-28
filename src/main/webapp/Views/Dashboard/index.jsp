@@ -8,6 +8,7 @@
 <%@ page import="Models.Products.product" %>
 <%@ page import="Models.Products.productType" %>
 <%@ page import="DTO.productDTO" %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- Main Content -->
 <div class="flex-1 p-6 overflow-y-auto bg-gray-100 font-sans p-6">
@@ -328,7 +329,11 @@
       })
       .catch(function(err) {
         console.error("🔥 Fetch error:", err);
-        alert("Failed to load report data. See console for details.");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to fetch products. Please try again.'
+        });
       })
       .finally(function() {
         closeFilterModal();

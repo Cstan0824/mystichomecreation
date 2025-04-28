@@ -8,6 +8,7 @@
 <%@ page import="DTO.VoucherInfoDTO" %>
 <%@ page import="mvc.Helpers.Helpers" %>
 <%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Main Content -->
 
 <div class="flex-1 p-6 overflow-y-auto">
@@ -125,16 +126,28 @@
                     if (response.status == 200) {
                         setTimeout(() => location.reload(), 300);
                     } else {
-                        alert(response.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message,
+                        });
                     }
                 },
                 error: function (xhr, status, error) {
                     if (xhr.status === 200 && xhr.responseText.includes('<html')) {
-                        alert("An error occurred while update the voucher's status.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: "An error occurred while update the voucher's status.",
+                        });
                         return;
                     }
                     let response = xhr.responseJSON;
-                    alert(response ? response.message : "An error occurred while update the voucher's status.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response ? response.message : "An error occurred while update the voucher's status.",
+                    });
                 }
             });
         });
@@ -163,16 +176,28 @@
                     if (response.status == 200) {
                         setTimeout(() => location.reload(), 500);
                     } else {
-                        alert(response.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message,
+                        });
                     }
                 },
                 error: function (xhr, status, error) {
                     if (xhr.status === 200 && xhr.responseText.includes('<html')) {
-                        alert("An error occurred while saving the voucher.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: "An error occurred while saving the voucher.",
+                        });
                         return;
                     }
                     let response = xhr.responseJSON;
-                    alert(response ? response.message : "An error occurred while saving the voucher.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response ? response.message : "An error occurred while saving the voucher.",
+                    });
                 }
             });
         });
