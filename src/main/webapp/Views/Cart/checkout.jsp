@@ -87,9 +87,9 @@
                                             <div class="flex flex-col">
                                                 <p class="text-sm md:text-base font-semibold text-black">
                                                 
-                                                <% if (voucher.getVoucher().getType().equals("Percent")) { %>
+                                                <% if (voucher.getVoucher().getType().equals("percentage")) { %>
                                                     <%= String.format("%.2f", voucher.getVoucher().getAmount()) %>% off
-                                                <% } else if (voucher.getVoucher().getType().equals("Fixed")) { %>
+                                                <% } else if (voucher.getVoucher().getType().equals("flat")) { %>
                                                         RM <%= String.format("%.2f", voucher.getVoucher().getAmount()) %> off
                                                 <% } %>
 

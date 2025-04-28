@@ -120,7 +120,7 @@ public class CartController extends ControllerBase{
                 voucherInfo.setTotalAfterDeduction(total);
 
                 //Calculate total after voucher deduction
-                if (voucher.getType().equals("Percent")){
+                if (voucher.getType().equals("percentage")){
 
                     deduction = (subtotal * voucher.getAmount()) / 100;
                     if (deduction > voucher.getMaxCoverage()){
@@ -128,7 +128,7 @@ public class CartController extends ControllerBase{
                     }
                     total = subtotal + shippingFee - deduction;
 
-                } else if (voucher.getType().equals("Fixed")){
+                } else if (voucher.getType().equals("flat")){
 
                     deduction = voucher.getAmount();
                     total = subtotal + shippingFee - deduction;
@@ -230,8 +230,9 @@ public class CartController extends ControllerBase{
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonResponse = mapper.createObjectNode();
+        SessionHelper session = getSessionHelper();
 
-        User user = userDA.getUserById(1); // Replace with session-based user retrieval
+        User user = userDA.getUserById(session.getUserSession().getId()); // Replace with session-based user retrieval
         product product = null;
         Cart cart = null;
         try {
