@@ -175,6 +175,10 @@ This will automatically:
 
 📝 Output logs will be shown in the **Docker Plugin Output** tab.  
 You can open it via `Window → Output` or by pressing `Ctrl + 4`.
+This message indicates Success Deployment: 
+```
+[#|2025-04-28T09:02:06.035339Z|INFO|GF7.0.23|jakarta.enterprise.system.tools.deployment.autodeploy|_ThreadID=82;_ThreadName=AutoDeployer;_LevelValue=800;_MessageID=NCLS-DEPLOYMENT-02035;| [AutoDeploy] Successfully autodeployed : /opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war.|#]
+```
 
 
 
@@ -216,6 +220,11 @@ Stops any existing containers, rebuilds the Docker image, and starts the full st
 docker-compose down
 docker build -t mystichome .
 docker-compose up
+```
+
+This message indicates Success Deployment: 
+```
+[#|2025-04-28T09:02:06.035339Z|INFO|GF7.0.23|jakarta.enterprise.system.tools.deployment.autodeploy|_ThreadID=82;_ThreadName=AutoDeployer;_LevelValue=800;_MessageID=NCLS-DEPLOYMENT-02035;| [AutoDeploy] Successfully autodeployed : /opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war.|#]
 ```
 
 ### 🛑 Java Stop Containers
