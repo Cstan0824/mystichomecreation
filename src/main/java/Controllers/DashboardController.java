@@ -27,6 +27,7 @@ import Models.Users.Role;
 import Models.Users.RoleType;
 import Models.Users.User;
 import mvc.Annotations.ActionAttribute;
+import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
 import mvc.Annotations.SyncCache;
 import mvc.ControllerBase;

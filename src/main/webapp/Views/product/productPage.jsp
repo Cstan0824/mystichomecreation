@@ -195,8 +195,8 @@
                                 ></i>
 
                                 <form
-                                    action="<%=request.getContextPath()%>/product/feedback/reply"
-                                    method="post"
+                                    id="feedbackReplyForm"
+                                    enctype="multipart/form-data"
                                     class="inline-reply-form hidden mt-2 space-y-2"
                                 >
                                     <input type="hidden" name="productId" value="<%= feedback.getProductId() %>"/>
@@ -213,7 +213,7 @@
                                     ></textarea>
 
                                     <button
-                                    type="submit"
+                                    onClick="submitFeedback()"
                                     class="bg-yellow-400 hover:bg-green-600 text-white px-4 py-1 rounded text-sm transition-colors"
                                     >
                                     Send
@@ -347,6 +347,63 @@
 
             return true;
         }
+
+        function submitFeedback() {
+            const form = document.getElementById("feedbackReplyForm");
+            if (!form) {
+                console.error("Feedback form not found!");
+                return;
+            }
+            const formData = new FormData(form);
+
+            $.ajax({
+                url: '<%=request.getContextPath()%>/product/feedback/reply',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json', // 🚨 Expect JSON response
+                success: function(response) {
+                    try {
+                        if (response && response.status === 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Reply Submitted!',
+                                text: 'Your reply was submitted successfully.',
+                                confirmButtonText: 'Close'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    location.reload(true);
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed to Submit Feedback',
+                                text: response.message || 'Reply failed. Please try again later.'
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Parsing error:', e);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: 'An unexpected error occurred. Please try again later.'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Connection Error',
+                        text: 'Could not send your reply. Please check your internet or try again later.'
+                    });
+                }
+            });
+        }
+
+        
 
         function changeQty(delta) {
             
