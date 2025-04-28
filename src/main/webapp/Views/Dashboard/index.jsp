@@ -181,16 +181,23 @@
     <div class="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-shadow duration-300">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-bold text-gray-900">Product List</h2>
-        <div class="relative">
-          <button onclick="openFilterModal()" class="p-2 rounded-full hover:text-yellow-300 focus:outline-none"> 
-            <i class="fa-solid fa-filter"></i>
+        <div class="flex items-center space-x-4">
+         <button onclick="generateSalesReport()" class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            <i class="fa-solid fa-download mr-2"></i>
+            <span>Download Report</span>
+          </button>
+
+          <!-- Filter Button -->
+          <button onclick="openFilterModal()" class="flex items-center bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300">
+            <i class="fa-solid fa-filter mr-2"></i>
+            <span>Filter</span>
           </button>
         </div>
       </div>
       <div class="overflow-x-auto">
         <!-- Fixed-header table -->
         <div class="max-h-80 overflow-y-auto border-b border-gray-200">
-          <table id="productTable" class="min-w-full divide-y divide-gray-200">
+           <table id="productTable" class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50 sticky top-0 z-10">
               <tr>
                 <th class="w-3/12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -257,6 +264,44 @@
     applyFilters();
     closeFilterModal();
   }
+
+   function generateSalesReport() {
+   $.ajax({
+        url: '<%= request.getContextPath() %>/Report/report/generateSalesReport',
+        type: 'POST',
+        contentType: 'application/json',
+        xhr: function() {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob'; // ✅ Correct way for binary download
+            return xhr;
+        },
+        success: function(blob) {
+            const blobUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = 'Sales_Report_' + new Date().toISOString().split('T')[0] + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sales Report Generated',
+                text: 'The sales report has been downloaded.'
+            });
+        },
+        error: function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to generate sales report.'
+            });
+        }
+    });
+}
 
   function applyFilters() {
     const form = document.getElementById("filterForm");
