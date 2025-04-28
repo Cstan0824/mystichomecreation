@@ -10,8 +10,8 @@ This project is a full-stack application that uses Docker to manage the environm
 - 🔧 **GlassFish Manager** — [http://localhost:4848](Web Browser)
 - 🛢️ **PHPMyAdmin** — [http://localhost:8081](Web Browser)
 - 🧠 **Redis CLI** — `docker exec -it redis redis-cli` (via Terminal)
-
 ---
+
 
 ## ⚙️ Setup Instructions - Execute via terminal
 
@@ -62,11 +62,11 @@ docker-compose down
 
 ### 4. 🌐 Access Services
 
-| Service          | URL                               | Credentials               |
+| Service          | URL                               | Credentials (username / password)               |
 |------------------|-----------------------------------|----------------------------|
 | 🐬 PHPMyAdmin     | http://localhost:8081             | `root / root` or `user / user1234` |
 | 🐳 GlassFish Admin| http://localhost:4848             | `admin / admin`            |
-| 🧾 Main App       | http://localhost:8080             | Public access              |
+| 🧾 Main App       | http://localhost:8080             | Uses Mock Data: `<ANY_USERNAME> / sa `              |
 
 
 
@@ -176,6 +176,11 @@ This will automatically:
 📝 Output logs will be shown in the **Docker Plugin Output** tab.  
 You can open it via `Window → Output` or by pressing `Ctrl + 4`.
 
+This message indicates Success Deployment: 
+```
+[#|2025-04-28T09:02:06.035339Z|INFO|GF7.0.23|jakarta.enterprise.system.tools.deployment.autodeploy|_ThreadID=82;_ThreadName=AutoDeployer;_LevelValue=800;_MessageID=NCLS-DEPLOYMENT-02035;| [AutoDeploy] Successfully autodeployed : /opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war.|#]
+```
+
 
 
 ### 🛑 Stopping Containers
@@ -218,6 +223,11 @@ docker build -t mystichome .
 docker-compose up
 ```
 
+This message indicates Success Deployment: 
+```
+[#|2025-04-28T09:02:06.035339Z|INFO|GF7.0.23|jakarta.enterprise.system.tools.deployment.autodeploy|_ThreadID=82;_ThreadName=AutoDeployer;_LevelValue=800;_MessageID=NCLS-DEPLOYMENT-02035;| [AutoDeploy] Successfully autodeployed : /opt/glassfish7/glassfish/domains/domain1/autodeploy/web.war.|#]
+```
+
 ### 🛑 Java Stop Containers
 
 Stops all running containers defined in `docker-compose.yml`.
@@ -230,3 +240,5 @@ docker-compose down
 
 ### 📎Additional Notes
 📌 All tasks are executed in PowerShell and configured to display output in a shared terminal panel with automatic clearing enabled.
+
+📌 For more information, kindly refer to `tancs-wm23@student.tarc.edu.my` 

@@ -553,6 +553,15 @@
             confirmButtonText: 'Yes, cancel it!'
         }).then((result) => {
             if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Cancelling Order',
+                    text: 'Please wait...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 const orderId = document.getElementById("updateOrderId").value;
                 $.ajax({
                     url: "<%= request.getContextPath() %>/Order/orders/cancelOrder",
@@ -560,6 +569,7 @@
                     data: JSON.stringify({ orderId: orderId }),
                     contentType: "application/json",
                     success: function (response) {
+                        Swal.close(); // ✅ Close loading Swal when success
                         const parsedResponse = JSON.parse(response.data);
                         if (!parsedResponse.cancelOrder_success) {
                             Swal.fire({
