@@ -74,38 +74,38 @@
 
         <div class="flex flex-col w-full bg-white p-10 px-24">
             <!-- Order Status Flow -->
-            <div class="flex items-center justify-between mb-10">
+            <div class="flex flex-col md:flex-row items-center justify-between mb-10 gap-4 md:gap-0">
                 <div class="flex flex-col gap-2 items-center text-center" id="pending_status">
-                    <div class="w-[76px] h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
+                    <div class="w-14 h-14 md:w-[76px] md:h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
                         <i class="fa-solid fa-receipt fa-lg"></i>
                     </div>
                     <p class="text-sm text-gray-500">Pending</p>
                 </div>
                 
                 <!-- Line -->
-                <div class="flex-1 h-1 bg-darkYellow mx-2"></div>
+                <div class="hidden md:flex flex-1 h-1 bg-darkYellow mx-2"></div>
             
                 <!-- Repeat for other steps -->
                 <div class="flex flex-col gap-2 items-center text-center" id="packing_status">
-                    <div class="w-[76px] h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
+                    <div class="w-14 h-14 md:w-[76px] md:h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
                         <i class="fa-solid fa-boxes-packing fa-lg"></i>
                     </div>
                     <p class="text-sm text-gray-500">Packing</p>
                 </div>
             
-                <div class="flex-1 h-1 bg-darkYellow mx-2"></div>
+                <div class="hidden md:flex flex-1 h-1 bg-darkYellow mx-2"></div>
             
                 <div class="flex flex-col gap-2 items-center text-center" id="shipping_status">
-                    <div class="w-[76px] h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
+                    <div class="w-14 h-14 md:w-[76px] md:h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
                         <i class="fa-solid fa-truck fa-lg"></i>
                     </div>
                     <p class="text-sm text-gray-500">Shipping</p>
                 </div>
             
-                <div class="flex-1 h-1 bg-darkYellow mx-2"></div>
+                <div class="hidden md:flex flex-1 h-1 bg-darkYellow mx-2"></div>
             
                 <div class="flex flex-col gap-2 items-center text-center" id="received_status">
-                    <div class="w-[76px] h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
+                    <div class="w-14 h-14 md:w-[76px] md:h-[76px] rounded-full border-4 border-darkYellow flex items-center justify-center text-xl text-darkYellow">
                         <i class="fa-solid fa-check fa-lg"></i>
                     </div>
                     <p class="text-sm text-gray-500">Received</p>
@@ -114,9 +114,9 @@
             
 
             <!-- Delivery & Logs -->
-            <div class="flex gap-8 items-start mb-10">
+            <div class="flex flex-col md:flex-row gap-4 md:gap-8 items-start mb-10">
                 <!-- Delivery Address -->
-                <div class="flex basis-1/3 flex-col w-full items-start justify-between">
+                <div class="flex flex-col w-full md:basis-1/3">
                     <p class="font-poppins font-semibold text-lg mb-3">Delivery Address</p>
                     <div class="flex flex-col font-dmSans text-md">
                         <p class="text-md font-medium" id="label"><%= Helpers.escapeString(shippingInfo.getLabel()) %></p>
@@ -129,7 +129,7 @@
                 </div>
 
                 <!-- Order Status Log -->
-                <div class="flex basis-2/3 flex-col w-full items-start justify-between">
+                <div class="flex flex-col md:basis-2/3 w-full items-start justify-between">
                     <p class="font-poppins font-semibold text-lg mb-4"><%= order.getOrderRefNo() %></p>
                     
                     <% if (order.getReceiveDate() != null && !order.getReceiveDate().isEmpty()) { 

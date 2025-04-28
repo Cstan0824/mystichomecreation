@@ -26,8 +26,31 @@
             <img src="<%= request.getContextPath()%>/Content/assets/image/MystichomeCreationLogo.jpg" onClick="redirectUrl('<%= request.getContextPath()%>/Landing')" class="w-[50px] h-[50px] object-cover rounded-full" alt="logo">
         </div>
 
+        <!--hamburger menu-->
+        <div class="basis-3/5 md:hidden flex justify-center items-center w-full">
+            <div class="md:hidden flex items-center cursor-pointer" id="nav-toggle">
+                <i class="fas fa-bars fa-2x"></i>
+            </div>
+        </div>
+
+        <!-- user, cart, and notification icons for mobile-->
+        <div class="basis-1/5 md:hidden flex justify-end items-center gap-2 sm:gap-4 w-full">
+            <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="cart-toggle">
+                <i class="fa-solid fa-cart-shopping fa-lg"></i>
+            </div>
+            
+            <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="notification-button" onClick="goToNotification()">
+                <i class="fa-solid fa-bell fa-lg"></i>
+            </div>
+            
+            <div class="w-fit h-5 py-4 px-2 flex justify-between items-center hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300 relative" id="user-toggle">
+                <i class="fa-solid fa-user fa-lg"></i>
+            </div>  
+        </div>
+
+
         <!--nav-->
-        <div class="basis-3/5">
+        <div class="basis-3/5 hidden md:block">
             <ul class="flex justify-center gap-2 text-xl">
                 <%
                     String currentUrl = request.getRequestURI();
@@ -86,7 +109,7 @@
         </div>
 
         <!--user and cart-->
-        <div class="basis-1/5">
+        <div class="basis-1/5 hidden md:block">
             <ul class="flex justify-center items-center gap-2">
                 <li>
                     <div class="relative inline-block">
@@ -106,7 +129,7 @@
                                     <p onClick="goToCart()" class="text-sm font-semibold text-darkYellow underline cursor-pointer">View All</p>
                                 </div>
 
-                                <div id="cart-items" class="flex flex-col justify-center items-center h-full"></div>
+                                <div id="cart-popup-items" class="flex flex-col justify-center items-center h-full"></div>
 
 
 
@@ -156,13 +179,130 @@
 
     </div>
 
+    <!-- Mobile Navigation Full Screen Modal -->
+    <div id="mobile-nav-modal" class="hidden fixed inset-0 bg-white z-[9999] flex flex-col p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold font-poppins">Menu</h2>
+            <button id="close-mobile-nav" class="text-6xl">&times;</button>
+        </div>
+        <ul class="flex flex-col gap-6 text-xl text-center">
+            <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                <a href="<%= request.getContextPath() %>/product/productCatalog" 
+                    class="<%= isProductPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                    Products
+                </a>
+            </li>
+            <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                <a href="<%= request.getContextPath() %>/Landing" 
+                    class="<%= isHomePage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                    Home
+                </a>
+            </li>
+            <% 
+            if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                
+                for(String accessUrl : sessionHelper.getAccessUrls()) {
+                    if(!accessUrl.equals("Order/orders")) {
+                        continue;
+                    }
+                    %> 
+                    <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                        <a href="<%= request.getContextPath() %>/Order/orders" 
+                        class="<%= isOrderPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                            Orders
+                        </a>
+                    </li>
+                    <% break;
+                }
+            } %>
+            <% 
+            if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                
+                for(String accessUrl : sessionHelper.getAccessUrls()) {
+                    if(!accessUrl.startsWith("Dashboard")) {
+                        continue;
+                    }
+                    %> 
+                    <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                        <a href="<%= request.getContextPath() %>/Dashboard" 
+                        class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                            Admin
+                        </a>
+                    </li>
+                    <% break;
+                }
+            } %>
+        </ul>
+    </div>
+
+
+    <!-- Mobile Cart Full Screen Modal -->
+    <div id="mobile-cart-modal" class="hidden fixed inset-0 bg-white z-[9999] flex flex-col p-6">
+        <div class="grid grid-cols-10 items-center mb-8">
+            <div class="col-span-9 grid grid-cols-7 items-center">
+                
+                <div class="col-span-5 flex items-center gap-4">
+                    <h1 class="pl-4 text-2xl font-semibold font-poppins col-span-3">Your Cart</h1>
+                    <div class="hover:text-darkYellow cursor-pointer transition-colors ease-in-out duration-300" id="mobile-cart-refresh">
+                        <i class="fa-solid fa-arrows-rotate fa-xl"></i>
+                    </div>
+                </div>
+                
+                <p onClick="goToCart()" class="col-span-2 text-2xl text-right font-semibold text-darkYellow underline cursor-pointer">View All</p>
+            </div>
+            <div class="col-span-1 flex justify-center items-center">
+                <button id="close-mobile-cart" class="text-6xl">&times;</button>
+            </div>
+        </div>
+
+        <div id="mobile-cart-items" class="flex flex-col justify-center items-center h-full">
+
+        </div>
+    </div>
+
+    <!-- Mobile User Full Screen Modal -->
+    <div id="mobile-user-modal" class="hidden fixed inset-0 bg-white z-[9999] flex flex-col p-6">
+        <div class="flex justify-between items-center mb-8">
+            <% if (sessionHelper.isAuthenticated()) { %>
+                <h2 class="text-2xl font-bold font-poppins">Hi, <%= sessionHelper.getUserSession().getUsername()%></h2>
+            <% } else { %>
+                <h2 class="text-2xl font-bold font-poppins">Welcome</h2>
+            <% } %>
+            <button id="close-mobile-user" class="text-6xl">&times;</button>
+        </div>
+        <ul class="flex flex-col gap-6 text-xl text-center">
+            <% if (sessionHelper.isAuthenticated()) { %>
+                <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/User/account')">
+                    <p class="font-semibold transition-all duration-[500] ease-in-out">Profile</p>
+                </li>
+                <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer " onClick="redirectUrl('<%= request.getContextPath() %>/User/account#transactions')">
+                    <p class="font-semibold transition-all duration-[500] ease-in-out">Purchases</p>
+                </li>
+                <form id="logoutForm" action="<%= request.getContextPath()%>/Landing/logout" method="post" enctype="multipart/form-data">
+                    <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="logout()">
+                        <p class="font-semibold transition-all duration-[500] ease-in-out">Logout</p>
+                    </li>
+                </form>
+            <% } else { %>
+                <li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="redirectUrl('<%= request.getContextPath() %>/Landing/login')">
+                    <p class="font-semibold transition-all duration-[500] ease-in-out">Login</p>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+
     <!-- Content -->
     <script>
+        let wasMobile = window.innerWidth < 768;
+
         function fetchCartItems() {
             const isAuthenticated = <%= sessionHelper.isAuthenticated() %>;
 
             if (!isAuthenticated) {
-                const cartContainer = document.getElementById('cart-items');
+                const isMobile = window.innerWidth < 768;
+                const cartContainer = isMobile 
+                    ? document.getElementById('mobile-cart-items')
+                    : document.getElementById('cart-popup-items');
                 // User not logged in, show a "please login" message inside cart popup
                 cartContainer.className = "flex flex-col justify-center items-center h-full w-full p-4 text-center gap-4";
                 cartContainer.innerHTML = `
@@ -182,7 +322,10 @@
                     userId: <%= sessionHelper.getUserSession().getId() %> // Replace with actual user ID with session data
                 }), 
                 success: function (response) {
-                    const cartContainer = document.getElementById('cart-items');
+                    const isMobile = window.innerWidth < 768;
+                    const cartContainer = isMobile 
+                        ? document.getElementById('mobile-cart-items')
+                        : document.getElementById('cart-popup-items');
                     let html = '';
 
                     // If response.data is a string, parse it
@@ -209,58 +352,52 @@
                             
                                 `
                                 
-                                <div id="cart-item" class="px-6 py-4 flex gap-2 prod-row">
-                                        <div class="w-full h-full max-w-[26px] max-h-[26px] lg:max-w-[30px] lg:max-h-[30px]">
-                                            <img src="<%= request.getContextPath()%>/File/Content/product/retrieve?id=` + item.product_img_id + `" alt="product-img" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] rounded-[6px] object-cover border border-grey2 box-border"/>
-                                        </div>
-                                        <div class="w-full flex flex-col gap-3">
-                                            <div class="w-full flex justify-between gap-3">
-                                                <div class="w-full flex flex-col gap-0.5">
-                                                    <h1 class="text-sm font-normal text-black" id="cart-product-name">`+ item.product_name +`</h1>
-                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-category">`+ item.product_category +`</p>
-                                                    <p class="text-xs font-normal text-grey4 italic" id="cart-product-variation">`+ variationText +`</p>
-                                                </div>
-                                                <div class="flex justify-between items-start hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`)"> 
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="flex justify-between items-center gap-2">
-            
-                                                <p class="font-semibold text-sm italic py-1" id="cart-item-price">RM `+ item.product_price.toFixed(2) +`</p>
-            
-                                                <div class="flex items-center h-[26px] bg-white">
-                                                    <!-- Decrease Button -->
-                                                    <button 
-                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, -1)"
-                                                        id="decrease-btn" type="button" 
-                                                        class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200 px-2">
-                                                        <span>-</span>
-                                                    </button>
-                                            
-                                                    <!-- Value Display -->
-                                                    <div id="quantity-value" 
-                                                        class="min-w-[33px] h-full flex items-center justify-center border-y-2 border-gray2 border-gray2 text-lg text-center px-2">
-                                                        <span class="quantity">`+ item.quantity +`</span>
-                                                    </div>
-                                            
-                                                    <!-- Increase Button -->
-                                                    <button 
-                                                        onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, +1)"
-                                                        id="increase-btn" type="button" 
-                                                        class="min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200 px-2">
-                                                        <span>+</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
+                                <div id="cart-item" class="flex gap-4 prod-row p-6">
+                                    <div class="w-[60px] h-[60px] md:w-[30px] md:h-[30px]">
+                                        <img src="<%= request.getContextPath()%>/File/Content/product/retrieve?id=` + item.product_img_id + `" 
+                                            alt="product-img" 
+                                            class="w-full h-full rounded-[6px] object-cover border border-grey2 box-border"/>
                                     </div>
-                                
-                                
-                                
-                                
-                                
+
+                                    <div class="flex flex-col gap-3 w-full">
+                                        <div class="flex justify-between gap-3">
+                                        <div class="flex flex-col gap-0.5 w-full">
+                                            <h1 class="text-lg md:text-sm font-normal text-black" id="cart-product-name">` + item.product_name + `</h1>
+                                            <p class="text-sm md:text-xs font-normal text-grey4 italic" id="cart-product-category">` + item.product_category + `</p>
+                                            <p class="text-sm md:text-xs font-normal text-grey4 italic" id="cart-product-variation">` + variationText + `</p>
+                                        </div>
+                                        <div class="hover:text-red2 cursor-pointer transition-colors ease-in-out duration-300" id="cart-item-delete" onClick="deleteCartItem(`+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`)">
+                                            <i class="fa-solid fa-trash text-2xl md:text-base"></i>
+                                        </div>
+                                        </div>
+
+                                        <div class="flex justify-between items-center gap-2">
+                                        <p class="text-xl md:text-sm font-semibold italic" id="cart-item-price">RM ` + item.product_price.toFixed(2) + `</p>
+
+                                        <div class="flex items-center h-[40px] md:h-[26px] bg-white">
+                                            <!-- Decrease Button -->
+                                            <button onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, -1)"
+                                                    id="decrease-btn" type="button"
+                                                    class="min-w-[40px] md:min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-l-full hover:bg-gray-200">
+                                            <span>-</span>
+                                            </button>
+
+                                            <!-- Value Display -->
+                                            <div id="quantity-value"
+                                                class="min-w-[40px] md:min-w-[33px] h-full flex items-center justify-center border-y-2 border-gray2 text-lg text-center">
+                                            <span class="quantity">` + item.quantity + `</span>
+                                            </div>
+
+                                            <!-- Increase Button -->
+                                            <button onClick="updateQty(this, `+ item.cart_id +`, `+ item.product_id +`, `+ variationStr +`, +1)"
+                                                    id="increase-btn" type="button"
+                                                    class="min-w-[40px] md:min-w-[26px] h-full flex items-center justify-center border-2 border-gray2 text-black text-lg rounded-r-full hover:bg-gray-200">
+                                            <span>+</span>
+                                            </button>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
                             `;
 
 
@@ -470,16 +607,106 @@
                 if (cartButton) {
                     cartButton.style.display = 'none'; // Hides the cart button
                 }
+                const mobileCartButton = document.getElementById('cart-toggle');
+                if (mobileCartButton) {
+                    mobileCartButton.style.display = 'none'; // Hides the cart button
+                }
             }
         }
 
+        function handleResponsiveModals() {
+            const isMobile = window.innerWidth < 768;
+
+            if (wasMobile && !isMobile) {
+                // 🔵 MOBILE -> DESKTOP transition
+
+                // Close mobile-cart-modal and trigger desktop cart-button
+                if (!$('#mobile-cart-modal').hasClass('hidden')) {
+                    $('#mobile-cart-modal').addClass('hidden');
+                    gsap.set('#mobile-cart-modal', {opacity: 0});
+                    $('#cart-button').trigger('click');
+                }
+
+                // Close mobile-user-modal and trigger desktop user-button
+                if (!$('#mobile-user-modal').hasClass('hidden')) {
+                    $('#mobile-user-modal').addClass('hidden');
+                    gsap.set('#mobile-user-modal', {opacity: 0});
+                    $('#user-button').trigger('click');
+                }
+
+                // Close mobile-nav-modal only
+                if (!$('#mobile-nav-modal').hasClass('hidden')) {
+                    $('#mobile-nav-modal').addClass('hidden');
+                    gsap.set('#mobile-nav-modal', {opacity: 0});
+                }
+            } 
+            else if (!wasMobile && isMobile) {
+                // 🔴 DESKTOP -> MOBILE transition
+
+                // Close desktop cart-popup if open
+                if (!$('.prod-row').length && !$('#cart-popup').hasClass('hidden')) {
+                    $('#cart-popup').addClass('hidden');
+                    gsap.set('#cart-popup', {opacity: 0});
+                    // Optional: open mobile cart modal if user was interacting
+
+                }
+
+                // Close desktop user-menu if open
+                if (!$('#user-menu').hasClass('hidden')) {
+                    $('#user-menu').addClass('hidden');
+                    gsap.set('#user-menu', {opacity: 0});
+                    // Optional: open mobile user modal if user was interacting
+                }
+            }
+
+            wasMobile = isMobile; // update last known state
+        }
+
+        $(window).on('resize', function () {
+            handleResponsiveModals();
+        });
 
         $(document).ready(function() {
             hideCartOnCheckout();
 
+            $('#nav-toggle').on('click', function() {
+                $('#mobile-nav-modal').removeClass('hidden');
+                gsap.fromTo('#mobile-nav-modal', {opacity: 0}, {opacity: 1, duration: 0.3});
+            });
+
+            $('#close-mobile-nav').on('click', function() {
+                gsap.to('#mobile-nav-modal', {opacity: 0, duration: 0.3, onComplete: function() {
+                    $('#mobile-nav-modal').addClass('hidden');
+                }});
+            });
+
+            $('#user-toggle').on('click', function() {
+                $('#mobile-user-modal').removeClass('hidden');
+                gsap.fromTo('#mobile-user-modal', {opacity: 0}, {opacity: 1, duration: 0.3});
+            });
+
+            $('#close-mobile-user').on('click', function() {
+                gsap.to('#mobile-user-modal', {opacity: 0, duration: 0.3, onComplete: function() {
+                    $('#mobile-user-modal').addClass('hidden');
+                }});
+            });
+
+            $('#cart-toggle').on('click', function() {
+                $('#mobile-cart-modal').removeClass('hidden');
+                gsap.fromTo('#mobile-cart-modal', {opacity: 0}, {opacity: 1, duration: 0.3});
+                fetchCartItems(); // Fetch cart items when the modal is opened
+            });
+
+            $('#close-mobile-cart').on('click', function() {
+                gsap.to('#mobile-cart-modal', {opacity: 0, duration: 0.3, onComplete: function() {
+                    $('#mobile-cart-modal').addClass('hidden');
+                }});
+            });
+
             const $cartButton = $('#cart-button');
             const $cartPopup = $('#cart-popup');
             const $cartRefresh = $('#cart-refresh');
+            const $mobileCartRefresh = $('#mobile-cart-refresh');
 
             let isCartPopupVisible = false;
 
@@ -532,6 +759,11 @@
             });
 
             $cartRefresh.on('click', function (e) {
+                e.stopPropagation(); // Prevent the event from bubbling up to the document
+                fetchCartItems();
+            });
+
+            $mobileCartRefresh.on('click', function (e) {
                 e.stopPropagation(); // Prevent the event from bubbling up to the document
                 fetchCartItems();
             });
@@ -614,7 +846,7 @@
                     });
                 }
             });
-    });
+        });
     </script>
 </body>
 </html>

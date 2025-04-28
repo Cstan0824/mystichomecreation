@@ -40,19 +40,19 @@
 
     <div class="content-wrapper">
 
-        <h1 class="font-poppins font-bold text-3xl my-8">Checkout</h1>
+        <h1 class="font-poppins font-bold text-5xl text-center md:text-left md:text-3xl my-8">Checkout</h1>
 
-        <div class="flex gap-8 items-start">
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
 
 
             <!-- Select Voucher & Payment Method -->
-            <div class="basis-2/3 flex flex-col gap-6">
+            <div class="w-full lg:basis-2/3 flex flex-col gap-6">
 
                 <!-- Select Voucher -->
                 <% if (voucherInfoList != null && !voucherInfoList.isEmpty()) { %>
                     
                     <div class="flex flex-col gap-4 p-8 border border-grey3 w-full" x-data="{ showVouchers: true }">
-                        <p class="font-bold text-lg font-poppins mb-4">Select Voucher</p>
+                        <p class="font-bold text-base md:text-lg font-poppins mb-2 md:mb-4">Select Voucher</p>
                     
                         <!-- Toggle Button -->
                         <div @click="showVouchers = !showVouchers"
@@ -75,21 +75,21 @@
                                 <div class="flex voucher-info select-none">
                                     <!-- Left - Voucher Icon -->
                                     <div class="basis-1/4 flex flex-col justify-center items-center gap-2 bg-lightMidYellow p-4 overflow-hidden font-poppins">
-                                        <div class="aspect-square max-w-[100px] w-full flex flex-col justify-center items-center text-darkYellow bg-white rounded-full border-4 border-darkYellow m-2 p-4 overflow-hidden text-center">
-                                            <i class="fa-solid fa-ticket fa-2xl"></i>
+                                        <div class="aspect-square max-w-[60px] md:max-w-[100px] w-full flex flex-col justify-center items-center text-darkYellow bg-white rounded-full border-2 md:border-4 border-darkYellow m-1 md:m-2 p-2 md:p-4 overflow-hidden text-center">
+                                            <i class="fa-solid fa-ticket text-xl md:text-4xl"></i>
                                         </div>
-                                        <p class="text-sm font-semibold text-darkYellow text-center break-words leading-tight line-clamp-2"><%= voucher.getVoucher().getName() %></p>
+                                        <p class="text-xs md:text-sm font-semibold text-darkYellow text-center break-words leading-tight line-clamp-2"><%= voucher.getVoucher().getName() %></p>
                                     </div>
                     
                                     <!-- Right - Voucher Details -->
                                     <div class="basis-3/4 flex p-4 justify-between font-dmSans">
                                         <div class="w-[90%] flex flex-col justify-between">
                                             <div class="flex flex-col">
-                                                <p class="text-base font-semibold text-black">
+                                                <p class="text-sm md:text-base font-semibold text-black">
                                                 
-                                                <% if (voucher.getVoucher().getType().equals("Percent")) { %>
+                                                <% if (voucher.getVoucher().getType().equals("percentage")) { %>
                                                     <%= String.format("%.2f", voucher.getVoucher().getAmount()) %>% off
-                                                <% } else if (voucher.getVoucher().getType().equals("Fixed")) { %>
+                                                <% } else if (voucher.getVoucher().getType().equals("flat")) { %>
                                                         RM <%= String.format("%.2f", voucher.getVoucher().getAmount()) %> off
                                                 <% } %>
 
@@ -97,19 +97,19 @@
                                                 <%= String.format("%.2f", voucher.getVoucher().getMaxCoverage()) %>
                                                 </p>
 
-                                                <p class="text-sm text-grey5">
+                                                <p class="text-xs md:text-sm text-grey5">
                                                     Min. spend RM <%= String.format("%.2f", voucher.getVoucher().getMinSpent()) %>
                                                 </p>
 
-                                                <p class="text-sm text-grey4 line-clamp-2">
+                                                <p class="text-xs md:text-sm text-grey4 line-clamp-2">
                                                     <%= voucher.getVoucher().getDescription() %>
                                                 </p>
                                             </div>
                                             <div class="flex flex-col">
-                                                <p class="text-sm text-green-500">
+                                                <p class="text-xs md:text-sm text-green-500">
                                                     -RM <%= String.format("%.2f", voucher.getDeduction()) %>
                                                 </P>
-                                                <p class="text-xs text-grey4 mt-2">
+                                                <p class="text-[10px] md:text-xs text-grey4 mt-2">
                                                     Remaining: 
                                                     <%= voucher.getUsageLeft() %>/<%= voucher.getVoucher().getUsagePerMonth() %>
                                                 </p>
@@ -134,7 +134,7 @@
 
                 <!-- Payment Method -->
                 <div class="flex flex-col gap-4 p-8 border border-grey3 w-full" x-data="{ showCardOptions: true }">
-                    <p class="font-bold text-lg font-poppins mb-4">Payment Method</p>
+                    <p class="font-bold text-base md:text-lg font-poppins mb-2 md:mb-4">Payment Method</p>
 
                     <div class="flex flex-col gap-2">
                         <!-- COD -->
@@ -210,8 +210,8 @@
             </div>
 
             <!-- Cart Items and Totals -->
-            <div class="basis-1/3 p-8 border border-grey3 flex flex-col w-full sticky top-[60px]">
-                <p class="font-bold text-lg font-poppins mb-4">Order Totals</p>
+            <div class="w-full lg:basis-1/3 p-8 border border-grey3 flex flex-col sticky md:top-[60px] static">
+                <p class="font-bold text-base md:text-lg font-poppins mb-2 md:mb-4">Order Totals</p>
 
                 <!-- Cart Items List -->
                 <div class="flex flex-col gap-3 max-h-[260px] overflow-y-auto"> 
@@ -299,7 +299,7 @@
                 </div>
                 
                 <div class="flex flex-col gap-2">
-                  <button class="bg-black text-white font-bold py-2 px-4 rounded hover:bg-darkYellow transition-colors duration-200 ease-in-out mt-auto" onClick="proceedToPayment()">Place Order</button>
+                  <button class="w-full bg-black text-white text-sm md:text-base font-bold py-2 px-4 rounded hover:bg-darkYellow transition-colors duration-200 ease-in-out mt-auto" onClick="proceedToPayment()">Place Order</button>
                 </div>
                 
   
@@ -319,6 +319,7 @@
         <input type="hidden" name="shippingInfo" id="shippingInfo">
     </form>
 
+<%@ include file="/Views/Shared/Footer.jsp" %>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
