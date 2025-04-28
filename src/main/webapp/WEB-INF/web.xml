@@ -138,6 +138,22 @@
         <url-pattern>/Dashboard/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Chat Controller -->
+    <servlet>
+        <servlet-name>ChatController</servlet-name>
+        <servlet-class>Controllers.ChatController</servlet-class>
+        <multipart-config>
+            <location></location>
+            <max-file-size>10485760</max-file-size>
+            <max-request-size>52428800</max-request-size>
+            <file-size-threshold>2097152</file-size-threshold>
+        </multipart-config>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChatController</servlet-name>
+        <url-pattern>/Chat/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Error Pages -->
     <error-page>
         <error-code>404</error-code>
