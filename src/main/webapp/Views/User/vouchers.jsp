@@ -45,24 +45,9 @@
                             MIN: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getMinSpent())) %> &middot; 
                             MAX: RM<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getMaxCoverage())) %>
                         </p>
-                        <p class="text-xs text-gray-400">Usage: 2/3</p>
+                        <p class="text-xs text-gray-400">Usage: <%= voucher.getUsageLeft() %>/<%= voucher.getVoucher().getUsagePerMonth() %></p>
                     </div>
-                    <div class="flex space-x-2 items-start">
-                        <% if(voucher.getVoucher().getStatus() == 1) { %>
-                            <button
-                            class="status-btn border border-green-500 text-green-500 text-xs px-3 py-1 rounded-md hover:bg-green-50"
-                            data-status="active" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getId())) %>">
-
-                            Active
-                            </button>
-                        <% } else { %>
-                            <button
-                            class="status-btn border border-gray-900 text-gray-900 text-xs px-3 py-1 rounded-md hover:bg-gray-100"
-                            data-status="inactive" data-id="<%= StringEscapeUtils.escapeHtml4(String.valueOf(voucher.getVoucher().getId())) %>">
-                            Inactive
-                            </button>
-                        <% } %>
-                    </div>
+                    
                 </div>
             </div>
             <% 
@@ -76,15 +61,6 @@
             <% 
             }
             %>
-
-        <!-- Add New Voucher -->
-        <div class="bg-white rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center py-8 cursor-pointer hover:bg-gray-50"
-            id="addVoucherTile">
-            <div class="flex flex-col items-center space-y-2">
-                <span class="text-2xl text-gray-400">+</span>
-                <p class="text-gray-600 text-sm">Add New Voucher</p>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -114,36 +90,6 @@
                 parentDoc.find('#voucherId').val('');
             });
 
-            $(document).on('click', '.status-btn', function () {
-                const isActive = $(this).data('status') === 'active';
-                const voucherId = $(this).data('id');
-                
-                $.ajax({
-                    url: '<%= request.getContextPath() %>/User/account/voucher/status',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        voucherId: voucherId,
-                        status: !isActive
-                    }),
-                    success: function (response) {
-                        if (response.status == 200) {
-                            setTimeout(() => location.reload(), 300);
-                        } else {
-                            alert(response.message);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-						// Check if we got redirected to a login page or error page
-                        if (xhr.status === 200 && xhr.responseText.includes('<html')) {
-                            alert("An error occurred while update the voucher's status.");
-                            return;
-                        }
-                        let response = xhr.responseJSON;
-                        alert(response ? response.message : "An error occurred while update the voucher's status.");
-                    }
-                });
-            });
             $(window.parent.document).on('click', '#voucherModal #saveModal', function () {
                 //write ajax to add voucher
                 $modal = $(window.parent.document).find('#voucherModal');

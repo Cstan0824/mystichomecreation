@@ -38,13 +38,13 @@ import mvc.Helpers.pdf.PdfType;
 import mvc.Http.HttpMethod;
 import mvc.Result;
 
-
 public class DashboardController extends ControllerBase {
     private AccountDAO accountDA = new AccountDAO();
     private UserDAO userDA = new UserDAO();
     private ReportDAO reportDAO = new ReportDAO();
     private productDAO productDAO = new productDAO();
 
+    @Authorization(accessUrls = "Dashboard")
     public Result index() throws Exception {
 
         // #region total customer and staff
@@ -105,6 +105,7 @@ public class DashboardController extends ControllerBase {
         return page();
     }
 
+    @Authorization(accessUrls = "Dashboard/filter")
     public Result filter() throws Exception {
 
         String[] categories = request.getParameterValues("category");
@@ -178,6 +179,7 @@ public class DashboardController extends ControllerBase {
 
     }
 
+    @Authorization(accessUrls = "Dashboard/dailyRevenue")
     public Result dailyRevenue() throws Exception {
 
         // remember to accept the parameter from the request
@@ -209,6 +211,7 @@ public class DashboardController extends ControllerBase {
         return json(dailylist);
     }
 
+    @Authorization(accessUrls = "Dashboard/monthlyRevenue")
     public Result monthlyRevenue() throws Exception {
 
         // remember to accept the parameter from the request
@@ -230,6 +233,7 @@ public class DashboardController extends ControllerBase {
         return page();
     }
 
+    @Authorization(accessUrls = "Dashboard/staff")
     public Result staff() throws Exception {
         String searchTerm = request.getParameter("staff_search");
         List<User> staffList = userDA.getUsersByRole(RoleType.STAFF);
@@ -243,6 +247,7 @@ public class DashboardController extends ControllerBase {
         return page();
     }
 
+    @Authorization(accessUrls = "Dashboard/report/generateSalesReport")
     @ActionAttribute(urlPattern = "report/generateSalesReport")
     @HttpRequest(HttpMethod.POST)
     public Result generateSalesReport() throws Exception {
@@ -253,32 +258,31 @@ public class DashboardController extends ControllerBase {
 
         List<Object[]> topSellingProducts = reportDAO.getTopSellingProducts(5);
 
-        //debug 
+        // debug
         System.out.println("🔍 Fetching top 5 selling products...");
         System.out.println("✅ Retrieved " + topSellingProducts.size() + " top-selling products.");
         for (Object[] row : topSellingProducts) {
             System.out.printf(
-            "Product: %s, Category: %s, Price: RM%.2f, Total Sold: %d%n",
-            row[0], row[1], (double) row[2], ((Number) row[3]).longValue()
-            );
+                    "Product: %s, Category: %s, Price: RM%.2f, Total Sold: %d%n",
+                    row[0], row[1], (double) row[2], ((Number) row[3]).longValue());
         }
-        
+
         StringBuilder topSellingRows = new StringBuilder();
         for (Object[] row : topSellingProducts) {
             String productTitle = (String) row[0];
             String categoryName = (String) row[1];
             BigDecimal price = BigDecimal.valueOf((double) row[2]);
             Long totalSold = ((Number) row[3]).longValue(); // safer for big qty
-        
+
             topSellingRows.append("<tr>")
-                .append("<td>").append(productTitle).append("</td>")
-                .append("<td>").append(categoryName).append("</td>")
-                .append("<td>RM ").append(String.format("%.2f", price)).append("</td>")
-                .append("<td>").append(totalSold).append("</td>")
-                .append("</tr>");
+                    .append("<td>").append(productTitle).append("</td>")
+                    .append("<td>").append(categoryName).append("</td>")
+                    .append("<td>RM ").append(String.format("%.2f", price)).append("</td>")
+                    .append("<td>").append(totalSold).append("</td>")
+                    .append("</tr>");
         }
 
-        //get the monthly Revenue 
+        // get the monthly Revenue
         List<Object[]> monthlyRevenue = reportDAO.getMonthlyRevenue(12);
 
         System.out.println("🔍 Fetching monthly revenue for the last 12 months...");
@@ -296,27 +300,20 @@ public class DashboardController extends ControllerBase {
             int month = ((Number) row[1]).intValue();
             double revenue = ((Number) row[2]).doubleValue();
             java.time.Month m = java.time.Month.of(month);
-            String formattedMonth = m.toString().substring(0,1).toUpperCase() + m.toString().substring(1).toLowerCase();
-
-
-
-
-
+            String formattedMonth = m.toString().substring(0, 1).toUpperCase()
+                    + m.toString().substring(1).toLowerCase();
 
             monthlyRevenueRows.append("<tr>")
-                .append("<td>").append(year).append("</td>")
-                .append("<td>").append(formattedMonth).append("</td>")
-                .append("<td>RM ").append(String.format("%.2f", revenue)).append("</td>")
-                .append("</tr>");
-        }   
-
+                    .append("<td>").append(year).append("</td>")
+                    .append("<td>").append(formattedMonth).append("</td>")
+                    .append("<td>RM ").append(String.format("%.2f", revenue)).append("</td>")
+                    .append("</tr>");
+        }
 
         Map<String, String> values = new HashMap<>();
         values.put("reportDate", java.time.LocalDate.now().toString());
         values.put("topProductsRows", topSellingRows.toString());
         values.put("monthlyRevenueRows", monthlyRevenueRows.toString());
-
-
 
         PdfService service = new PdfService(PdfType.REPORT, values, PdfOrientation.LANDSCAPE);
         File pdf = service.convert();
@@ -327,7 +324,7 @@ public class DashboardController extends ControllerBase {
             ((ObjectNode) jsonResponse).put("pdf_success", true);
             ((ObjectNode) jsonResponse).put("pdf_path", pdf.getAbsolutePath());
             return source(pdfFile, "Sales Report", fileType);
-            
+
         } else {
             System.out.println("Failed to generate PDF.");
             jsonResponse.put("status", "error");
@@ -335,12 +332,9 @@ public class DashboardController extends ControllerBase {
 
         }
 
-
-        
     }
 
-
-
+    @Authorization(accessUrls = "Dashboard/staff/view")
     @ActionAttribute(urlPattern = "staff/view")
     public Result viewStaff() throws Exception {
         String idParam = request.getParameter("id");
@@ -363,6 +357,7 @@ public class DashboardController extends ControllerBase {
         return page("staff", "Dashboard");
     }
 
+    @Authorization(accessUrls = "Dashboard/staff/add")
     @HttpRequest(HttpMethod.POST)
     @ActionAttribute(urlPattern = "staff/add")
     @SyncCache(channel = "User")
@@ -414,6 +409,7 @@ public class DashboardController extends ControllerBase {
         boolean result = userDA.createUser(staff);
 
         if (result) {
+            Thread.sleep(500);
             return page("staff");
         } else {
             request.setAttribute("error", "Error adding staff member");
@@ -421,6 +417,7 @@ public class DashboardController extends ControllerBase {
         }
     }
 
+    @Authorization(accessUrls = "Dashboard/staff/update")
     @HttpRequest(HttpMethod.POST)
     @ActionAttribute(urlPattern = "staff/update")
     @SyncCache(channel = "User")
@@ -526,6 +523,7 @@ public class DashboardController extends ControllerBase {
         }
     }
 
+    @Authorization(accessUrls = "Dashboard/staff/delete")
     @SyncCache(channel = "User")
     @ActionAttribute(urlPattern = "staff/delete")
     public Result deleteStaff() throws Exception {
@@ -572,6 +570,7 @@ public class DashboardController extends ControllerBase {
         return page("staff", "Dashboard");
     }
 
+    @Authorization(accessUrls = "Dashboard/customer")
     public Result customer() throws Exception {
         String searchTerm = request.getParameter("customer_search");
         List<CustomerDTO> customerList = userDA.getCustomers();
@@ -591,7 +590,7 @@ public class DashboardController extends ControllerBase {
         return page();
     }
 
-    // @Authorization(accessUrls = "Dashboard/voucher/add")
+    @Authorization(accessUrls = "Dashboard/voucher/add")
     @ActionAttribute(urlPattern = "voucher/add")
     @SyncCache(channel = "Voucher")
     @HttpRequest(HttpMethod.POST)
@@ -609,7 +608,7 @@ public class DashboardController extends ControllerBase {
         return error("Failed to add voucher");
     }
 
-    // @Authorization(accessUrls = "Dashboard/voucher/status")
+    @Authorization(accessUrls = "Dashboard/voucher/status")
     @ActionAttribute(urlPattern = "voucher/status")
     @SyncCache(channel = "Voucher")
     @HttpRequest(HttpMethod.POST)
