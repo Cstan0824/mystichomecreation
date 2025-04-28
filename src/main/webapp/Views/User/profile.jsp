@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="m-2 pb-24 p-2">
@@ -129,10 +130,18 @@
                   processData: false,
                   contentType: false,
                   success: function(response) {
-                    alert("Profile picture updated!");
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Success!',
+                      text: "Profile picture updated.",
+                    });
                   },
                   error: function(err) {
-                    alert("Failed to upload image.");
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Error!',
+                      text: "Failed to upload profile picture.",
+                    });
                   }
                 });
               }
@@ -156,15 +165,27 @@
           }),
           success: function(response) {
             if (response.status == 200) {
-              alert(response.message);
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: "Profile updated.",
+              });
               location.reload();
             } else {
-             alert(response.message);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: response.message,
+              });
             }
           },
           error: function(xhr, status, error) {
             let response = xhr.responseJSON;
-            alert(response.message);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: response ? response.message : "An error occurred while updating the profile.",
+            });
 		  }
         });
       });

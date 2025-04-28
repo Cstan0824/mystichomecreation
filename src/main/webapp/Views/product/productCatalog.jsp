@@ -17,6 +17,7 @@
     <title>Furniture Shop</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/swiper.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
@@ -443,17 +444,29 @@ function changePage(newPage) {
             }
 
             if (params.get('created') === '1') {
-                alert('✅ Product created successfully!');
+                Swal.fire({
+                    title: '✅ Product created successfully!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
                 params.delete('created');
                 history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
             }
             if (params.get('updated') === '1') {
-                alert('✅ Product updated successfully!');
+                Swal.fire({
+                    title: '✅ Product updated successfully!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
                 params.delete('updated');
                 history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
             }
             if (params.get('deleted') === '1') {
-                alert('❌ Product deleted successfully!');
+                Swal.fire({
+                    title: '✅ Product deleted successfully!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
                 params.delete('deleted');
                 history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
             }

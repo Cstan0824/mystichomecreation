@@ -342,7 +342,11 @@
       })
       .catch(function(err) {
         console.error("🔥 Fetch error:", err);
-        alert("Failed to load report data. See console for details.");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to apply filters. Please try again.'
+        });
       })
       .finally(function() {
         closeFilterModal();
