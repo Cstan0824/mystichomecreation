@@ -20,7 +20,6 @@ import Models.Products.product;
 import Models.Users.Cart;
 import Models.Users.CartItem;
 import Models.Users.User;
-import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
@@ -31,7 +30,6 @@ import mvc.Http.HttpMethod;
 import mvc.Result;
 
 
-@WebServlet("/Cart/*")
 public class CartController extends ControllerBase{
 
     private CartDAO cartDAO = new CartDAO();
@@ -62,8 +60,10 @@ public class CartController extends ControllerBase{
             }
         }
         List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
+        List<product> bestSellers = productDAO.getBestSellingProducts();
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("shippingAddresses", shippingAddresses);
+        request.setAttribute("bestSellers", bestSellers);
         
 
         return page();

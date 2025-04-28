@@ -14,6 +14,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="Models.Users.CartItem" %>
 <%@ page import="Models.Accounts.ShippingInformation" %>
+<%@ page import="Models.Products.product" %>
 <%@ page import="mvc.Helpers.Helpers" %>
 <%@ page import="mvc.Helpers.SessionHelper" %>
 <%@ page import="DTO.UserSession" %>
@@ -22,20 +23,22 @@
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
 
-        <%  
-            List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
-            List<ShippingInformation> shippingAddresses = (List<ShippingInformation>) request.getAttribute("shippingAddresses");  
-        %>
+    <%  
+        List<CartItem> cartItems = (List<CartItem>) request.getAttribute("cartItems");
+        List<ShippingInformation> shippingAddresses = (List<ShippingInformation>) request.getAttribute("shippingAddresses");  
+        List<product> bestSellers = (List<product>) request.getAttribute("bestSellers");
+    %>
     <div class="content-wrapper">
 
-        <h1 class="font-poppins font-bold text-3xl my-8">Cart</h1>
+        <h1 class="font-poppins font-bold text-5xl text-center md:text-left md:text-3xl my-8">Cart</h1>
 
-        <div class="flex gap-8 items-start">
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
             <!-- LEFT: Cart Items -->
             <% if(cartItems != null && !cartItems.isEmpty()){ %>
-            <div class="basis-2/3" id="cart-items-container">
+            <div class="w-full lg:basis-2/3" id="cart-items-container">
+
                 <!-- Header Row -->
-                <div class="grid grid-cols-10 border-b border-grey3 text-lg font-dmSans font-semibold py-6">
+                <div class="hidden md:grid md:grid-cols-10 border-b border-grey3 text-lg font-dmSans font-semibold py-6">
                     <div class="col-span-5">Product</div>
                     <div class="col-span-2 text-center">Quantity</div>
                     <div class="col-span-2 text-center">Subtotal</div>
@@ -46,11 +49,13 @@
                     for(CartItem item : cartItems){  %>
                     
 
-              <div class="grid grid-cols-10 border-b border-grey2 text-lg font-dmSans py-4 items-center product-row" data-price="<%= item.getProduct().getPrice() %>" data-product-id="<%= item.getProduct().getId() %>" data-cart-id="<%= item.getCart().getId() %>" data-variation="<%= StringEscapeUtils.escapeHtml4(item.getSelectedVariation()) %>">
-                <div class="col-span-5">
-                    <div class="flex gap-4">
-                        <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= item.getProduct().getImage().getId() %>" alt="<%= item.getProduct().getTitle() %>" class="w-[100px] h-[100px] object-cover rounded-lg">
-                        <div class="flex flex-col justify-between">
+              <div class="grid grid-cols-3 gap-4 md:gap-0 md:grid-cols-10 border-b border-grey2 text-md md:text-lg font-dmSans py-4 items-center product-row" data-price="<%= item.getProduct().getPrice() %>" data-product-id="<%= item.getProduct().getId() %>" data-cart-id="<%= item.getCart().getId() %>" data-variation="<%= StringEscapeUtils.escapeHtml4(item.getSelectedVariation()) %>">
+                <div class="col-span-3 md:col-span-5">
+                    <div class="grid grid-cols-3 md:grid-cols-0 md:flex gap-2 md:gap-4">
+                        <div class="col-span-1 md:col-span-0 flex items-center justify-center">
+                            <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= item.getProduct().getImage().getId() %>" alt="<%= item.getProduct().getTitle() %>" class="w-[100px] h-[100px] object-cover rounded-lg">
+                        </div>
+                        <div class="col-span-2 md:col-span-0 flex flex-col justify-between">
                             <div class="flex flex-col">
                                 <p class="font-medium text-md lineClamp-2"><%= item.getProduct().getTitle() %></p>
                                 <p class="font-normal text-sm"><%= item.getProduct().getTypeId().gettype() %></p>
@@ -78,14 +83,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-span-2 text-center flex justify-center">
-                    <div class="flex items-center justify-between w-28 border border-black rounded select-none">
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
+                <div class="col-span-1 md:col-span-2 text-center flex justify-center">
+                    <div class="flex items-center justify-between w-24 md:w-28 border border-black rounded select-none">
+                        <button class="px-3 py-2 md:px-4 md:py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, -1)">−</button>
                         <span class="text-lg font-medium qty"><%= item.getQuantity() %></span>
-                        <button class="px-4 py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
+                        <button class="px-3 py-2 md:px-4 md:py-1 text-lg font-light hover:bg-darkYellow hover:text-white" onclick="changeQty(this, +1)">+</button>
                     </div>
                 </div>
-                <div class="col-span-2 text-center subtotal">
+                <div class="col-span-1 md:col-span-2 text-center subtotal">
                     RM0.00
                 </div>                
                 <div class="col-span-1 flex justify-center">
@@ -101,7 +106,7 @@
             </div>
             <% } else { %>
                     
-                <div class="basis-2/3 h-[300px] flex justify-center items-center text-gray-500" id="cart-items-container">
+                <div class="w-full h-[200px] lg:basis-2/3 lg:h-[300px] flex justify-center items-center text-gray-500" id="cart-items-container">
                     <div class="flex flex-col justify-center items-center gap-4">
                         <img src="<%= request.getContextPath() %>/Content/assets/image/empty-cart.png"
                             alt="empty-cart"
@@ -114,7 +119,7 @@
                 %>
           
             <!-- RIGHT: Cart Totals -->
-            <div class="basis-1/3 p-8 border border-grey3 flex flex-col w-full sticky top-[30px]">
+            <div class="w-full lg:basis-1/3 p-8 border border-grey3 flex flex-col sticky top-[30px]">
                 <p class="font-bold text-lg font-poppins mb-4">Cart Totals</p>
               
                 <div class="flex flex-col gap-2 text-md font-dmSans py-4">
@@ -197,93 +202,42 @@
                 <h1 class="text-3xl font-bold text-poppins">You May Also Like</h1>
             </div>
             <!-- Best sellers catalog -->
-            <div class="flex gap-8">
-                <div class="w-full pb-10 basis-1/4">
-                    <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
+            <div class="flex flex-wrap gap-8 justify-center">
+                <% for(product prod : bestSellers) { %>
+                    <div class="w-full sm:w-[calc(100%-0.75rem)] md:w-[calc(50%-1rem)] lg:w-[calc(25%-2rem)] hover:mhc-box-shadow">
+                        <div class="bg-white rounded-lg overflow-hidden shadow cursor-pointer relative"
+                                onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= prod.getId() %>')">
+                            <% if (prod.getFeatured() == 1) { %>
+                                <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED</div>
+                            <% } %>
+                            <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= prod.getImage().getId() %>" alt="<%= prod.getTitle() %>" class="w-full aspect-[7/5] object-cover cursor-pointer">
+                            <div class="p-3 cursor-pointer hover:bg-grey1">
+                                <h3 class="font-medium"><%= prod.getTitle() %></h3>
+                                <p class="text-xs text-gray-500"><%= prod.getTypeId().gettype() %></p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="font-bold">RM <%= String.format("%.2f", prod.getPrice()) %></span>
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <i class="fas fa-box mr-1"></i>
+                                        <span><%= prod.getStock() %> left</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="w-full pb-10 basis-1/4">
-                    <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full pb-10 basis-1/4">
-                    <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="w-full pb-10 basis-1/4">
-                    <div class="bg-white rounded-lg overflow-hidden shadow hover:mhc-box-shadow relative">
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">FEATURED
-                        </div>
-                        <img src="https://placehold.co/350x260/png" alt="L-shape Sofa" class="w-[350px] h-[260px] object-cover">
-                        <div class="p-3">
-                            <h3 class="font-medium">MARCO L-shape Sofa</h3>
-                            <p class="text-xs text-gray-500">Hoi Kong Furniture...</p>
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="font-bold">RM 2,499.00</span>
-                                <div class="flex items-center text-xs text-gray-500">
-                                    <i class="fas fa-box mr-1"></i>
-                                    <span>3 left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <% } %>
             </div>
-    
-        </div>  
+        </div>   
 
     </div>
     
 
     <!-- Change Address Modal -->
-    <div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 select-none">
-        <div id="modalContent" class="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-3xl flex flex-col gap-4">
+    <div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 select-none p-2 sm:p-6">
+        <div id="modalContent" class="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full sm:w-[90%] max-w-3xl flex flex-col gap-4 max-h-[95vh] overflow-y-auto">
             <p class="text-lg font-semibold mb-4">Shipping Addresses</p>
 
             <% if(shippingAddresses != null && !shippingAddresses.isEmpty()){ %>
-            <div class="grid-cols-3 grid gap-4 max-h-[280px] overflow-y-auto">
+            <div class="grid-cols-1 md:grid-cols-3 grid gap-4 max-h-[280px] overflow-y-auto">
                 <% for(ShippingInformation address : shippingAddresses){ %>
                 <div class="p-4 border border-grey3 rounded-md cursor-pointer selectable-address hover:text-darkYellow hover:border-darkYellow select-none">
                     <div class="flex flex-col justify-center address-info">
@@ -326,7 +280,7 @@
         <input type="hidden" name="isDefault" />
     </form>
 
-
+<%@ include file="/Views/Shared/Footer.jsp" %>
     <script>
         const userId = <%= sessionHelper.getUserSession().getId() %>  ; // change to session userId
 

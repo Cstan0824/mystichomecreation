@@ -59,7 +59,7 @@
                             Delete
                         </button>
                     </form>
-                <%-- <% } %> --%>
+                <% } %>
             </div>
 
 
@@ -364,6 +364,22 @@
             // First, check if all variation keys are selected
             if (!checkVariationsSelected()) {
                 return; // Stop if any variation is not selected
+            }
+
+            const isAuthenticated = <%= sessionHelper.isAuthenticated() %>;
+            if (!isAuthenticated) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Please log in to add to cart.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Log In',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        redirectUrl('<%= request.getContextPath() %>/Landing/login'); 
+                    }
+                });
+                return;
             }
 
             const selectedVariationsJson = JSON.stringify(selectedVariations);

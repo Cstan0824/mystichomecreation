@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/Content/css/output.css">
 </head>
 <body>
+    <jsp:useBean id="companyInfo2" class="Beans.CompanyInfoBean" scope="application" />
+    <jsp:setProperty name="companyInfo2" property="copyright" value='<%= application.getInitParameter("copyright") %>' />
+
     <footer id="footer" class="bg-gray-100 text-gray-700 p-10">
         <div class="max-w-7xl mx-auto text-center sm:text-left grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-10 border-b-2 border-gray-300 pb-10 ">
             <!-- About US -->
@@ -60,7 +63,7 @@
             </div>
         </div>
         <div class="text-center text-sm mt-10">
-            COPYRIGHT © MysticHome Creations CO., LTD. ALL RIGHTS RESERVED.
+            <jsp:getProperty name="companyInfo" property="copyright" />
         </div>
     </footer>
 
