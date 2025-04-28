@@ -5,6 +5,13 @@ This project is a full-stack application that uses Docker to manage the environm
 
 ---
 
+## Disclaimer
+
+This project is inspired by the design, structure, and content of IKEA.  
+It is intended **solely for educational purposes** and **has no affiliation, endorsement, or official connection** with Inter IKEA Systems B.V. or its related companies.
+
+All trademarks, product names, and company names or logos cited herein are the property of their respective owners.
+
 ## 🚀 Key Components:
 - 🌐 **Main App** — [http://localhost:8080](Web Browser)
 - 🔧 **GlassFish Manager** — [http://localhost:4848](Web Browser)
