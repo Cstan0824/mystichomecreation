@@ -25,6 +25,15 @@
 <body class="selection:bg-gray-500 selection:bg-opacity-50 selection:text-white">
 <%@ include file="/Views/Shared/Header.jsp" %>
 
+    <%-- Set bean properties from web.xml context parameters --%>
+    <jsp:useBean id="companyInfo" class="Beans.CompanyInfoBean" scope="application" />
+    <jsp:setProperty name="companyInfo" property="companyName" value='<%= application.getInitParameter("companyName") %>' />
+    <jsp:setProperty name="companyInfo" property="companyEmail" value='<%= application.getInitParameter("companyEmail") %>' />
+    <jsp:setProperty name="companyInfo" property="copyright" value='<%= application.getInitParameter("copyright") %>' />
+    <jsp:setProperty name="companyInfo" property="companyAddress" value='<%= application.getInitParameter("companyAddress") %>' />
+    <jsp:setProperty name="companyInfo" property="companyPhone" value='<%= application.getInitParameter("companyPhone") %>' />
+
+
     <%
 
         List<product> bestSellers = (List<product>) request.getAttribute("bestSellers");
@@ -152,11 +161,6 @@
                 </div>
             <% } %>
         </div>
-        
-        <div>
-            
-        </div>
-
     </div>  
     
     <!-- Banner -->
@@ -425,10 +429,10 @@
                         following ways:</p>
                 </div>
                 <div class="flex flex-col text-md font-dmSans gap-2 text-center">
-                    <p><strong>📞 Phone:</strong> +60 12-345 6789</p>
-                    <p><strong>✉️ Email:</strong> support@mystichome.my</p>
+                    <a href="tel:<jsp:getProperty name="companyInfo" property="companyPhone" />"><p class="cursor-pointer hover:underline"><strong>📞 Phone:</strong> <jsp:getProperty name="companyInfo" property="companyPhone" /></p></a>
+                    <a href="mailto:<jsp:getProperty name="companyInfo" property="companyEmail" />"><p class="cursor-pointer hover:underline"><strong>✉️ Email:</strong> <jsp:getProperty name="companyInfo" property="companyEmail" /></p></a>
                     <p><strong>🕒 Business Hours:</strong> Mon – Fri, 9:00 AM – 6:00 PM</p>
-                    <p><strong>📍 Address:</strong> 123 Serenity Lane, Kuala Lumpur, Malaysia</p>
+                    <p><strong>📍 Address:</strong> <jsp:getProperty name="companyInfo" property="companyAddress" /></p>
                 </div>
             </div>
 
@@ -438,7 +442,7 @@
                     <h1 class="text-3xl font-semibold font-poppins">Visit our stores</h1>
                     <p class="text-md font-dmSans">Visit our physical stores to experience our products in person. Our
                         friendly staff is ready to assist you with any questions.</p>
-                    <p class="text-md font-dmSans">📍 MysticHome Creations – 123 Serenity Lane, Kuala Lumpur</p>
+                    <p class="text-md font-dmSans">📍 <jsp:getProperty name="companyInfo" property="companyName" /> – 123 Serenity Lane, Kuala Lumpur</p>
 
                     <!-- Embedded Google Map -->
                     <div class="w-full h-[120px] overflow-hidden rounded-md">

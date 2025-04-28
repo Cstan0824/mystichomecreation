@@ -5,6 +5,27 @@
          version="3.1"
          metadata-complete="false">
 
+<context-param>
+    <param-name>companyName</param-name>
+    <param-value>MysticHome Creations</param-value>
+</context-param>
+<context-param>
+    <param-name>companyEmail</param-name>
+    <param-value>support@mystichome.my</param-value>
+</context-param>
+<context-param>
+    <param-name>copyright</param-name>
+    <param-value>COPYRIGHT © MysticHome Creations CO., LTD. ALL RIGHTS RESERVED.</param-value>
+</context-param>
+<context-param>
+    <param-name>companyAddress</param-name>
+    <param-value>123 Serenity Lane, Kuala Lumpur, Malaysia</param-value>
+</context-param>
+<context-param>
+    <param-name>companyPhone</param-name>
+    <param-value>+60 12-345 6789</param-value>
+</context-param>
+
     <!-- User Controller -->
     <servlet>
         <servlet-name>UserController</servlet-name>
@@ -21,6 +42,38 @@
         <url-pattern>/User/*</url-pattern>
     </servlet-mapping>
 
+    <!-- Order Controller -->
+    <servlet>
+        <servlet-name>OrderController</servlet-name>
+        <servlet-class>Controllers.OrderController</servlet-class>
+        <multipart-config>
+            <location></location>
+            <max-file-size>10485760</max-file-size>             <!-- 10MB -->
+            <max-request-size>52428800</max-request-size>       <!-- 50MB -->
+            <file-size-threshold>2097152</file-size-threshold>  <!-- 2MB -->
+        </multipart-config>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>OrderController</servlet-name>
+        <url-pattern>/Order/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- Cart Controller -->
+    <servlet>
+        <servlet-name>CartController</servlet-name>
+        <servlet-class>Controllers.CartController</servlet-class>
+        <multipart-config>
+            <location></location>
+            <max-file-size>10485760</max-file-size>             <!-- 10MB -->
+            <max-request-size>52428800</max-request-size>       <!-- 50MB -->
+            <file-size-threshold>2097152</file-size-threshold>  <!-- 2MB -->
+        </multipart-config>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CartController</servlet-name>
+        <url-pattern>/Cart/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Landing Controller -->
     <servlet>
         <servlet-name>LandingController</servlet-name>
@@ -35,6 +88,22 @@
     <servlet-mapping>
         <servlet-name>LandingController</servlet-name>
         <url-pattern>/Landing/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- Product Controller -->
+    <servlet>
+        <servlet-name>productController</servlet-name>
+        <servlet-class>Controllers.productController</servlet-class>
+        <multipart-config>
+            <location></location>
+            <max-file-size>10485760</max-file-size>
+            <max-request-size>52428800</max-request-size>
+            <file-size-threshold>2097152</file-size-threshold>
+        </multipart-config>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>productController</servlet-name>
+        <url-pattern>/product/*</url-pattern>
     </servlet-mapping>
 
     <!-- File Controller -->

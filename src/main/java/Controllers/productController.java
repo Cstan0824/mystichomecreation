@@ -34,7 +34,6 @@ import jakarta.servlet.http.Part;
         maxRequestSize = 10 * 1024 * 1024 // 10 MB
 )
 
-@WebServlet("/product/*")
 public class productController extends ControllerBase {
     private productDAO productDAO = new productDAO(); // Assuming you have a DAO class for product
 
