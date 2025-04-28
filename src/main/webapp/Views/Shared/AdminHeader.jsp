@@ -27,9 +27,7 @@
       <a href="<%= request.getContextPath() %>/Dashboard" class="text-gray-400 hover:text-blue-600">Home</a>
       <a href="<%= request.getContextPath() %>/Landing" class="text-gray-400 hover:text-blue-600">Back to Main Page</a>
 	  <form id="logoutForm" action="<%= request.getContextPath()%>/Landing/logout" method="post" enctype="multipart/form-data">
-			<li class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" onClick="logout()">
-				<p class="font-semibold transition-all duration-[500] ease-in-out">Logout</p>
-			</li>
+			<button class="hover:bg-gray-50 rounded-full hover:font-normal hover:text-darkYellow px-2 py-1 transition-all duration-[500] ease-in-out cursor-pointer" type="button" onclick="javascript:logout()">Logout</button>
 		</form>
     </nav>
 </header>
@@ -101,22 +99,7 @@
 		</div>
 	</div>
 <script>
-$(function () {
-	const $voucherModal = $('#voucherModal');
-    $('#closeVoucherModal, #cancelVoucherModal').on('click', function() {
-        $voucherModal.addClass('hidden').removeClass('flex');
-    });
-    $voucherModal.on('click', function(e) {
-        if (!$(e.target).closest('#voucherModalContent').length) {
-            $voucherModal.addClass('hidden').removeClass('flex');
-        }
-    });
-    $('#voucherForm').on('submit', function(e) {
-        e.preventDefault();
-        alert('Voucher saved!');
-        $voucherModal.addClass('hidden').removeClass('flex');
-    });      
-	function logout() {   
+function logout() {   
 		const logoutForm = document.getElementById('logoutForm');
 		Swal.fire({
 			title: "Are you sure?",
@@ -133,6 +116,22 @@ $(function () {
 			}
 		});
 	}
+$(function () {
+	const $voucherModal = $('#voucherModal');
+    $('#closeVoucherModal, #cancelVoucherModal').on('click', function() {
+        $voucherModal.addClass('hidden').removeClass('flex');
+    });
+    $voucherModal.on('click', function(e) {
+        if (!$(e.target).closest('#voucherModalContent').length) {
+            $voucherModal.addClass('hidden').removeClass('flex');
+        }
+    });
+    $('#voucherForm').on('submit', function(e) {
+        e.preventDefault();
+        alert('Voucher saved!');
+        $voucherModal.addClass('hidden').removeClass('flex');
+    });      
+	
 });
     
 
