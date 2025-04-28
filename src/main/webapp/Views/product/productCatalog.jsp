@@ -239,7 +239,8 @@
 
     </div>
 
-
+<%-- Footer Section --%>
+<%@ include file="/Views/Shared/Footer.jsp" %>
 
 
     <script>

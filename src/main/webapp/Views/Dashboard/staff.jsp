@@ -99,10 +99,11 @@
                     <i class="fas fa-pen"></i>
                   </button>
                   <!-- Delete -->
-                  <button onclick="confirmDelete('Are you sure you want to delete this staff member?', '<%= request.getContextPath() %>/Dashboard/staff/delete?id=${staff.id}')" 
+                  <button onclick="confirmDelete('Are you sure you want to delete this staff member?', '<%= request.getContextPath() %>/Dashboard/staff/delete?id=<c:out value='${staff.id}'/>', this)" 
                           class="text-red-600 hover:text-red-900 transition-colors">
                     <i class="fas fa-trash"></i>
                   </button>
+
                 </div>
               </td>
             </tr>
@@ -216,11 +217,48 @@
     document.getElementById('editStaffModalContainer').innerHTML = modalHtml;
   }
   
-  function confirmDelete(message, url) {
-    if (confirm(message)) {
-      window.location.href = url;
-    }
+  function confirmDelete(message, url, buttonElement) {
+    Swal.fire({
+      title: message,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: url,
+          type: 'POST', // If your delete mapping expects POST, use POST here
+          success: function(response) {
+            // 🧹 Remove the table row
+            const row = buttonElement.closest('tr');
+            if (row) {
+              row.remove();
+            }
+
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Staff member has been removed.',
+              icon: 'success',
+              timer: 1000,
+              showConfirmButton: false
+            });
+          },
+          error: function() {
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to delete staff member. Please try again.',
+              icon: 'error',
+              showConfirmButton: true
+            });
+          }
+        });
+      }
+    });
   }
+
 </script>
 
 <%@ include file="../Shared/AdminFooter.jsp" %>

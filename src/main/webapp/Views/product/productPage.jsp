@@ -247,7 +247,7 @@
             <% if (productFeatured != null && !productFeatured.isEmpty()) {
                 for (product p : productFeatured) {
             %>
-            <div class="bg-white rounded-lg overflow-hidden cursor-pointer relative" onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= p.getId() %>')">
+            <div class="bg-white mhc-box-shadow rounded-lg overflow-hidden cursor-pointer relative" onClick="redirectURL('<%= request.getContextPath() %>/product/productPage?id=<%= p.getId() %>')">
                 <div class="absolute top-0 left-0 bg-yellow-400 text-white px-2 py-1 text-sm">Featured</div>
                 <img src="<%= request.getContextPath() %>/File/Content/product/retrieve?id=<%= p.getImage().getId() %>" alt="<%= p.getTitle() %>" class="w-[350px] h-[260px] object-cover cursor-pointer">
                 <div class="p-3 cursor-pointer hover:bg-grey1">
