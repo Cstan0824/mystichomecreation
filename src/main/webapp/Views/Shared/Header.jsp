@@ -90,21 +90,49 @@
                 } %>
                 <% 
                 if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
-                   
+                    boolean hasDashboardAccess = false;
+                    boolean hasCustomerAccess = false;
+                    String adminLink = "#";
+                    
+                    // Check what dashboard permissions the user has
                     for(String accessUrl : sessionHelper.getAccessUrls()) {
-                        if(!accessUrl.startsWith("Dashboard")) {
-                            continue;
+                        if(accessUrl.equals("Dashboard")) {
+                            hasDashboardAccess = true;
                         }
-                        %> 
-                        <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                            <a href="<%= request.getContextPath() %>/Dashboard" 
-                            class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
-                                Admin
-                            </a>
-                        </li>
-                        <% break;
+                        if(accessUrl.equals("Dashboard/customer")) {
+                            hasCustomerAccess = true;
+                        }
+                        if(accessUrl.startsWith("Dashboard")) {
+                            // Set default link if we find any dashboard permission
+                            if(adminLink.equals("#")) {
+                                adminLink = accessUrl;
+                            }
+                        }
                     }
-                } %>
+                    
+                    // Determine the link destination based on permissions
+                    if(hasDashboardAccess) {
+                        adminLink = request.getContextPath() + "/Dashboard";
+                    } else if(hasCustomerAccess) {
+                        adminLink = request.getContextPath() + "/Dashboard/customer";
+                    } else if(!adminLink.equals("#")) {
+                        // User has some other Dashboard access
+                        adminLink = request.getContextPath() + "/" + adminLink;
+                    }
+                    
+                    // Only show Admin link if user has any Dashboard permissions
+                    if(!adminLink.equals("#")) {
+                    %> 
+                    <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                        <a href="<%= adminLink %>" 
+                        class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                            Admin
+                        </a>
+                    </li>
+                    <% 
+                    }
+                } 
+                %>
             </ul>
         </div>
 
@@ -217,21 +245,49 @@
             } %>
             <% 
             if(sessionHelper.isAuthenticated() && sessionHelper.getUserSession() != null) {
+                boolean hasDashboardAccess = false;
+                boolean hasCustomerAccess = false;
+                String adminLink = "#";
                 
+                // Check what dashboard permissions the user has
                 for(String accessUrl : sessionHelper.getAccessUrls()) {
-                    if(!accessUrl.startsWith("Dashboard")) {
-                        continue;
+                    if(accessUrl.equals("Dashboard")) {
+                        hasDashboardAccess = true;
                     }
-                    %> 
-                    <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
-                        <a href="<%= request.getContextPath() %>/Dashboard" 
-                        class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
-                            Admin
-                        </a>
-                    </li>
-                    <% break;
+                    if(accessUrl.equals("Dashboard/customer")) {
+                        hasCustomerAccess = true;
+                    }
+                    if(accessUrl.startsWith("Dashboard")) {
+                        // Set default link if we find any dashboard permission
+                        if(adminLink.equals("#")) {
+                            adminLink = accessUrl;
+                        }
+                    }
                 }
-            } %>
+                
+                // Determine the link destination based on permissions
+                if(hasDashboardAccess) {
+                    adminLink = request.getContextPath() + "/Dashboard";
+                } else if(hasCustomerAccess) {
+                    adminLink = request.getContextPath() + "/Dashboard/customer";
+                } else if(!adminLink.equals("#")) {
+                    // User has some other Dashboard access
+                    adminLink = request.getContextPath() + "/" + adminLink;
+                }
+                
+                // Only show Admin link if user has any Dashboard permissions
+                if(!adminLink.equals("#")) {
+                %> 
+                <li class="hover:bg-gray-50 rounded-full px-2 transition-all duration-[500] ease-in-out">
+                    <a href="<%= adminLink %>" 
+                    class="<%= isAdminPage ? "font-normal text-darkYellow" : "font-semibold text-gray-800" %> transition-all duration-[500] ease-in-out">
+                        Admin
+                    </a>
+                </li>
+                <% 
+                }
+            } 
+            %>
         </ul>
     </div>
 

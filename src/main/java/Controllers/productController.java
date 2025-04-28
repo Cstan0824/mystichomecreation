@@ -39,6 +39,9 @@ public class productController extends ControllerBase {
 
     @ActionAttribute(urlPattern = "productPage")
     public Result productPage() throws Exception {
+        if(request.getParameter("id") == null) {
+           System.out.println("⚠ No product ID provided in the request.");
+        }
         int id = Integer.parseInt(request.getParameter("id"));
         product p = productDAO.searchProducts(id);
         System.out.println("✅ Product found: " + p);
