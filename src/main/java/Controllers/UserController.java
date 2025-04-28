@@ -283,7 +283,7 @@ public class UserController extends ControllerBase {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
         int userId = session.getId();
         String passwordChangeState = session.get("passwordChangeState");
-
+        System.out.println("User ID: " + userId);
         if (!"step#3".equals(passwordChangeState)) {
             return error("Invalid state for password change");
         }
@@ -304,11 +304,13 @@ public class UserController extends ControllerBase {
         // }
 
         boolean response = accountDA.changePassword(userId, newPassword);
+        System.out.println("Result of changePassword: " + response);
         if (response) {
             session.remove("passwordChangeState");
             // TODO: Notify User
             NotificationService notificationService = new NotificationService();
             Notification notification = new Notification();
+            User user = userDA.getUserById(userId);
             // Get Current DateTime in String format
             String currentDateTime = Helpers.getCurrentDateTime();
 
@@ -316,9 +318,8 @@ public class UserController extends ControllerBase {
             notification.setTitle("Password Changed");
             notification
                     .setContent("Your password has been changed successfully, Not you? Click me for customer support.");
-            notification.setUserId(userId);
+            notification.setUser(user);
             notification.setUrl("");
-
             notificationService.setNotification(notification);
             notificationService.inform();
             Redis.getSignalHub().publish("Notifications", "invalidate feedback cache for Notification");
@@ -825,8 +826,8 @@ public class UserController extends ControllerBase {
     public Result notificationRedirectUrl(int id) throws Exception {
         String url = accountDA.triggerReadNotification(id);
         // extract action and controller from url
-        if ("".equals(url)) {
-            return error("Failed to redirect to the notification URL");
+        if ("".equals(url) || "#".equals(url)) {
+            return json("");
         }
         return json(url);
     }

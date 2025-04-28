@@ -118,7 +118,7 @@
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700">Card Number</label>
-					<input id="cardNo" type="text" placeholder="**** **** **** 1234"
+					<input id="cardNo" type="text" placeholder="************1234"
 						class="w-full border rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
 				</div>
 				<div class="grid sm:grid-cols-2 gap-4">
