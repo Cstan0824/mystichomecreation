@@ -122,22 +122,6 @@
         <url-pattern>/File/Content/*</url-pattern>
     </servlet-mapping>
 
-    <!-- Payment Controller -->
-    <servlet>
-        <servlet-name>PaymentController</servlet-name>
-        <servlet-class>Controllers.PaymentController</servlet-class>
-        <multipart-config>
-            <location></location>
-            <max-file-size>10485760</max-file-size>
-            <max-request-size>52428800</max-request-size>
-            <file-size-threshold>2097152</file-size-threshold>
-        </multipart-config>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>PaymentController</servlet-name>
-        <url-pattern>/Transaction/*</url-pattern>
-    </servlet-mapping>
-
     <!-- Dashboard Controller -->
     <servlet>
         <servlet-name>DashboardController</servlet-name>
