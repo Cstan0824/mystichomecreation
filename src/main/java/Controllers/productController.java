@@ -25,7 +25,6 @@ import Models.Products.productFeedbackKey;
 import Models.Products.productImage;
 import Models.Products.productType;
 import Models.Products.productVariationOptions;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.Part;
 
@@ -39,8 +38,8 @@ public class productController extends ControllerBase {
 
     @ActionAttribute(urlPattern = "productPage")
     public Result productPage() throws Exception {
-        if(request.getParameter("id") == null) {
-           System.out.println("⚠ No product ID provided in the request.");
+        if (request.getParameter("id") == null) {
+            System.out.println("⚠ No product ID provided in the request.");
         }
         int id = Integer.parseInt(request.getParameter("id"));
         product p = productDAO.searchProducts(id);
@@ -55,7 +54,6 @@ public class productController extends ControllerBase {
         System.out.println("📦 Product Created Date: " + p.getCreatedDate());
         // System.out.println("📦 Product Image URL: " + p.getImageUrl());
         System.out.println("📦 Product Featured: " + p.getFeatured());
-        
 
         productVariationOptions options = null;
 
@@ -113,11 +111,11 @@ public class productController extends ControllerBase {
         System.out.println("📦 Products: " + products.size());
         request.setAttribute("products", products);
         // for (product p : products) {
-        //     if (p.getImage() != null) {
-        //         System.out.println("📩 Image       = " + p.getImage().getId());
-        //     } else {
-        //         System.out.println("No image available for product ID: " + p.getId());
-        //     }
+        // if (p.getImage() != null) {
+        // System.out.println("📩 Image = " + p.getImage().getId());
+        // } else {
+        // System.out.println("No image available for product ID: " + p.getId());
+        // }
         // }
 
         for (product p : products) {
@@ -136,9 +134,6 @@ public class productController extends ControllerBase {
         }
 
         return page();
-
-
-
 
     }
 
@@ -161,7 +156,6 @@ public class productController extends ControllerBase {
         return page();
     }
 
-    
     @ActionAttribute(urlPattern = "productCatalog/Categories")
     public Result getProductsByCategories() throws Exception {
         String[] selectedCategories = request.getParameterValues("categories");
@@ -274,7 +268,7 @@ public class productController extends ControllerBase {
         newProduct.setImage(pi); // link the image
 
         try {
-            
+
             productDAO.addProduct(newProduct);
             System.out.println("✅ product persisted, id=" + newProduct.getId());
 
