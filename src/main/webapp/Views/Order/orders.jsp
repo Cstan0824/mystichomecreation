@@ -32,27 +32,33 @@
     %>
 
 
-    <div class="content-wrapper">
-        <h1 class="font-poppins font-bold text-3xl my-8">Orders</h1>
+    <div class="content-wrapper flex flex-col">
+        <h1 class="font-poppins font-bold text-5xl text-center md:text-left md:text-3xl my-8">Checkout</h1>
         <!-- Header with search and cart -->
-        <div class="flex flex-row justify-between items-center mb-6 gap-4">
+        <div class="flex flex-row items-center mb-6 gap-4">
             <!-- Search Container -->
-            <div class="relative flex-1 md:flex-none md:w-96">
+            <div class="relative flex-1 lg:flex-none md:w-96 w-80">
                 <input type="text" placeholder="Search Customer" name="keywords" id="searchInput" oninput="filterByCategory()"
                     class="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+            <!-- Filter Icon (only in mobile/tablet) -->
+            <div class="lg:hidden flex items-center justify-end flex-1">
+                <button id="filterBtn" class="lg:hidden flex items-center justify-center w-[40px] h-[40px] bg-yellow-400 rounded-lg shadow-md hover:bg-yellow-500 transition-colors duration-200 ease-in-out">
+                    <i class="fas fa-filter text-white"></i>
+                </button>
             </div>
         </div>
 
         <div class="flex flex-col md:flex-row gap-4">
             <!-- Sidebar filters for desktop -->
-            <div class="w-full md:w-64 mr-6 bg-white rounded-lg shadow-lg p-4">
+            <div class="hidden lg:block w-full md:w-64 mr-6 bg-white rounded-lg shadow-lg p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-bold text-lg">Filter</h2>
                     <button onclick="clearAllFilters()" class="text-yellow-500 text-sm">Clear All</button>
                 </div>
 
-                <form id="filterForm" oninput="filterByCategory()" enctype="multipart/form-data">
+                <form id="filterFormDesktop" oninput="syncFilters('desktop')" enctype="multipart/form-data">
                     <!-- 🔽 Sort By -->
                     <div class="border-b pb-3 mb-3">
                         <h3 class="text-gray-600 font-semibold mb-2">Sort By</h3>
@@ -87,11 +93,11 @@
             <div class="flex-1 rounded-lg bg-white p-6 shadow-lg">
                 <div class="mb-6">
                     <!-- Search Results header with tabs on same line -->
-                    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                    <div class="flex flex-col lg:flex-row justify-between items-center mb-4 gap-4">
                         <h2 class="text-xl font-bold">Filtered Result</h2>
                     </div>
-                    <!-- Order Container: List View -->
-                    <div class="mb-6" id="orders-container">
+                    <!-- Order Container: List View (Desktop) -->
+                    <div class="mb-6 hidden lg:block" id="orders-container">
     
                         <% if(orders != null && !orders.isEmpty()) { %>
                             <!-- Header Row -->
@@ -107,21 +113,17 @@
                             <!-- Order Rows -->
                             <% for (Order order : orders) { %>
                                 <div class="grid grid-cols-10 text-sm font-dmSans bg-white justify-center items-center border-b" data-order-id="<%= order.getId() %>">
-                                    <div class="col-span-2 px-4 py-2 text-black "><%= order.getOrderRefNo() %></div>
-                                    <div class="col-span-2 px-4 py-2 text-black "><%= order.getUser().getUsername() %></div>
+                                    <div class="col-span-2 px-4 py-2 text-black truncate overflow-hidden whitespace-nowrap"><%= order.getOrderRefNo() %></div>
+                                    <div class="col-span-2 px-4 py-2 text-black truncate overflow-hidden whitespace-nowrap"><%= order.getUser().getUsername() %></div>
                                     <div class="col-span-1 px-4 py-2 text-yellow-500 "><%= order.getStatus().getStatusDesc() %></div>
                                     
                                     <div class="col-span-2 px-4 py-2 text-black ">RM <%= String.format("%.2f", order.getPayment().getTotalPaid()) %></div>
                                     <div class="col-span-2 px-4 py-2 text-black "><%= order.getOrderDate() %></div>
                                 
-                                    <div class="col-span-1 px-4 py-2 flex gap-4 justify-start items-center">
+                                    <div class="col-span-1 px-4 py-2 flex gap-4 justify-center items-center">
                                         <div class="hover:text-darkYellow cursor-pointer transition-color duration-200 ease-in-out"
                                              onClick="openUpdateModal('<%= order.getId() %>')">
                                             <i class="fa-solid fa-pen-to-square fa-lg"></i>
-                                        </div>
-                                        <div class="hover:text-darkYellow cursor-pointer transition-color duration-200 ease-in-out"
-                                            onClick="redirectToPage('<%= order.getId() %>')">
-                                            <i class="fa-solid fa-arrow-up-right-from-square fa-lg" ></i>
                                         </div>
                                     </div>
                                 </div>
@@ -136,8 +138,35 @@
                         <% } %>
 
                     </div>
+
+                    <!-- Order Container: Card View (Mobile/Tablets) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden" id="mobile-orders-container">
+                        <% if(orders != null && !orders.isEmpty()) { %>
+                            <% for (Order order : orders) { %>
+                                <div class="flex flex-col p-4 bg-white rounded-lg shadow-md">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h2 class="text-lg font-bold truncate overflow-hidden whitespace-nowrap">Order Ref: <%= order.getOrderRefNo() %></h2>
+                                        <span class="text-yellow-500 text-sm"><%= order.getStatus().getStatusDesc() %></span>
+                                    </div>
+                                    <div class="text-sm text-gray-700">
+                                        <p class="truncate overflow-hidden whitespace-nowrap">Customer: <%= order.getUser().getUsername() %></p>
+                                        <p>Total: RM <%= String.format("%.2f", order.getPayment().getTotalPaid()) %></p>
+                                        <p>Order Date: <%= order.getOrderDate() %></p>
+                                    </div>
+                                    <div class="flex gap-4 justify-end mt-4">
+                                        <button class="text-blue-500" onclick="openUpdateModal('<%= order.getId() %>')"><i class="fa-solid fa-pen-to-square fa-lg"></i></button>
+                                    </div>
+                                </div>
+                            <% } %>
+                        <% } else { %>
+                            <div class="flex flex-col p-4 bg-white rounded-lg shadow-md">
+                                <div class="text-sm text-gray-700 text-center">No orders found.</div>
+                            </div>
+                        <% } %>
+                    </div>
                 </div>
             </div>
+
         </div>
 
         <!-- ✅ Modal Overlay -->
@@ -169,8 +198,54 @@
                 </form>
             </div>
         </div>
-    
+
+        <!-- Mobile Filter Modal -->
+        <div id="filterModal" class="fixed inset-0 z-[999] bg-black bg-opacity-50 hidden">
+            <div class="absolute top-0 right-0 w-3/4 max-w-sm bg-white h-full shadow-lg p-6">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-4">
+
+                <h2 class="font-bold text-lg">Filters</h2>
+
+                <button onclick="closeFilterModal()">
+                    <i class="fas fa-times text-gray-700"></i>
+                </button>
+
+                </div>
+
+                <!-- Form inside -->
+                <form id="filterFormMobile" oninput="syncFilters('mobile')" enctype="multipart/form-data">
+                    <!-- 🔽 Sort By -->
+                    <div class="border-b pb-3 mb-3">
+                        <h3 class="text-gray-600 font-semibold mb-2">Sort By</h3>
+                        <select name="sortBy" class="w-full border border-gray-300 rounded-md px-2 py-1 focus:outline-none">
+                            <option value="">Select...</option>
+                            <option value="latest">Latest orders</option>
+                            <option value="oldest">Oldest orders</option>
+                        </select>
+                    </div>
+
+                    <!-- 🔽 Category -->
+                    <div class="border-b pb-3 mb-3">
+                        <h3 class="text-gray-600 font-semibold mb-2">Category</h3>
+                        <div class="space-y-1">
+                            <% if (statuses != null && !statuses.isEmpty()) {
+                                    for (OrderStatus status : statuses) {  %>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="selectedStatuses" value="<%= status.getId() %>" class="form-checkbox text-yellow-500">
+                                            <span class="ml-2 text-sm text-gray-600"><%= status.getStatusDesc() %></span>
+                                        </label>
+                                <%  } %>
+                            <% } %>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
     </div>
+<%@ include file="/Views/Shared/Footer.jsp" %>
 </body>
         
 <script>
@@ -186,24 +261,21 @@
     }
 
     function filterByCategory() {
-        const form = document.getElementById("filterForm");
+        const isDesktop = window.innerWidth >= 1024; // 1024px = your lg breakpoint
+        const form = document.getElementById(isDesktop ? "filterFormDesktop" : "filterFormMobile");
 
-        // Step 1: Grab all the form data
         const formData = new FormData(form);
-
         const keywords = document.getElementById("searchInput").value;
         if (keywords) {
             formData.append("keywords", keywords || "");
         }
 
-        // Step 4: Send AJAX request
-        
         $.ajax({
             url: "<%= request.getContextPath() %>/Order/orders/Categories",
             type: "POST",
-            data: formData, // ✅ send as multipart/form-data
-            processData: false, // ✅ prevent jQuery from transforming it into a query string
-            contentType: false, // ✅ let browser set multipart boundaries
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function (response) {
                 try {
                     const parsedOrders = JSON.parse(response.data);
@@ -216,55 +288,151 @@
                 console.error("🔥 AJAX error:", err);
             }
         });
-    }    
+    }
+
+
+    function filterByCategoryMobile() {
+        const form = document.getElementById("filterFormMobile");
+
+        const formData = new FormData(form);
+
+        const keywords = document.getElementById("searchInput").value;
+        if (keywords) {
+            formData.append("keywords", keywords || "");
+        }
+
+        $.ajax({
+            url: "<%= request.getContextPath() %>/Order/orders/Categories",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                try {
+                    const parsedOrders = JSON.parse(response.data);
+                    renderOrders(parsedOrders);
+                } catch (e) {
+                    console.error("❌ JSON parse error:", e);
+                }
+            },
+            error: function (err) {
+                console.error("🔥 AJAX error:", err);
+            }
+        });
+    }
+
+    function syncFilters(source) {
+        const desktopForm = document.getElementById('filterFormDesktop');
+        const mobileForm = document.getElementById('filterFormMobile');
+
+        const sourceForm = source === 'desktop' ? desktopForm : mobileForm;
+        const targetForm = source === 'desktop' ? mobileForm : desktopForm;
+
+        // Sync all <select> fields
+        const selects = sourceForm.querySelectorAll('select');
+        selects.forEach(select => {
+            const targetSelect = targetForm.querySelector(`select[name="${select.name}"]`);
+            if (targetSelect) {
+                targetSelect.value = select.value;
+                targetSelect.dispatchEvent(new Event('change')); // 🛠 Force update UI binding
+            }
+        });
+
+        // Sync all checkboxes
+        const checkboxes = sourceForm.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            const targetCheckbox = targetForm.querySelector(`input[name="${checkbox.name}"][value="${checkbox.value}"]`);
+            if (targetCheckbox) {
+                targetCheckbox.checked = checkbox.checked;
+                targetCheckbox.dispatchEvent(new Event('change')); // 🛠 Force update UI binding
+            }
+        });
+
+        // Trigger filtering after synchronization
+        filterByCategory();
+    }
         
-        
+    function closeFilterModal() {
+        document.getElementById('filterModal').classList.add('hidden');
+    }
+    
     function renderOrders(orders) {
-        const container = document.getElementById("orders-container");
-        container.innerHTML = ""; 
+        const tableContainer = document.getElementById("orders-container");
+        const cardContainer = document.getElementById("mobile-orders-container");
+
+        tableContainer.innerHTML = "";
+        cardContainer.innerHTML = "";
 
         if (!orders || orders.length === 0) {
-            container.innerHTML = 
-            `
-            
+            // No orders found
+            tableContainer.innerHTML = `
                 <div class="grid grid-cols-10 text-sm font-dmSans bg-white justify-center items-center border-b">
                     <div class="col-span-10 px-4 py-2 text-black text-center">No orders found.</div>
                 </div>
-            
             `;
+
+            // 🛠 Instead of putting "no orders" inside grid — change the container to flex
+            cardContainer.classList.remove("grid", "grid-cols-1", "md:grid-cols-2", "gap-4", "lg:hidden");
+            cardContainer.classList.add("flex", "items-center", "justify-center", "h-40");
+
+            cardContainer.innerHTML = `
+                <div class="text-sm text-gray-700 text-center">No orders found.</div>
+            `;
+
             return;
         }
-        
-        let html = getOrderHeaderRow();
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
 
-            html += 
-            
-            `
-            <div class="grid grid-cols-10 text-sm font-dmSans bg-white justify-center items-center border-b" data-order-id="`+ order.id +`">
-                <div class="col-span-2 px-4 py-2 text-black ">`+ order.orderRefNo +`</div>
-                <div class="col-span-2 px-4 py-2 text-black ">`+ order.username +`</div>
-                <div class="col-span-1 px-4 py-2 text-yellow-500 ">`+ order.status +`</div>
-                        
-                <div class="col-span-2 px-4 py-2 text-black ">RM `+ order.totalPaid.toFixed(2) +`</div>
-                <div class="col-span-2 px-4 py-2 text-black ">`+ order.orderDate +`</div>
-                    
-                <div class="col-span-1 px-4 py-2 flex gap-4 justify-start items-center">
-                    <div class="hover:text-darkYellow cursor-pointer transition-color duration-200 ease-in-out"
-                            onClick="openUpdateModal('`+ order.id +`')">
-                        <i class="fa-solid fa-pen-to-square fa-lg"></i>
-                    </div>
-                    <div class="hover:text-darkYellow cursor-pointer transition-color duration-200 ease-in-out"
-                        onClick="redirectToPage('`+ order.id +`')">
-                        <i class="fa-solid fa-arrow-up-right-from-square fa-lg" ></i>
+        // If orders exist, restore container back to grid
+        cardContainer.classList.remove("flex", "items-center", "justify-center", "h-40");
+        cardContainer.classList.add("grid", "grid-cols-1", "md:grid-cols-2", "gap-4", "lg:hidden");
+
+        // Continue normal rendering...
+        let tableHTML = getOrderHeaderRow();
+
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+
+            tableHTML += `
+                <div class="grid grid-cols-10 text-sm font-dmSans bg-white justify-center items-center border-b" data-order-id="`+ order.id +`">
+                    <div class="col-span-2 px-4 py-2 text-black ">`+ order.orderRefNo +`</div>
+                    <div class="col-span-2 px-4 py-2 text-black ">`+ order.username +`</div>
+                    <div class="col-span-1 px-4 py-2 text-yellow-500 ">`+ order.status +`</div>
+                    <div class="col-span-2 px-4 py-2 text-black ">RM `+ order.totalPaid.toFixed(2) +`</div>
+                    <div class="col-span-2 px-4 py-2 text-black ">`+ order.orderDate +`</div>
+                    <div class="col-span-1 px-4 py-2 flex gap-4 justify-center items-center">
+                        <div class="hover:text-darkYellow cursor-pointer transition-color duration-200 ease-in-out" onClick="openUpdateModal('`+ order.id +`')">
+                            <i class="fa-solid fa-pen-to-square fa-lg"></i>
+                        </div>
                     </div>
                 </div>
-            </div>
             `;
+
+            const cardHTML = `
+                <div class="flex flex-col p-4 bg-white rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-lg font-bold truncate">Order Ref: `+ order.orderRefNo +`</h2>
+                        <span class="text-yellow-500 text-sm">`+ order.status +`</span>
+                    </div>
+                    <div class="text-sm text-gray-700">
+                        <p>Customer: `+ order.username +`</p>
+                        <p>Total: RM `+ order.totalPaid.toFixed(2) +`</p>
+                        <p>Order Date: `+ order.orderDate +`</p>
+                    </div>
+                    <div class="flex gap-4 justify-end mt-4">
+                        <button class="text-blue-500" onclick="openUpdateModal('`+ order.id +`')">
+                            <i class="fa-solid fa-pen-to-square fa-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            cardContainer.innerHTML += cardHTML;
         }
-        container.innerHTML = html;
+
+        tableContainer.innerHTML = tableHTML;
     }
+
+
 
     function getOrderHeaderRow() {
         return `
@@ -433,6 +601,11 @@
 
     // 🚀 Form Submit Handler (adjust URL accordingly)
     document.addEventListener("DOMContentLoaded", function () {
+
+        document.getElementById("filterBtn").addEventListener("click", function () {
+            document.getElementById("filterModal").classList.remove("hidden");
+        });
+
         document.getElementById("updateOrderForm").addEventListener("submit", function (e) {
             e.preventDefault();
             
@@ -489,7 +662,24 @@
                 }
             });
         });
-    });
+
+        const desktopForm = document.getElementById('filterFormDesktop');
+        const mobileForm = document.getElementById('filterFormMobile');
+
+        // Bind onchange for ALL inputs and selects inside desktop form
+        desktopForm.querySelectorAll('input, select').forEach(function (el) {
+            el.addEventListener('change', function () {
+                syncFilters('desktop');
+            });
+        });
+
+        // Bind onchange for ALL inputs and selects inside mobile form
+        mobileForm.querySelectorAll('input, select').forEach(function (el) {
+            el.addEventListener('change', function () {
+                syncFilters('mobile');
+            });
+        });
+        });
 
 
     function renderProduct(productImgUrl, productName, productPrice, quantity, selectedVariation) {

@@ -20,7 +20,6 @@ import Models.Products.product;
 import Models.Users.Cart;
 import Models.Users.CartItem;
 import Models.Users.User;
-import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
@@ -31,7 +30,6 @@ import mvc.Http.HttpMethod;
 import mvc.Result;
 
 
-@WebServlet("/Cart/*")
 public class CartController extends ControllerBase{
 
     private CartDAO cartDAO = new CartDAO();
@@ -62,8 +60,10 @@ public class CartController extends ControllerBase{
             }
         }
         List<CartItem> cartItems = cartDAO.getCartItemsByUser(user);
+        List<product> bestSellers = productDAO.getBestSellingProducts();
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("shippingAddresses", shippingAddresses);
+        request.setAttribute("bestSellers", bestSellers);
         
 
         return page();
@@ -120,7 +120,7 @@ public class CartController extends ControllerBase{
                 voucherInfo.setTotalAfterDeduction(total);
 
                 //Calculate total after voucher deduction
-                if (voucher.getType().equals("Percent")){
+                if (voucher.getType().equals("percentage")){
 
                     deduction = (subtotal * voucher.getAmount()) / 100;
                     if (deduction > voucher.getMaxCoverage()){
@@ -128,7 +128,7 @@ public class CartController extends ControllerBase{
                     }
                     total = subtotal + shippingFee - deduction;
 
-                } else if (voucher.getType().equals("Fixed")){
+                } else if (voucher.getType().equals("flat")){
 
                     deduction = voucher.getAmount();
                     total = subtotal + shippingFee - deduction;
@@ -230,8 +230,9 @@ public class CartController extends ControllerBase{
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonResponse = mapper.createObjectNode();
+        SessionHelper session = getSessionHelper();
 
-        User user = userDA.getUserById(1); // Replace with session-based user retrieval
+        User user = userDA.getUserById(session.getUserSession().getId()); // Replace with session-based user retrieval
         product product = null;
         Cart cart = null;
         try {

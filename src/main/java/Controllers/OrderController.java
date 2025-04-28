@@ -34,7 +34,6 @@ import Models.Products.product;
 import Models.Products.productFeedback;
 import Models.Users.CartItem;
 import Models.Users.User;
-import jakarta.servlet.annotation.WebServlet;
 import mvc.Annotations.ActionAttribute;
 import mvc.Annotations.Authorization;
 import mvc.Annotations.HttpRequest;
@@ -58,7 +57,7 @@ import mvc.Result;
 
 
 
-@WebServlet("/Order/*")
+
 public class OrderController extends ControllerBase {
     
     private PaymentDAO paymentDAO = new PaymentDAO();
