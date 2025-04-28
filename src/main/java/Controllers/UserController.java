@@ -217,7 +217,7 @@ public class UserController extends ControllerBase {
         return success();
     }
 
-    @Authorization(accessUrls = "User/account/password/otp/send")
+    // @Authorization(accessUrls = "User/account/password/otp/send")
     @ActionAttribute(urlPattern = "account/password/otp/send")
     @HttpRequest(HttpMethod.POST)
     public Result sendOTP() throws Exception {
@@ -245,7 +245,7 @@ public class UserController extends ControllerBase {
         return error("Failed to send OTP");
     }
 
-    @Authorization(accessUrls = "User/account/password/otp")
+    // @Authorization(accessUrls = "User/account/password/otp")
     @ActionAttribute(urlPattern = "account/password/otp")
     @HttpRequest(HttpMethod.POST)
     public Result verifyOTP(String otp) throws Exception {
@@ -275,7 +275,7 @@ public class UserController extends ControllerBase {
         return error("Invalid OTP");
     }
 
-    // @Authorization(accessUrls = "User/account/password/new")
+    @Authorization(accessUrls = "User/account/password/new")
     @ActionAttribute(urlPattern = "account/password/new")
     @SyncCache(channel = "User")
     @HttpRequest(HttpMethod.POST)
@@ -380,7 +380,7 @@ public class UserController extends ControllerBase {
         return error("Failed to change password");
     }
 
-    @Authorization(accessUrls = "User/account/ShippingAddresses")
+    @Authorization(accessUrls = "User/account/addresses")
     @ActionAttribute(urlPattern = "account/addresses")
     public Result addresses() throws Exception {
         SessionHelper session = getSessionHelper(); // function from ControllerBase
@@ -390,7 +390,7 @@ public class UserController extends ControllerBase {
         return page();
     }
 
-    @Authorization(accessUrls = "User/account/ShippingAddresses/default")
+    @Authorization(accessUrls = "User/account/addresses/default")
     @ActionAttribute(urlPattern = "account/addresses/default")
     @SyncCache(channel = "User")
     @HttpRequest(HttpMethod.POST)
@@ -426,7 +426,7 @@ public class UserController extends ControllerBase {
         return error("Failed to add address");
     }
 
-    @Authorization(accessUrls = "User/account/ShippingAddresses/edit")
+    @Authorization(accessUrls = "User/account/addresses/edit")
     @ActionAttribute(urlPattern = "account/addresses/edit")
     @SyncCache(channel = "User")
     @HttpRequest(HttpMethod.POST)
@@ -456,7 +456,7 @@ public class UserController extends ControllerBase {
         return error("Failed to update address");
     }
 
-    @Authorization(accessUrls = "User/account/ShippingAddresses/delete")
+    @Authorization(accessUrls = "User/account/addresses/delete")
     @ActionAttribute(urlPattern = "account/addresses/delete")
     @SyncCache(channel = "User")
     @HttpRequest(HttpMethod.POST)
